@@ -1,7 +1,7 @@
 <div align="center">
 
-  <!-- PROJECT LOGO PLACEHOLDER -->
-  <img src="https://raw.githubusercontent.com/TS-Anusha27/healthverse/main/frontend/assets/images/hero.png" alt="HealthVerse Logo" width="120" height="120" style="border-radius: 24px;" />
+  <!-- PROJECT LOGO -->
+  <img src="./frontend/assets/images/hero.png" alt="HealthVerse Logo" width="120" height="120" style="border-radius: 24px;" />
 
   # 🏥 HealthVerse
   ### *A Complete Healthcare Universe*
@@ -35,9 +35,9 @@
     </a>
   </p>
 
-  <!-- BANNER PLACEHOLDER -->
+  <!-- BANNER -->
   <br />
-  <img src="https://via.placeholder.com/1200x400/1E3A5F/FFFFFF?text=HealthVerse+--+Next-Gen+AI+Healthcare+Ecosystem" alt="HealthVerse Banner" width="100%" style="border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);" />
+  <img src="https://img.shields.io/badge/HealthVerse-Next--Gen_AI_Healthcare_Ecosystem-1E3A5F?style=for-the-badge&logo=heartpulse&logoColor=white&labelColor=0D4F3C" alt="HealthVerse Banner" width="100%" height="80" />
   <br />
   <br />
 
@@ -268,16 +268,19 @@ healthverse/
 
 ---
 
-## 📸 Screenshots
+## 📸 Application Previews & Screenshots
 
-| Page | Preview |
-|---|---|
-| **Splash / Auth** | <img src="https://via.placeholder.com/400x250/1E3A5F/FFFFFF?text=Splash+%26+Auth+Screen" width="380" /> |
-| **Patient Dashboard** | <img src="https://via.placeholder.com/400x250/4A90D9/FFFFFF?text=Patient+Home+Dashboard" width="380" /> |
-| **Doctor Dashboard** | <img src="https://via.placeholder.com/400x250/52C99B/FFFFFF?text=Doctor+Dashboard" width="380" /> |
-| **Ambulance Dispatch** | <img src="https://via.placeholder.com/400x250/FF4757/FFFFFF?text=Ambulance+Driver+Radar" width="380" /> |
-| **Appointments & Queue** | <img src="https://via.placeholder.com/400x250/7B68EE/FFFFFF?text=Live+Queue+Tracker" width="380" /> |
-| **Medical Records Vault** | <img src="https://via.placeholder.com/400x250/FFA502/FFFFFF?text=Health+Records+Vault" width="380" /> |
+| Module | Feature Badge | Status |
+|---|---|:---:|
+| **Splash / Auth Portal** | ![Splash Screen](https://img.shields.io/badge/Screen-Splash_%26_Auth_Portal-1E3A5F?style=for-the-badge&logo=supabase&logoColor=white) | ✅ Connected |
+| **Patient Dashboard** | ![Patient Dashboard](https://img.shields.io/badge/Screen-Patient_Home_Dashboard-4A90D9?style=for-the-badge&logo=activity&logoColor=white) | ✅ Connected |
+| **Doctor Dashboard** | ![Doctor Dashboard](https://img.shields.io/badge/Screen-Doctor_Clinical_Dashboard-52C99B?style=for-the-badge&logo=stethoscope&logoColor=white) | ✅ Connected |
+| **Ambulance Dispatch** | ![Ambulance Dispatch](https://img.shields.io/badge/Screen-Ambulance_Emergency_Radar-FF4757?style=for-the-badge&logo=googlemaps&logoColor=white) | ✅ Connected |
+| **Appointments & Queue** | ![Live Queue](https://img.shields.io/badge/Screen-Live_Hospital_Queue_Tracker-7B68EE?style=for-the-badge&logo=clock&logoColor=white) | ✅ Connected |
+| **Medical Records Vault** | ![Health Records](https://img.shields.io/badge/Screen-Health_Records_Vault-FFA502?style=for-the-badge&logo=files&logoColor=white) | ✅ Connected |
+| **Telemedicine Portal** | ![Telemedicine](https://img.shields.io/badge/Screen-Video_Consultation_Room-00D2D3?style=for-the-badge&logo=webrtc&logoColor=white) | ✅ Connected |
+| **Emergency SOS** | ![Emergency SOS](https://img.shields.io/badge/Screen-One--Tap_Emergency_SOS-E74C3C?style=for-the-badge&logo=alert-triangle&logoColor=white) | ✅ Connected |
+| **Blood & Organ Registry** | ![Donor Registry](https://img.shields.io/badge/Screen-Donor_Registry_%26_Requests-C62828?style=for-the-badge&logo=heart&logoColor=white) | ✅ Connected |
 
 ---
 
