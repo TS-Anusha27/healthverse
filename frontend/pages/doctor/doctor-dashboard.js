@@ -1,11 +1,15 @@
-// HealthVerse â€” Doctor Dashboard
+// HealthVerse — Doctor Dashboard connected to Supabase DB
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
 import { mockData } from '../../services/data.js';
 import { showToast } from '../../utils/utils.js';
+import { getAppointments, getEmergencyRequests } from '../../services/supabase/db.js';
 
-export function renderDoctorDashboard() {
+export async function renderDoctorDashboard() {
   const doctor = store.doctor || { name: 'Dr. Priya Krishnamurthy', specialty: 'Cardiologist', hospital: 'Apollo Hospitals' };
+  const appts = await getAppointments();
+  const emergencies = await getEmergencyRequests();
+  const activeEmergencies = emergencies.filter(e => e.status !== 'completed').length;
 
   const app = document.getElementById('app');
   app.innerHTML = `
@@ -14,9 +18,9 @@ export function renderDoctorDashboard() {
       <div style="background:linear-gradient(135deg,#1E3A5F,#0D4F3C);padding:calc(20px + var(--safe-top)) 20px 20px;color:white;">
         <div class="flex items-center justify-between">
           <div>
-            <div style="font-size:12px;color:rgba(255,255,255,0.7);font-weight:600;letter-spacing:0.5px;">DOCTOR DASHBOARD</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.7);font-weight:600;letter-spacing:0.5px;">DOCTOR DASHBOARD (SUPABASE LIVE)</div>
             <div style="font-family:var(--font-display);font-size:22px;font-weight:800;margin-top:2px;">${doctor.name}</div>
-            <div style="font-size:13px;color:rgba(255,255,255,0.8);">${doctor.specialty} â€¢ ${doctor.hospital}</div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.8);">${doctor.specialty} • ${doctor.hospital}</div>
           </div>
           <button class="avatar" style="background:rgba(255,255,255,0.2);color:white;cursor:pointer;" onclick="navigate('settings')" id="doc-avatar">
             PK
@@ -26,11 +30,11 @@ export function renderDoctorDashboard() {
         <!-- Quick Stats Grid -->
         <div class="grid-3 mt-4">
           <div style="background:rgba(255,255,255,0.12);border-radius:14px;padding:12px;text-align:center;">
-            <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:white;">18</div>
+            <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:white;">${appts.length}</div>
             <div style="font-size:11px;color:rgba(255,255,255,0.7);">Today's Appts</div>
           </div>
           <div style="background:rgba(255,255,255,0.12);border-radius:14px;padding:12px;text-align:center;">
-            <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--emergency);">2</div>
+            <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--emergency);">${activeEmergencies}</div>
             <div style="font-size:11px;color:rgba(255,255,255,0.7);">Emergency</div>
           </div>
           <div style="background:rgba(255,255,255,0.12);border-radius:14px;padding:12px;text-align:center;">
@@ -58,17 +62,10 @@ export function renderDoctorDashboard() {
                 </div>
                 <span class="badge badge-triage-${q.triage}">${q.triage.toUpperCase()}</span>
               </div>
-              <div style="font-size:13px;color:var(--text-secondary);display:flex;justify-content:space-between;align-items:center;">
-                <span>Chief Complaint: <strong>${q.condition}</strong></span>
-                <span style="color:var(--text-tertiary);font-size:12px;">Wait: ${q.wait}</span>
-              </div>
+              <div style="font-size:13px;color:var(--text-secondary);">Condition: <strong>${q.condition}</strong> • Wait: ${q.wait}</div>
               <div class="flex gap-2 mt-3">
-                <button class="btn btn-primary btn-xs flex-1" onclick="event.stopPropagation();openPatientSummary('${q.id}')">
-                  âš¡ Open AI Summary
-                </button>
-                <button class="btn btn-outline btn-xs" onclick="event.stopPropagation();navigate('doctor-prescription')">
-                  Prescribe
-                </button>
+                <button class="btn btn-primary btn-xs flex-1" onclick="event.stopPropagation();navigate('doctor-summary')">View AI Summary</button>
+                <button class="btn btn-outline btn-xs flex-1" onclick="event.stopPropagation();navigate('doctor-prescription')">Prescribe</button>
               </div>
             </div>
           `).join('')}
@@ -77,7 +74,5 @@ export function renderDoctorDashboard() {
     </div>
   `;
 
-  window.openPatientSummary = (id) => {
-    navigate('doctor-summary', { patientId: id });
-  };
+  window.openPatientSummary = () => navigate('doctor-summary');
 }

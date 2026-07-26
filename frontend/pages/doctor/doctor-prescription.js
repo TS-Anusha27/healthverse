@@ -1,7 +1,8 @@
-// HealthVerse â€” Digital Prescription with AI Drug Conflict Warnings
 import { navigate, goBack } from '../../routes/router.js';
 import { mockAISummary } from '../../services/data.js';
 import { showToast } from '../../utils/utils.js';
+import { createPrescription } from '../../services/supabase/db.js';
+import { store } from '../../store/store.js';
 
 let selectedMeds = [];
 
@@ -23,7 +24,7 @@ export function renderDoctorPrescription() {
         <div class="card mb-4" style="background:var(--primary-light);border-color:var(--primary);padding:14px;">
           <div style="font-size:12px;font-weight:700;color:var(--primary);letter-spacing:0.5px;">PATIENT</div>
           <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text-primary);margin-top:2px;">Aarav Patel (28y, M)</div>
-          <div style="font-size:12px;color:var(--emergency);font-weight:600;margin-top:4px;">âš ï¸ Known Allergy: Penicillin, Sulfa drugs</div>
+          <div style="font-size:12px;color:var(--emergency);font-weight:600;margin-top:4px;">⚠️ Known Allergy: Penicillin, Sulfa drugs</div>
         </div>
 
         <!-- Add Medicines -->
@@ -82,7 +83,7 @@ export function renderDoctorPrescription() {
     listEl.innerHTML = selectedMeds.map((m, i) => `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--surface-dim);border-radius:10px;font-size:13px;">
         <span style="font-weight:600;">${m.name}</span>
-        <button style="border:none;background:none;color:var(--emergency);cursor:pointer;font-weight:700;" onclick="removeMed(${i})">âœ•</button>
+        <button style="border:none;background:none;color:var(--emergency);cursor:pointer;font-weight:700;" onclick="removeMed(${i})">✖</button>
       </div>
     `).join('');
 
@@ -92,13 +93,13 @@ export function renderDoctorPrescription() {
       warnEl.style.display = 'block';
       warnEl.innerHTML = `
         <div style="font-family:var(--font-display);font-size:13px;font-weight:800;color:var(--emergency);">
-          ðŸ¤– AI SAFETY WARNING DETECTED!
+          🤖 AI SAFETY WARNING DETECTED!
         </div>
         <div style="font-size:12px;color:var(--text-primary);margin-top:4px;">
           Patient has documented <strong>PENICILLIN ALLERGY</strong>. Amoxicillin is contraindicated and may cause anaphylaxis.
         </div>
       `;
-      showToast('âš ï¸ AI Warning: Allergy conflict detected!', 'error', 5000);
+      showToast('⚠️ AI Warning: Allergy conflict detected!', 'error', 5000);
     } else if (warnEl) {
       warnEl.style.display = 'none';
     }
@@ -109,12 +110,26 @@ export function renderDoctorPrescription() {
     updateRxList();
   };
 
-  window.signAndSendRx = () => {
+  window.signAndSendRx = async () => {
+    if (selectedMeds.length === 0) {
+      showToast('Please add at least one medicine to the prescription.', 'warning');
+      return;
+    }
     if (selectedMeds.some(m => m.isAllergic)) {
       showToast('Cannot issue prescription with severe allergy conflict! Remove Amoxicillin first.', 'error', 5000);
       return;
     }
-    showToast('Prescription digitally signed & sent to patient!', 'success', 5000);
+
+    await createPrescription({
+      patient_id: store.currentUser?.id || null,
+      doctor_id: 'dr1',
+      doctor_name: 'Dr. Priya Krishnamurthy',
+      diagnosis: 'Hypertension Follow-up',
+      medicines: selectedMeds,
+      instructions: 'Take as directed with food'
+    });
+
+    showToast('Prescription digitally signed & saved to Supabase!', 'success', 5000);
     setTimeout(() => navigate('doctor-home'), 1500);
   };
 }

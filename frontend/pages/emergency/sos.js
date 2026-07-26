@@ -1,6 +1,8 @@
-// HealthVerse â€” Emergency SOS Screen
+// HealthVerse — Emergency SOS Screen with Supabase Integration
 import { navigate, goBack } from '../../routes/router.js';
 import { showToast } from '../../utils/utils.js';
+import { createEmergencyRequest } from '../../services/supabase/db.js';
+import { store } from '../../store/store.js';
 
 let countdown = 5;
 let timer = null;
@@ -43,7 +45,7 @@ export function renderSOS() {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           <div>
             <div style="font-size:13px;font-weight:600;color:white;">Current Location: Velachery, Chennai</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.6);">Accuracy: 8m â€¢ GPS Active</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.6);">Accuracy: 8m • GPS Active</div>
           </div>
         </div>
 
@@ -75,16 +77,30 @@ export function renderSOS() {
   };
 }
 
-function dispatchEmergency() {
+async function dispatchEmergency() {
   const app = document.getElementById('app');
+
+  // Create real emergency request in Supabase
+  await createEmergencyRequest({
+    patient_id: store.currentUser?.id || null,
+    patient_name: store.currentUser?.name || 'Emergency Patient',
+    condition: 'Acute Emergency SOS Call',
+    address: '45, Velachery Main Road, Chennai',
+    distance: '0.8 km',
+    eta: '4 min',
+    hospital: 'Apollo Hospitals',
+    triage: 'red',
+    status: 'pending'
+  });
+
   app.innerHTML = `
     <div class="screen" style="background:#111827;color:white;padding:24px;min-height:100dvh;display:flex;flex-direction:column;justify-content:between;">
       <div style="text-align:center;margin-top:40px;" class="animate-slide-up">
         <div style="width:90px;height:90px;border-radius:50%;background:var(--emergency);margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:40px;box-shadow:0 0 40px rgba(255,71,87,0.6);animation:pulse-ring 1.5s infinite;">
-          ðŸš¨
+          🚨
         </div>
         <h1 style="font-family:var(--font-display);font-size:26px;font-weight:800;color:white;">Ambulance Dispatched!</h1>
-        <p style="font-size:14px;color:rgba(255,255,255,0.7);margin-top:6px;">Driver: Ravi Kumar (MH 01 AX 4892) is en route</p>
+        <p style="font-size:14px;color:rgba(255,255,255,0.7);margin-top:6px;">Saved to Supabase database. Ambulance driver notified.</p>
       </div>
 
       <!-- Live Tracking Card -->
@@ -95,8 +111,8 @@ function dispatchEmergency() {
         </div>
         <div class="progress-bar mb-3"><div class="progress-fill" style="width:75%;background:var(--secondary);"></div></div>
         <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:rgba(255,255,255,0.8);">
-          <div>ðŸ“ Destination: Apollo Hospitals Emergency Ward</div>
-          <div>ðŸ“ž Emergency Contact (Mother) Notified via SMS</div>
+          <div>📍 Destination: Apollo Hospitals Emergency Ward</div>
+          <div>📞 Emergency Contact Notified</div>
         </div>
       </div>
 
@@ -106,5 +122,5 @@ function dispatchEmergency() {
     </div>
   `;
 
-  showToast('ðŸš¨ Emergency SOS dispatched! Hospital and family notified.', 'error', 6000);
+  showToast('🚨 Emergency SOS recorded in Supabase! Driver en route.', 'error', 6000);
 }

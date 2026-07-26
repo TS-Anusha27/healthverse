@@ -2,6 +2,8 @@
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
 import { showToast, showModal } from '../../utils/utils.js';
+import { getDoctors, createTelemedicineSession } from '../../services/supabase/db.js';
+import { store } from '../../store/store.js';
 
 let callTimer = null;
 let callSeconds = 0;
@@ -152,6 +154,22 @@ function injectTeleStyles() {
 }
 
 function initTeleHandlers() {
+  window.confirmVideoBooking = async (docId, slot) => {
+    const doc = mockData.doctors.find(d => d.id === docId) || { name: 'Dr. Priya K.' };
+    const roomId = 'room_' + Math.random().toString(36).substring(2, 9);
+    
+    await createTelemedicineSession({
+      patient_id: store.currentUser?.id || null,
+      doctor_id: docId,
+      room_id: roomId,
+      status: 'waiting'
+    });
+
+    closeModal();
+    showToast(`Video consultation confirmed with ${doc.name} for ${slot}! Saved to Supabase.`, 'success', 5000);
+    setTimeout(() => startVideoCall(doc.name, doc.specialty), 800);
+  };
+
   window.openBookingModal = (docId) => {
     const doc = mockData.doctors.find(d => d.id === docId);
     if (!doc) return;
@@ -163,7 +181,7 @@ function initTeleHandlers() {
       </div>
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
         <div class="flex justify-between"><span style="color:var(--text-secondary);">Experience</span><strong>${doc.experience} years</strong></div>
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">Rating</span><strong>â­ ${doc.rating} (${doc.reviews} reviews)</strong></div>
+        <div class="flex justify-between"><span style="color:var(--text-secondary);">Rating</span><strong>â­  ${doc.rating} (${doc.reviews} reviews)</strong></div>
         <div class="flex justify-between"><span style="color:var(--text-secondary);">Consultation Fee</span><strong style="color:var(--primary);">â‚¹${doc.fee}</strong></div>
         <div class="flex justify-between"><span style="color:var(--text-secondary);">Next Available</span><strong style="color:var(--success);">${doc.nextSlot}</strong></div>
       </div>

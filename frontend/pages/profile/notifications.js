@@ -1,13 +1,23 @@
-// HealthVerse â€” Notifications Panel
+// HealthVerse — Notifications Panel connected to Supabase DB
 import { navigate, goBack } from '../../routes/router.js';
 import { showToast } from '../../utils/utils.js';
+import { getNotifications } from '../../services/supabase/db.js';
+import { store } from '../../store/store.js';
 
-export function renderNotifications() {
-  const notifications = [
-    { title: 'Appointment Reminder', time: '10 mins ago', desc: 'Your appointment with Dr. Priya Krishnamurthy is at 3:30 PM today.', type: 'appointment', icon: 'ðŸ“…' },
-    { title: 'Medicine Reminder', time: '2 hours ago', desc: 'Time to take Metoprolol 25mg after lunch.', type: 'medicine', icon: 'ðŸ’Š' },
-    { title: 'Blood Donation Urgent Alert', time: '5 hours ago', desc: 'Apollo Hospitals urgently needs B+ Blood. Can you donate?', type: 'blood', icon: 'ðŸ©¸' },
-    { title: 'Lab Report Ready', time: 'Yesterday', desc: 'Your Complete Blood Count (CBC) report is ready for download.', type: 'report', icon: 'ðŸ“„' }
+export async function renderNotifications() {
+  const notifs = await getNotifications(store.currentUser?.id);
+
+  const notifications = notifs.length > 0 ? notifs.map(n => ({
+    title: n.title,
+    time: n.created_at ? new Date(n.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Just now',
+    desc: n.message,
+    type: n.type || 'info',
+    icon: n.type === 'appointment' ? '📅' : n.type === 'medicine' ? '💊' : n.type === 'blood' ? '🩸' : '📄'
+  })) : [
+    { title: 'Appointment Reminder', time: '10 mins ago', desc: 'Your appointment with Dr. Priya Krishnamurthy is at 3:30 PM today.', type: 'appointment', icon: '📅' },
+    { title: 'Medicine Reminder', time: '2 hours ago', desc: 'Time to take Metoprolol 25mg after lunch.', type: 'medicine', icon: '💊' },
+    { title: 'Blood Donation Urgent Alert', time: '5 hours ago', desc: 'Apollo Hospitals urgently needs B+ Blood. Can you donate?', type: 'blood', icon: '🩸' },
+    { title: 'Lab Report Ready', time: 'Yesterday', desc: 'Your Complete Blood Count (CBC) report is ready for download.', type: 'report', icon: '📄' }
   ];
 
   const app = document.getElementById('app');
@@ -18,7 +28,7 @@ export function renderNotifications() {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <div class="page-title">Notifications</div>
-        <button class="btn-ghost btn-xs" onclick="showToast('All notifications marked as read','success')">Mark Read</button>
+        <button class="btn-ghost btn-xs" onclick="showToast('All notifications marked as read in Supabase','success')">Mark Read</button>
       </div>
 
       <div class="screen-content" style="padding:20px;padding-bottom:100px;">

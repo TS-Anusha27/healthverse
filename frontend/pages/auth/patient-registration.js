@@ -1,7 +1,8 @@
-// HealthVerse â€” Patient Registration (Multi-Step Form)
+// HealthVerse — Patient Registration connected to Supabase Database
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
 import { showToast } from '../../utils/utils.js';
+import { createPatientProfile } from '../../services/supabase/db.js';
 
 const STEPS = [
   { title: 'Personal Info', subtitle: 'Tell us about yourself' },
@@ -14,14 +15,6 @@ let currentStep = 0;
 const formData = {};
 
 export function renderPatientRegistration() {
-  // Check if already registered
-  const saved = localStorage.getItem('hv_patient_profile');
-  if (saved) {
-    store.patient = JSON.parse(saved);
-    navigate('patient-home');
-    return;
-  }
-
   currentStep = 0;
   renderStep();
 }
@@ -73,7 +66,6 @@ function renderStep() {
     </div>
   `;
 
-  // Initialize dropdowns/pickers
   initStepHandlers();
 }
 
@@ -154,33 +146,6 @@ function getStepContent() {
             ).join('')}
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Lifestyle</label>
-          <div class="grid-2" style="gap:12px;">
-            <div style="background:var(--surface-dim);border-radius:12px;padding:14px;">
-              <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:10px;">Smoking</div>
-              <div style="display:flex;flex-direction:column;gap:6px;" id="smoking-opts">
-                ${['Never','Former','Current'].map((o,i) =>
-                  `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
-                    <input type="radio" name="smoking" value="${o.toLowerCase()}" ${i===0?'checked':''} />
-                    ${o}
-                  </label>`
-                ).join('')}
-              </div>
-            </div>
-            <div style="background:var(--surface-dim);border-radius:12px;padding:14px;">
-              <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:10px;">Alcohol</div>
-              <div style="display:flex;flex-direction:column;gap:6px;">
-                ${['Never','Occasional','Regular'].map((o,i) =>
-                  `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
-                    <input type="radio" name="alcohol" value="${o.toLowerCase()}" ${i===0?'checked':''} />
-                    ${o}
-                  </label>`
-                ).join('')}
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   `;
@@ -201,24 +166,6 @@ function getStepContent() {
             ).join('')}
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Family Medical History</label>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;" id="family-chips">
-            ${['Diabetes','Heart Disease','Cancer','Hypertension','Alzheimer\'s','Kidney Disease','None'].map(v =>
-              `<div class="chip" onclick="toggleChip(this)">${v}</div>`
-            ).join('')}
-          </div>
-        </div>
-        <div style="background:var(--primary-light);border-radius:14px;padding:16px;">
-          <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--primary);margin-bottom:8px;">ðŸ“ Upload Medical Reports</div>
-          <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Prescriptions, MRI, X-Ray, Blood reports, Discharge summaries</div>
-          <div id="upload-zone" style="border:2px dashed var(--primary);border-radius:10px;padding:20px;text-align:center;cursor:pointer;background:rgba(74,144,217,0.05);" onclick="simulateUpload()">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 8px;display:block;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            <div style="font-size:13px;font-weight:600;color:var(--primary);">Tap to upload files</div>
-            <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">PDF, JPG, PNG â€” up to 50 MB</div>
-          </div>
-          <div id="upload-list"></div>
-        </div>
       </div>
     </div>
   `;
@@ -228,23 +175,11 @@ function getStepContent() {
       <h3 class="text-h4 mb-4">Emergency & Insurance</h3>
       <div style="display:flex;flex-direction:column;gap:16px;">
         <div style="background:var(--emergency-light);border-radius:14px;padding:16px;">
-          <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--emergency);margin-bottom:12px;">ðŸš¨ Emergency Contact</div>
+          <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--emergency);margin-bottom:12px;">🚨 Emergency Contact</div>
           <div style="display:flex;flex-direction:column;gap:12px;">
             <div class="form-group">
               <label class="form-label">Contact Name</label>
               <input type="text" class="form-input" id="f-emer-name" placeholder="Full name" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Relationship</label>
-              <select class="form-input form-select" id="f-emer-rel">
-                <option value="">Select relationship</option>
-                <option>Spouse/Partner</option>
-                <option>Parent</option>
-                <option>Child</option>
-                <option>Sibling</option>
-                <option>Friend</option>
-                <option>Other</option>
-              </select>
             </div>
             <div class="form-group">
               <label class="form-label">Phone Number</label>
@@ -256,31 +191,12 @@ function getStepContent() {
           <label class="form-label">Address</label>
           <textarea class="form-input" id="f-address" rows="2" placeholder="Your home address" style="resize:none;"></textarea>
         </div>
-        <div class="form-group">
-          <label class="form-label">Health Insurance</label>
-          <input type="text" class="form-input" id="f-insurance" placeholder="Insurance provider & policy number" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Organ Donor</label>
-          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface-dim);padding:14px 16px;border-radius:12px;">
-            <div>
-              <div style="font-size:14px;font-weight:600;color:var(--text-primary);">Register as Organ Donor</div>
-              <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">Help save lives through donation</div>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" id="f-organ-donor" />
-              <div class="toggle-track"></div>
-              <div class="toggle-thumb"></div>
-            </label>
-          </div>
-        </div>
       </div>
     </div>
   `;
 }
 
 function initStepHandlers() {
-  // Blood group selector
   if (!document.getElementById('blood-chip-styles')) {
     const s = document.createElement('style');
     s.id = 'blood-chip-styles';
@@ -314,26 +230,6 @@ function initStepHandlers() {
 
   window.toggleChip = (el) => el.classList.toggle('active');
 
-  window.simulateUpload = () => {
-    const list = document.getElementById('upload-list');
-    const files = ['Blood_Report_Jul2026.pdf', 'ECG_Report.pdf', 'Prescription_Dr_Priya.pdf'];
-    const randomFile = files[Math.floor(Math.random() * files.length)];
-    showToast(`Uploading ${randomFile}...`, 'info');
-    setTimeout(() => {
-      showToast(`${randomFile} uploaded successfully!`, 'success');
-      if (list) {
-        const div = document.createElement('div');
-        div.style.cssText = 'display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px;background:var(--success-light);border-radius:10px;';
-        div.innerHTML = `
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          <span style="font-size:13px;color:var(--text-primary);flex:1;">${randomFile}</span>
-          <span style="font-size:11px;color:var(--text-secondary);">âœ“ Uploaded</span>
-        `;
-        list.appendChild(div);
-      }
-    }, 1500);
-  };
-
   window.prevStep = () => {
     if (currentStep > 0) { currentStep--; renderStep(); }
   };
@@ -350,10 +246,20 @@ function initStepHandlers() {
     }
   };
 
-  window.skipSetup = () => {
+  window.skipSetup = async () => {
     const profile = buildDefaultProfile();
     store.patient = profile;
-    localStorage.setItem('hv_patient_profile', JSON.stringify(profile));
+    if (store.currentUser?.id) {
+      await createPatientProfile({
+        id: store.currentUser.id,
+        dob: profile.dob,
+        gender: profile.gender,
+        blood_group: profile.bloodGroup,
+        emergency_contact_name: profile.emergencyName,
+        emergency_contact_phone: profile.emergencyPhone,
+        address: profile.address
+      });
+    }
     navigate('patient-home');
   };
 }
@@ -382,8 +288,6 @@ function collectStepData() {
     formData.weight = document.getElementById('f-weight')?.value;
     formData.allergies = document.getElementById('f-allergies')?.value;
     formData.medications = document.getElementById('f-medications')?.value;
-    formData.smoking = document.querySelector('[name="smoking"]:checked')?.value;
-    formData.alcohol = document.querySelector('[name="alcohol"]:checked')?.value;
   }
   if (currentStep === 2) {
     formData.surgeries = document.getElementById('f-surgeries')?.value;
@@ -391,10 +295,7 @@ function collectStepData() {
   if (currentStep === 3) {
     formData.emergencyName = document.getElementById('f-emer-name')?.value;
     formData.emergencyPhone = document.getElementById('f-emer-phone')?.value;
-    formData.emergencyRel = document.getElementById('f-emer-rel')?.value;
     formData.address = document.getElementById('f-address')?.value;
-    formData.insurance = document.getElementById('f-insurance')?.value;
-    formData.organDonor = document.getElementById('f-organ-donor')?.checked;
   }
 }
 
@@ -405,39 +306,41 @@ function buildDefaultProfile() {
     phone: store.currentUser?.phone || '+91 9876543210',
     gender: 'male',
     dob: '1998-03-15',
-    age: 28,
     bloodGroup: 'B+',
     height: '175',
     weight: '72',
-    allergies: 'Penicillin, Sulfa drugs',
-    medications: 'Amlodipine 5mg, Metoprolol 25mg',
-    diseases: ['Hypertension'],
-    smoking: 'never',
-    alcohol: 'never',
-    healthScore: 82,
-    abha: 'AB-1234-5678-9012',
-    insurance: 'Star Health â€” Policy #SH987654321',
+    healthScore: 85,
     emergencyName: 'Meera Patel',
     emergencyPhone: '+91 9876543200',
-    emergencyRel: 'Mother',
-    organDonor: false,
-    address: '45, Velachery Main Road, Chennai - 600042',
+    address: '45, Velachery Main Road, Chennai',
     ...formData
   };
 }
 
-function completeRegistration() {
+async function completeRegistration() {
   const btn = document.getElementById('step-next-btn');
   if (btn) {
-    btn.innerHTML = '<span class="animate-spin" style="display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;"></span> Setting up your profile...';
+    btn.innerHTML = '<span class="animate-spin" style="display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;"></span> Saving to Supabase...';
     btn.disabled = true;
   }
 
-  setTimeout(() => {
-    const profile = buildDefaultProfile();
-    store.patient = profile;
-    localStorage.setItem('hv_patient_profile', JSON.stringify(profile));
-    showToast('Profile setup complete! Welcome to HealthVerse ðŸŽ‰', 'success');
-    navigate('patient-home');
-  }, 1800);
+  const profile = buildDefaultProfile();
+  store.patient = profile;
+
+  if (store.currentUser?.id) {
+    await createPatientProfile({
+      id: store.currentUser.id,
+      dob: profile.dob,
+      gender: profile.gender,
+      blood_group: profile.bloodGroup,
+      height: parseFloat(profile.height) || 175,
+      weight: parseFloat(profile.weight) || 72,
+      emergency_contact_name: profile.emergencyName,
+      emergency_contact_phone: profile.emergencyPhone,
+      address: profile.address
+    });
+  }
+
+  showToast('Profile setup complete! Welcome to HealthVerse 🎉', 'success');
+  navigate('patient-home');
 }

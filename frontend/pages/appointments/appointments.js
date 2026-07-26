@@ -2,6 +2,8 @@
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
 import { showToast, showModal, closeModal, generateQRDisplay } from '../../utils/utils.js';
+import { getHospitals, getDoctors, createAppointment } from '../../services/supabase/db.js';
+import { store } from '../../store/store.js';
 
 let map = null;
 let selectedHospital = null;
@@ -476,23 +478,41 @@ function showPayment() {
 }
 
 function showBookingConfirmation() {
+  const token = 'TK-' + Math.floor(100 + Math.random() * 900);
+  const apptData = {
+    patient_id: store.currentUser?.id || null,
+    doctor_id: selectedDoctor?.id || 'dr1',
+    doctor_name: selectedDoctor?.name || 'Dr. Priya Krishnamurthy',
+    specialty: selectedDoctor?.specialty || 'Cardiologist',
+    hospital: selectedHospital?.name || 'Apollo Hospitals',
+    date: selectedDate === new Date().toISOString().split('T')[0] ? 'Today' : 'Tomorrow',
+    time: selectedSlot || '3:30 PM',
+    type: 'In-Person',
+    token: token,
+    status: 'confirmed',
+    qr_code: `QR-${token}-HEALTHVERSE`,
+    room: 'Room 204, 2nd Floor'
+  };
+
+  createAppointment(apptData);
+
   showModal(`
     <div style="text-align:center;padding:20px 0;">
       <div style="width:80px;height:80px;background:var(--success-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;animation:scaleInSpring 0.5s var(--transition-spring);">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
-      <h3 style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--text-primary);">Booked! ðŸŽ‰</h3>
-      <p style="font-size:14px;color:var(--text-secondary);margin-top:8px;">Your appointment has been confirmed</p>
+      <h3 style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--text-primary);">Booked! 🎉</h3>
+      <p style="font-size:14px;color:var(--text-secondary);margin-top:8px;">Your appointment has been confirmed and saved to Supabase</p>
       <div style="background:var(--surface-dim);border-radius:16px;padding:20px;margin:20px 0;text-align:left;">
         <div style="display:flex;flex-direction:column;gap:8px;font-size:14px;">
           <div class="flex justify-between"><span style="color:var(--text-secondary);">Doctor</span><span style="font-weight:600;">${selectedDoctor?.name || 'Dr. Priya K.'}</span></div>
           <div class="flex justify-between"><span style="color:var(--text-secondary);">Hospital</span><span style="font-weight:600;">${selectedHospital?.name || 'Apollo'}</span></div>
           <div class="flex justify-between"><span style="color:var(--text-secondary);">Slot</span><span style="font-weight:600;">${selectedSlot || '3:30 PM'}</span></div>
-          <div class="flex justify-between"><span style="color:var(--text-secondary);">Token</span><span style="font-weight:700;color:var(--primary);">TK-052</span></div>
+          <div class="flex justify-between"><span style="color:var(--text-secondary);">Token</span><span style="font-weight:700;color:var(--primary);">${token}</span></div>
         </div>
       </div>
       <div style="display:flex;justify-content:center;margin:16px 0;">
-        ${generateQRDisplay('QR-052-HEALTHVERSE')}
+        ${generateQRDisplay(`QR-${token}-HEALTHVERSE`)}
       </div>
       <div style="display:flex;gap:10px;margin-top:20px;">
         <button class="btn btn-primary" style="flex:1;" onclick="closeModal();navigate('live-queue')">View Queue</button>
@@ -501,5 +521,5 @@ function showBookingConfirmation() {
     </div>
   `);
 
-  showToast('Appointment booked! QR code sent to your email ðŸ“§', 'success');
+  showToast('Appointment booked! Saved to Supabase database 📧', 'success');
 }

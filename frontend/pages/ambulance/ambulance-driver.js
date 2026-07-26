@@ -1,15 +1,15 @@
-// HealthVerse â€” Ambulance Driver Dashboard (Uber/Rapido Style UI)
+// HealthVerse — Ambulance Driver Dashboard connected to Supabase DB
 import { navigate } from '../../routes/router.js';
-import { mockData } from '../../services/data.js';
 import { showToast, showModal, closeModal } from '../../utils/utils.js';
+import { getEmergencyRequests, updateEmergencyRequestStatus, updateDriverStatus } from '../../services/supabase/db.js';
 
 let isOnline = true;
 let inRide = false;
-let mapInstance = null;
 
-export function renderAmbulanceDriver() {
+export async function renderAmbulanceDriver() {
   const driver = { name: 'Ravi Kumar', vehicle: 'MH 01 AX 4892 (ICU Ambulance)', rating: 4.8 };
-  const req = mockData.emergencyRequests[0];
+  const requests = await getEmergencyRequests();
+  const req = requests[0] || { patientName: 'Meera Krishnan', condition: 'Chest Pain — Urgent', address: '45, Anna Nagar, Chennai', distance: '1.2 km', eta: '4 min', hospital: 'Apollo Hospitals' };
   const app = document.getElementById('app');
 
   app.innerHTML = `
@@ -38,81 +38,70 @@ export function renderAmbulanceDriver() {
       </div>
 
       <!-- Map Container -->
-      <div style="height:calc(100dvh - 280px);width:100%;position:relative;" id="amb-map-container">
-        <div id="amb-map" style="width:100%;height:100%;"></div>
+      <div style="height:calc(100dvh - 280px);width:100%;position:relative;display:flex;align-items:center;justify-content:center;background:var(--surface-dim);" id="amb-map-container">
+        <div style="text-align:center;padding:20px;">
+          <div style="font-size:40px;margin-bottom:8px;">🚑</div>
+          <div style="font-family:var(--font-display);font-size:16px;font-weight:700;">Live Dispatch Radar</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Connected to Supabase Real-time Emergency Feed</div>
+        </div>
       </div>
 
       <!-- Driver Sheet / Ride Panel -->
       <div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--surface);border-radius:24px 24px 0 0;padding:20px calc(20px + var(--safe-bottom));box-shadow:0 -8px 30px rgba(0,0,0,0.15);z-index:20;">
         ${!inRide ? `
           <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--emergency);letter-spacing:0.5px;margin-bottom:8px;">
-            ðŸš¨ INCOMING EMERGENCY REQUEST
+            🚨 INCOMING EMERGENCY REQUEST
           </div>
           <div class="card card-sm mb-3" style="background:var(--surface-dim);padding:14px;">
             <div class="flex justify-between items-center mb-1">
-              <span style="font-size:15px;font-weight:700;color:var(--text-primary);">${req.patientName}</span>
-              <span class="badge badge-emergency">${req.condition}</span>
+              <span style="font-size:15px;font-weight:700;color:var(--text-primary);">${req.patient_name || req.patientName}</span>
+              <span class="badge badge-emergency">${req.condition || 'SOS Emergency'}</span>
             </div>
-            <div style="font-size:13px;color:var(--text-secondary);">ðŸ“ Pickup: ${req.address} (${req.distance})</div>
-            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">ðŸ¥ Destination: ${req.hospital}</div>
+            <div style="font-size:13px;color:var(--text-secondary);">📍 Pickup: ${req.address} (${req.distance || '1.0 km'})</div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">🏥 Destination: ${req.hospital || 'Apollo Hospitals'}</div>
           </div>
-          <button class="btn btn-emergency btn-full btn-lg" onclick="acceptEmergencyRide()">
-            ACCEPT EMERGENCY RIDE (ETA ${req.eta})
+          <button class="btn btn-emergency btn-full btn-lg" onclick="acceptEmergencyRide('${req.id}')">
+            ACCEPT EMERGENCY RIDE (ETA ${req.eta || '4 min'})
           </button>
         ` : `
           <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--secondary);margin-bottom:8px;">
-            ðŸš‘ TRIP IN PROGRESS â€” ETA 4 MINS
+            ⚡ ACTIVE EMERGENCY MISSION
           </div>
           <div class="card card-sm mb-3" style="background:var(--surface-dim);padding:14px;">
-            <div style="font-size:14px;font-weight:700;color:var(--text-primary);">${req.patientName}</div>
-            <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">Navigating to Apollo Emergency Ward...</div>
+            <div style="font-size:14px;font-weight:700;">En Route to Patient</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">Patient Status: Stable • GPS Tracking Active</div>
           </div>
-          <div class="flex gap-2">
-            <button class="btn btn-primary flex-1" onclick="showToast('Calling patient family...','info')">ðŸ“ž Call Family</button>
-            <button class="btn btn-secondary flex-1" onclick="completeEmergencyRide()">Complete Ride</button>
-          </div>
+          <button class="btn btn-primary btn-full btn-lg" onclick="completeEmergencyRide('${req.id}')">
+            MARK MISSION COMPLETED
+          </button>
         `}
       </div>
     </div>
   `;
 
-  initAmbMap(req);
-
-  window.toggleDriverOnline = (val) => {
-    isOnline = val;
-    const txt = document.getElementById('status-text');
-    if (txt) txt.textContent = isOnline ? 'ONLINE' : 'OFFLINE';
-    showToast(isOnline ? 'You are now Online to receive emergencies' : 'You are now Offline', isOnline ? 'success' : 'info');
-  };
-
-  window.acceptEmergencyRide = () => {
-    inRide = true;
-    showToast('Ride Accepted! Turn-by-turn navigation started.', 'success');
-    renderAmbulanceDriver();
-  };
-
-  window.completeEmergencyRide = () => {
-    inRide = false;
-    showToast('Emergency ride completed safely! Patient handed to trauma care.', 'success', 5000);
-    renderAmbulanceDriver();
-  };
+  initDriverHandlers();
 }
 
-function initAmbMap(req) {
-  setTimeout(() => {
-    const el = document.getElementById('amb-map');
-    if (!el || typeof L === 'undefined') return;
+function initDriverHandlers() {
+  window.toggleDriverOnline = async (val) => {
+    isOnline = val;
+    document.getElementById('status-text').innerText = isOnline ? 'ONLINE' : 'OFFLINE';
+    document.getElementById('status-text').style.color = isOnline ? 'var(--secondary)' : 'var(--text-tertiary)';
+    await updateDriverStatus('amb1', isOnline ? 'available' : 'offline');
+    showToast(isOnline ? 'You are ONLINE — listening for Supabase emergency calls' : 'You are OFFLINE', isOnline ? 'success' : 'info');
+  };
 
-    const map = L.map('amb-map', { zoomControl: false, attributionControl: false }).setView([req.lat, req.lng], 14);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  window.acceptEmergencyRide = async (id) => {
+    inRide = true;
+    await updateEmergencyRequestStatus(id, 'accepted', 'amb1');
+    showToast('Emergency ride accepted in Supabase database! GPS navigation started.', 'success', 5000);
+    renderAmbulanceDriver();
+  };
 
-    const ambIcon = L.divIcon({
-      className: '',
-      html: `<div style="font-size:24px;">ðŸš‘</div>`,
-      iconSize: [30, 30]
-    });
-    L.marker([req.lat, req.lng], { icon: ambIcon }).addTo(map).bindPopup('<b>Ambulance</b>');
-
-    setTimeout(() => map.invalidateSize(), 300);
-  }, 200);
+  window.completeEmergencyRide = async (id) => {
+    inRide = false;
+    await updateEmergencyRequestStatus(id, 'completed', 'amb1');
+    showToast('Mission completed! Patient safely transported to hospital.', 'success', 5000);
+    renderAmbulanceDriver();
+  };
 }

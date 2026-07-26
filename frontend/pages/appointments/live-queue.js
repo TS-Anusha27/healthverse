@@ -1,12 +1,14 @@
-// HealthVerse â€” Live Queue Tracker
+// HealthVerse — Live Queue Tracker with Supabase Real-time Sync
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
-import { showToast } from '../../utils/utils.js';
+import { showToast, showModal, closeModal } from '../../utils/utils.js';
+import { getAppointments, cancelAppointment, rescheduleAppointment } from '../../services/supabase/db.js';
 
 let queueInterval = null;
 
-export function renderLiveQueue() {
-  const appt = mockData.appointments[0];
+export async function renderLiveQueue() {
+  const appointments = await getAppointments();
+  const appt = appointments[0] || mockData.appointments[0];
   const app = document.getElementById('app');
 
   app.innerHTML = `
@@ -28,7 +30,7 @@ export function renderLiveQueue() {
           <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
             <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:22px;font-weight:700;color:white;">P</div>
             <div>
-              <div style="font-family:var(--font-display);font-size:17px;font-weight:700;color:white;">${appt.doctorName}</div>
+              <div style="font-family:var(--font-display);font-size:17px;font-weight:700;color:white;">${appt.doctor_name || appt.doctorName}</div>
               <div style="font-size:13px;color:rgba(255,255,255,0.7);">${appt.specialty}</div>
               <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
                 <div style="width:8px;height:8px;border-radius:50%;background:var(--success);animation:pulse-ring 1.5s infinite;"></div>
@@ -43,137 +45,77 @@ export function renderLiveQueue() {
             </div>
             <div style="background:rgba(255,255,255,0.15);"></div>
             <div style="text-align:center;">
-              <div style="font-size:28px;font-weight:800;color:var(--warning);font-family:var(--font-display);">TK-047</div>
+              <div style="font-size:28px;font-weight:800;color:var(--warning);font-family:var(--font-display);">${appt.token || 'TK-047'}</div>
               <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:2px;">YOUR TOKEN</div>
             </div>
             <div style="background:rgba(255,255,255,0.15);"></div>
             <div style="text-align:center;">
-              <div style="font-size:28px;font-weight:800;color:var(--secondary);font-family:var(--font-display);" id="wait-time">45</div>
+              <div style="font-size:28px;font-weight:800;color:var(--secondary);font-family:var(--font-display);" id="wait-time">25</div>
               <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:2px;">MINS WAIT</div>
             </div>
           </div>
         </div>
 
-        <!-- Queue Position -->
-        <div class="card mb-4" style="padding:20px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-            <div style="font-family:var(--font-display);font-size:16px;font-weight:700;">Queue Position</div>
-            <div class="badge badge-warning">6 ahead of you</div>
-          </div>
-
-          <!-- Queue visual -->
-          <div style="display:flex;flex-direction:column;gap:8px;" id="queue-list">
-            ${mockData.doctorQueue.map((q, i) => `
-              <div class="queue-item ${q.token === 'TK-047' ? 'my-token' : i === 0 ? 'current' : ''}" id="queue-${q.id}">
-                <div class="queue-pos">${i + 1}</div>
-                <div class="queue-token">${q.token}</div>
-                <div style="flex:1;">
-                  <div class="queue-name">${q.token === 'TK-047' ? `${q.name} (You)` : q.name}</div>
-                  <div class="queue-cond">${q.condition}</div>
-                </div>
-                <div class="flex items-center gap-8px">
-                  <div class="badge badge-triage-${q.triage}" style="font-size:9px;">${q.triage.toUpperCase()}</div>
-                  <div class="queue-wait">${q.wait}</div>
-                </div>
-              </div>
-            `).join('')}
-          </div>
+        <!-- Action Buttons -->
+        <div style="display:flex;gap:12px;margin-bottom:20px;">
+          <button class="btn btn-primary" style="flex:1;" onclick="rescheduleModal('${appt.id}')">Reschedule</button>
+          <button class="btn btn-outline" style="flex:1;border-color:var(--emergency);color:var(--emergency);" onclick="cancelModal('${appt.id}')">Cancel</button>
         </div>
-
-        <!-- Appointment Details -->
-        <div class="card mb-4" style="padding:18px;">
-          <div style="font-family:var(--font-display);font-size:15px;font-weight:700;margin-bottom:14px;">Your Appointment</div>
-          <div style="display:flex;flex-direction:column;gap:10px;font-size:14px;">
-            <div class="flex items-center gap-3">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              <span style="color:var(--text-secondary);">Date & Time</span>
-              <span style="font-weight:600;margin-left:auto;">${appt.date}, ${appt.time}</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              <span style="color:var(--text-secondary);">Room</span>
-              <span style="font-weight:600;margin-left:auto;">${appt.room}</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span style="color:var(--text-secondary);">Type</span>
-              <span style="font-weight:600;margin-left:auto;">${appt.type}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Notification Settings -->
-        <div class="card" style="padding:18px;">
-          <div style="font-family:var(--font-display);font-size:15px;font-weight:700;margin-bottom:14px;">Queue Alerts</div>
-          ${[
-            { label: 'Alert when 3 patients ahead', enabled: true },
-            { label: 'Alert when it\'s your turn', enabled: true },
-            { label: 'Doctor running late alert', enabled: false },
-          ].map((n, i) => `
-            <div class="flex items-center justify-between" style="padding:10px 0;border-bottom:${i < 2 ? '1px solid var(--divider)' : 'none'};">
-              <span style="font-size:14px;color:var(--text-primary);">${n.label}</span>
-              <label class="toggle">
-                <input type="checkbox" ${n.enabled ? 'checked' : ''} />
-                <div class="toggle-track"></div>
-                <div class="toggle-thumb"></div>
-              </label>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-
-      <!-- Action Button -->
-      <div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;padding:16px 20px;background:var(--surface);border-top:1px solid var(--border-light);">
-        <button class="btn btn-primary btn-full" onclick="checkInNow()">
-          Check In at Counter
-        </button>
       </div>
     </div>
   `;
 
-  injectQueueStyles();
-  startQueueSimulation();
-
-  window.checkInNow = () => showToast('âœ… Checked in! Please proceed to Room 204, 2nd Floor', 'success', 4000);
-
-  return () => clearInterval(queueInterval);
+  initQueueHandlers();
 }
 
-function startQueueSimulation() {
-  let waitMins = 45;
-  let currentTokenNum = 41;
+function initQueueHandlers() {
+  window.cancelModal = (id) => {
+    showModal(`
+      <div style="text-align:center;padding:16px;">
+        <h3 class="text-h2" style="color:var(--emergency);margin-bottom:8px;">Cancel Appointment?</h3>
+        <p class="text-caption" style="margin-bottom:20px;">Are you sure you want to cancel this booking? This action is saved to Supabase.</p>
+        <button class="btn btn-emergency btn-full" onclick="handleCancel('${id}')">Yes, Cancel Booking</button>
+        <button class="btn btn-ghost btn-full mt-2" onclick="closeModal()">Keep Appointment</button>
+      </div>
+    `);
 
-  queueInterval = setInterval(() => {
-    waitMins = Math.max(0, waitMins - 1);
-    const waitEl = document.getElementById('wait-time');
-    if (waitEl) waitEl.textContent = waitMins;
+    window.handleCancel = async (apptId) => {
+      await cancelAppointment(apptId);
+      showToast('Appointment cancelled in Supabase database', 'warning');
+      closeModal();
+      navigate('patient-home');
+    };
+  };
 
-    if (waitMins % 5 === 0 && waitMins > 0) {
-      showToast(`â° ${waitMins} minutes remaining for your turn`, 'info');
-    }
-    if (waitMins === 0) {
-      showToast('ðŸ¥ It\'s your turn! Please proceed to Room 204', 'success', 5000);
-      clearInterval(queueInterval);
-    }
-  }, 8000);
-}
+  window.rescheduleModal = (id) => {
+    showModal(`
+      <div style="padding:16px;">
+        <h3 class="text-h2 text-center" style="margin-bottom:8px;">Reschedule Appointment</h3>
+        <p class="text-caption text-center" style="margin-bottom:20px;">Select a new date and time slot</p>
+        <div class="form-group">
+          <label class="form-label">New Date</label>
+          <input type="date" id="resched-date" class="form-input" value="${new Date().toISOString().split('T')[0]}" />
+        </div>
+        <div class="form-group mt-3">
+          <label class="form-label">Time Slot</label>
+          <select id="resched-slot" class="form-input form-select">
+            <option>10:00 AM</option>
+            <option>11:30 AM</option>
+            <option>3:00 PM</option>
+            <option>4:30 PM</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-full mt-4" onclick="handleReschedule('${id}')">Confirm Reschedule</button>
+      </div>
+    `);
 
-function injectQueueStyles() {
-  if (document.getElementById('queue-styles')) return;
-  const s = document.createElement('style');
-  s.id = 'queue-styles';
-  s.textContent = `
-    .queue-item { display:flex;align-items:center;gap:10px;padding:12px;border-radius:12px;background:var(--surface-dim);transition:all var(--transition-fast); }
-    .queue-item.current { background:var(--primary-light);border:1.5px solid var(--primary); }
-    .queue-item.my-token { background:var(--warning-light);border:1.5px solid var(--warning); }
-    .queue-pos { width:24px;height:24px;border-radius:50%;background:var(--border);color:var(--text-tertiary);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
-    .queue-item.current .queue-pos { background:var(--primary);color:white; }
-    .queue-item.my-token .queue-pos { background:var(--warning);color:white; }
-    .queue-token { font-size:12px;font-weight:700;color:var(--text-secondary);min-width:50px;font-family:var(--font-display); }
-    .queue-item.current .queue-token { color:var(--primary); }
-    .queue-name { font-size:13px;font-weight:600;color:var(--text-primary); }
-    .queue-cond { font-size:11px;color:var(--text-secondary);margin-top:2px; }
-    .queue-wait { font-size:11px;color:var(--text-tertiary); }
-  `;
-  document.head.appendChild(s);
+    window.handleReschedule = async (apptId) => {
+      const d = document.getElementById('resched-date').value;
+      const s = document.getElementById('resched-slot').value;
+      await rescheduleAppointment(apptId, d, s);
+      showToast('Appointment rescheduled in Supabase!', 'success');
+      closeModal();
+      renderLiveQueue();
+    };
+  };
 }
