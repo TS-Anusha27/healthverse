@@ -1,10 +1,10 @@
-// HealthVerse — Supabase Auth Service
+// HealthVerse — Full Supabase Authentication Service
 import { supabase } from './client.js';
 
 /**
  * Sign up user with Email & Password
  */
-export async function signUpWithEmail({ email, password, fullName, phone, role = 'patient' }) {
+export async function signUpUser({ email, password, fullName, phone, role = 'patient' }) {
   try {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -20,9 +20,8 @@ export async function signUpWithEmail({ email, password, fullName, phone, role =
 
     if (error) throw error;
 
-    // If user is created, try creating/updating their profile in public.profiles table
     if (data.user) {
-      await syncUserProfile(data.user.id, {
+      await createOrSyncProfile(data.user.id, {
         full_name: fullName,
         email: email,
         phone: phone,
@@ -40,7 +39,7 @@ export async function signUpWithEmail({ email, password, fullName, phone, role =
 /**
  * Sign in user with Email & Password
  */
-export async function signInWithEmail({ email, password }) {
+export async function signInUser({ email, password }) {
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -56,19 +55,25 @@ export async function signInWithEmail({ email, password }) {
 }
 
 /**
- * Send OTP (Phone or Email)
+ * Send OTP (Email or Phone)
  */
-export async function sendOtp({ contact, isPhone = false }) {
+export async function sendOtpCode({ contact, isPhone = false, role = 'patient' }) {
   try {
     if (isPhone) {
       const { data, error } = await supabase.auth.signInWithOtp({
-        phone: contact
+        phone: contact,
+        options: {
+          data: { role }
+        }
       });
       if (error) throw error;
       return { data, error: null };
     } else {
       const { data, error } = await supabase.auth.signInWithOtp({
-        email: contact
+        email: contact,
+        options: {
+          data: { role }
+        }
       });
       if (error) throw error;
       return { data, error: null };
@@ -80,16 +85,26 @@ export async function sendOtp({ contact, isPhone = false }) {
 }
 
 /**
- * Verify OTP
+ * Verify OTP (Email or Phone)
  */
-export async function verifyOtp({ contact, token, isPhone = false, type = 'sms' }) {
+export async function verifyOtpCode({ contact, token, isPhone = false, role = 'patient' }) {
   try {
-    const verificationParams = isPhone 
-      ? { phone: contact, token, type: type || 'sms' }
+    const params = isPhone
+      ? { phone: contact, token, type: 'sms' }
       : { email: contact, token, type: 'email' };
 
-    const { data, error } = await supabase.auth.verifyOtp(verificationParams);
+    const { data, error } = await supabase.auth.verifyOtp(params);
     if (error) throw error;
+
+    if (data.user) {
+      await createOrSyncProfile(data.user.id, {
+        full_name: data.user.user_metadata?.full_name || contact.split('@')[0],
+        email: data.user.email || (isPhone ? null : contact),
+        phone: data.user.phone || (isPhone ? contact : null),
+        role: role
+      });
+    }
+
     return { user: data.user, session: data.session, error: null };
   } catch (err) {
     console.warn('Supabase Verify OTP Error:', err.message);
@@ -98,23 +113,82 @@ export async function verifyOtp({ contact, token, isPhone = false, type = 'sms' 
 }
 
 /**
- * Update User Role in metadata and profile table
+ * Reset password via Email link
+ */
+export async function resetPasswordForEmail(email) {
+  try {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin
+    });
+    if (error) throw error;
+    return { data, error: null };
+  } catch (err) {
+    console.warn('Reset Password Error:', err.message);
+    return { data: null, error: err.message };
+  }
+}
+
+/**
+ * Create or Sync User Profile in Database Tables
+ */
+export async function createOrSyncProfile(userId, profileData) {
+  try {
+    // 1. Sync public.profiles
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert({
+        id: userId,
+        full_name: profileData.full_name,
+        email: profileData.email,
+        phone: profileData.phone,
+        role: profileData.role || 'patient',
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+
+    if (profileError) console.warn('Profiles table sync warning:', profileError.message);
+
+    // 2. Sync role-specific table
+    const role = profileData.role || 'patient';
+    if (role === 'patient') {
+      await supabase.from('patients').upsert({ id: userId }, { onConflict: 'id' });
+    } else if (role === 'doctor') {
+      await supabase.from('doctors').upsert({
+        id: `dr_${userId.substring(0, 8)}`,
+        user_id: userId,
+        name: profileData.full_name || 'Dr. Medical Specialist',
+        specialty: 'General Medicine',
+        available: true
+      }, { onConflict: 'id' });
+    } else if (role === 'ambulance') {
+      await supabase.from('ambulance_drivers').upsert({
+        id: `amb_${userId.substring(0, 8)}`,
+        user_id: userId,
+        name: profileData.full_name || 'Emergency Driver',
+        phone: profileData.phone || '+91 9876543210',
+        vehicle_number: 'TN 07 HV 2026',
+        status: 'available'
+      }, { onConflict: 'id' });
+    }
+  } catch (err) {
+    console.warn('Profile sync exception:', err.message);
+  }
+}
+
+/**
+ * Update active User Role
  */
 export async function updateUserRole(role) {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'No authenticated user' };
 
-    // Update Auth Metadata
     const { data, error } = await supabase.auth.updateUser({
       data: { role }
     });
 
-    if (error) console.warn('Metadata update error:', error.message);
+    if (error) console.warn('Metadata role update error:', error.message);
 
-    // Sync to profiles table
-    await syncUserProfile(user.id, { role });
-
+    await createOrSyncProfile(user.id, { role });
     return { user: data?.user || user, error: null };
   } catch (err) {
     console.warn('Update User Role Error:', err.message);
@@ -123,35 +197,13 @@ export async function updateUserRole(role) {
 }
 
 /**
- * Sync user profile to public.profiles table
- */
-export async function syncUserProfile(userId, profileData) {
-  try {
-    const { error } = await supabase
-      .from('profiles')
-      .upsert({
-        id: userId,
-        ...profileData,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'id' });
-
-    if (error) {
-      console.warn('Profile sync warning (table might not exist yet):', error.message);
-    }
-  } catch (err) {
-    console.warn('Profile sync exception:', err.message);
-  }
-}
-
-/**
- * Get current active session & user
+ * Get active session
  */
 export async function getCurrentUserSession() {
   try {
     const { data: { session }, error } = await supabase.auth.getSession();
     if (error) throw error;
-    if (!session) return { user: null, session: null };
-    return { user: session.user, session };
+    return { user: session?.user || null, session };
   } catch (err) {
     console.warn('Get Session Error:', err.message);
     return { user: null, session: null };
@@ -159,7 +211,7 @@ export async function getCurrentUserSession() {
 }
 
 /**
- * Sign Out
+ * Sign out of Supabase Auth
  */
 export async function signOutUser() {
   try {

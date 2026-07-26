@@ -1,19 +1,27 @@
-// HealthVerse â€” Client-Side Router
+// HealthVerse — Client-Side Router with Protected Route Middleware
 import { store } from '../store/store.js';
 
 const routes = {};
 let currentCleanup = null;
+
+const PUBLIC_ROUTES = ['splash', 'login'];
 
 export function register(name, renderFn) {
   routes[name] = renderFn;
 }
 
 export function navigate(page, params = {}, addHistory = true) {
+  // Protected Route Middleware: Redirect to login if unauthenticated
+  if (!PUBLIC_ROUTES.includes(page) && !store.isLoggedIn) {
+    console.warn(`Unauthenticated access attempt to '${page}'. Redirecting to login.`);
+    page = 'login';
+  }
+
   if (addHistory && store.currentPage !== page) {
     store.history.push(store.currentPage);
   }
 
-  // Cleanup previous page
+  // Cleanup previous page handlers
   if (currentCleanup && typeof currentCleanup === 'function') {
     try { currentCleanup(); } catch(e) {}
   }
@@ -41,4 +49,5 @@ export function navigate(page, params = {}, addHistory = true) {
 export function goBack() {
   const prev = store.history.pop();
   if (prev) navigate(prev, {}, false);
+  else navigate('login');
 }

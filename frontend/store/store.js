@@ -1,4 +1,4 @@
-// HealthVerse — Global State Store with Supabase Auth Sync
+// HealthVerse — Global State Store with Supabase Auth Session Persistence
 import { supabase } from '../services/supabase/client.js';
 
 export const store = {
@@ -17,14 +17,8 @@ export const store = {
 
   // Patient data
   patient: null,
-
-  // Doctor data
   doctor: null,
-
-  // Ambulance driver data
   driver: null,
-
-  // App state
   notifications: [],
   mapInstance: null,
 
@@ -53,12 +47,12 @@ export const store = {
 
   async loadSavedUser() {
     try {
-      // 1. Try restoring session from Supabase
+      // Restore session from Supabase Auth
       const { data: { session } } = await supabase.auth.getSession();
       if (session && session.user) {
         this.supabaseSession = session;
         const metadata = session.user.user_metadata || {};
-        const name = metadata.full_name || session.user.email?.split('@')[0] || 'User';
+        const name = metadata.full_name || session.user.email?.split('@')[0] || 'HealthVerse User';
         const type = metadata.role || 'patient';
         
         const user = {
@@ -73,10 +67,10 @@ export const store = {
         return true;
       }
     } catch (e) {
-      console.warn('Supabase session load error:', e.message);
+      console.warn('Supabase session restore error:', e.message);
     }
 
-    // 2. Fallback to localStorage saved user if offline
+    // Fallback to localStorage if offline
     const saved = localStorage.getItem('hv_user');
     if (saved) {
       const { user, type } = JSON.parse(saved);
@@ -93,7 +87,7 @@ export const store = {
       if (session && session.user) {
         this.supabaseSession = session;
         const metadata = session.user.user_metadata || {};
-        const name = metadata.full_name || session.user.email?.split('@')[0] || 'User';
+        const name = metadata.full_name || session.user.email?.split('@')[0] || 'HealthVerse User';
         const type = metadata.role || this.userType || 'patient';
 
         const user = {
@@ -117,5 +111,4 @@ export const store = {
 
 // Restore theme on load
 document.documentElement.setAttribute('data-theme', store.theme);
-// Initialize Supabase listener
 store.initSupabaseListener();
