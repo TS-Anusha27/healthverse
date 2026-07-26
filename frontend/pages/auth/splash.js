@@ -1,4 +1,4 @@
-// HealthVerse â€” Splash Screen
+// HealthVerse — Splash Screen with Supabase Session Auto-Restore
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
 
@@ -30,7 +30,7 @@ export function renderSplash() {
         <div class="splash-dot"></div>
       </div>
       <div style="position:absolute;bottom:30px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.3);letter-spacing:1px;">
-        v2.0.1 â€” Powered by HealthVerse AI
+        v2.0.1 — Powered by Supabase & HealthVerse AI
       </div>
     </div>
   `;
@@ -49,8 +49,12 @@ export function renderSplash() {
     document.head.appendChild(s);
   }
 
+  // Check saved session in parallel with splash animation
+  const checkSessionPromise = store.loadSavedUser();
+
   // Transition after 2.2s
-  setTimeout(() => {
+  setTimeout(async () => {
+    await checkSessionPromise;
     const splash = document.getElementById('splash');
     if (splash) {
       splash.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
@@ -67,5 +71,5 @@ export function renderSplash() {
         navigate('login');
       }
     }, 600);
-  }, 2200);
+  }, 2000);
 }

@@ -1,11 +1,15 @@
-// HealthVerse â€” Health Records Timeline
+// HealthVerse — Health Records Timeline with Supabase DB & Storage
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
 import { showToast, showModal, closeModal } from '../../utils/utils.js';
+import { getHealthRecords, createHealthRecord } from '../../services/supabase/db.js';
+import { uploadFile } from '../../services/supabase/storage.js';
 
-export function renderHealthRecords() {
+let currentRecords = [];
+
+export async function renderHealthRecords() {
   const app = document.getElementById('app');
-  const records = mockData.healthRecords;
+  currentRecords = await getHealthRecords();
 
   app.innerHTML = `
     <div class="screen" id="records-screen" style="background:var(--bg);">
@@ -14,7 +18,7 @@ export function renderHealthRecords() {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <div class="page-title">Health Records</div>
-        <button class="btn-icon-sm btn-ghost" onclick="uploadRecord()" aria-label="Upload">
+        <button class="btn-icon-sm btn-ghost" onclick="uploadRecordModal()" aria-label="Upload">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         </button>
       </div>
@@ -47,7 +51,7 @@ export function renderHealthRecords() {
             </div>
             <div style="flex:1;">
               <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--primary);">ABHA Connected</div>
-              <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">AB-1234-5678-9012 â€¢ Synced</div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">AB-1234-5678-9012 • Synced</div>
             </div>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
@@ -57,9 +61,9 @@ export function renderHealthRecords() {
         <div class="section mt-4">
           <div class="grid-3">
             ${[
-              { n: records.length, label: 'Total', color: 'var(--primary)', bg: 'var(--primary-light)' },
-              { n: records.filter(r=>r.type==='Prescription').length, label: 'Scripts', color: 'var(--secondary)', bg: 'var(--secondary-light)' },
-              { n: records.filter(r=>r.type==='Blood Report').length, label: 'Lab Reports', color: 'var(--accent)', bg: 'var(--accent-light)' },
+              { n: currentRecords.length, label: 'Total', color: 'var(--primary)', bg: 'var(--primary-light)' },
+              { n: currentRecords.filter(r=>r.type==='Prescription').length, label: 'Scripts', color: 'var(--secondary)', bg: 'var(--secondary-light)' },
+              { n: currentRecords.filter(r=>r.type==='Blood Report').length, label: 'Lab Reports', color: 'var(--accent)', bg: 'var(--accent-light)' },
             ].map(s => `
               <div style="background:${s.bg};border-radius:14px;padding:14px;text-align:center;">
                 <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:${s.color};">${s.n}</div>
@@ -73,29 +77,7 @@ export function renderHealthRecords() {
         <div class="section mt-5" id="records-list">
           <div class="section-title mb-4">Timeline</div>
           <div class="timeline" id="timeline-container">
-            ${records.map((r, i) => `
-              <div class="timeline-item" onclick="openRecord('${r.id}')" style="animation:slideUp 0.4s ease ${i * 0.08}s both;">
-                <div class="timeline-line ${i === records.length - 1 ? 'last' : ''}"></div>
-                <div class="timeline-dot" style="background:${getRecordColor(r.type)};"></div>
-                <div class="timeline-card">
-                  <div class="flex items-center gap-3">
-                    <div class="icon-box" style="background:${getRecordColor(r.type)}15;color:${getRecordColor(r.type)};width:40px;height:40px;">
-                      ${getRecordIcon(r.type)}
-                    </div>
-                    <div style="flex:1;">
-                      <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text-primary);">${r.title}</div>
-                      <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${r.type}</div>
-                    </div>
-                    <div class="badge ${r.status === 'normal' ? 'badge-success' : r.status === 'active' ? 'badge-primary' : 'badge-secondary'}">${r.status}</div>
-                  </div>
-                  <div style="display:flex;align-items:center;gap:12px;margin-top:12px;font-size:12px;color:var(--text-tertiary);">
-                    <span>ðŸ“… ${r.date}</span>
-                    <span>ðŸ¥ ${r.hospital}</span>
-                  </div>
-                  <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">ðŸ‘¨â€âš•ï¸ ${r.doctor}</div>
-                </div>
-              </div>
-            `).join('')}
+            ${renderRecordItems(currentRecords)}
           </div>
         </div>
       </div>
@@ -104,6 +86,32 @@ export function renderHealthRecords() {
 
   injectRecordStyles();
   initRecordHandlers();
+}
+
+function renderRecordItems(records) {
+  return records.map((r, i) => `
+    <div class="timeline-item" onclick="openRecord('${r.id}')" style="animation:slideUp 0.4s ease ${i * 0.08}s both;">
+      <div class="timeline-line ${i === records.length - 1 ? 'last' : ''}"></div>
+      <div class="timeline-dot" style="background:${getRecordColor(r.type)};"></div>
+      <div class="timeline-card">
+        <div class="flex items-center gap-3">
+          <div class="icon-box" style="background:${getRecordColor(r.type)}15;color:${getRecordColor(r.type)};width:40px;height:40px;">
+            ${getRecordIcon(r.type)}
+          </div>
+          <div style="flex:1;">
+            <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text-primary);">${r.title}</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${r.type}</div>
+          </div>
+          <div class="badge ${r.status === 'normal' ? 'badge-success' : r.status === 'active' ? 'badge-primary' : 'badge-secondary'}">${r.status}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:12px;font-size:12px;color:var(--text-tertiary);">
+          <span>📅 ${r.date}</span>
+          <span>🏥 ${r.hospital || 'Apollo Hospitals'}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">👨‍⚕️ ${r.doctor || 'Dr. Priya Krishnamurthy'}</div>
+      </div>
+    </div>
+  `).join('');
 }
 
 function getRecordColor(type) {
@@ -144,26 +152,10 @@ function initRecordHandlers() {
     const q = query.toLowerCase();
     const container = document.getElementById('timeline-container');
     if (!container) return;
-    const records = mockData.healthRecords.filter(r =>
-      r.title.toLowerCase().includes(q) || r.type.toLowerCase().includes(q) || r.doctor.toLowerCase().includes(q)
+    const records = currentRecords.filter(r =>
+      r.title.toLowerCase().includes(q) || r.type.toLowerCase().includes(q) || (r.doctor && r.doctor.toLowerCase().includes(q))
     );
-    container.innerHTML = records.map((r, i) => `
-      <div class="timeline-item" onclick="openRecord('${r.id}')">
-        <div class="timeline-line ${i === records.length - 1 ? 'last' : ''}"></div>
-        <div class="timeline-dot" style="background:${getRecordColor(r.type)};"></div>
-        <div class="timeline-card">
-          <div class="flex items-center gap-3">
-            <div class="icon-box" style="background:${getRecordColor(r.type)}15;color:${getRecordColor(r.type)};width:40px;height:40px;">${getRecordIcon(r.type)}</div>
-            <div style="flex:1;">
-              <div style="font-family:var(--font-display);font-size:14px;font-weight:700;">${r.title}</div>
-              <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${r.type}</div>
-            </div>
-            <div class="badge ${r.status==='normal'?'badge-success':r.status==='active'?'badge-primary':'badge-secondary'}">${r.status}</div>
-          </div>
-          <div style="display:flex;gap:12px;margin-top:12px;font-size:12px;color:var(--text-tertiary);"><span>ðŸ“… ${r.date}</span><span>ðŸ¥ ${r.hospital}</span></div>
-        </div>
-      </div>
-    `).join('');
+    container.innerHTML = renderRecordItems(records);
   };
 
   window.filterRecordType = (el, type) => {
@@ -173,7 +165,7 @@ function initRecordHandlers() {
   };
 
   window.openRecord = (id) => {
-    const r = mockData.healthRecords.find(rec => rec.id === id);
+    const r = currentRecords.find(rec => rec.id === id);
     if (!r) return;
     showModal(`
       <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;">${r.title}</h3>
@@ -181,16 +173,16 @@ function initRecordHandlers() {
       <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;font-size:14px;">
         <div class="flex justify-between"><span style="color:var(--text-secondary);">Type</span><strong>${r.type}</strong></div>
         <div class="flex justify-between"><span style="color:var(--text-secondary);">Date</span><strong>${r.date}</strong></div>
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">Hospital</span><strong>${r.hospital}</strong></div>
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">Doctor</span><strong>${r.doctor}</strong></div>
+        <div class="flex justify-between"><span style="color:var(--text-secondary);">Hospital</span><strong>${r.hospital || 'Apollo Hospitals'}</strong></div>
+        <div class="flex justify-between"><span style="color:var(--text-secondary);">Doctor</span><strong>${r.doctor || 'Dr. Priya Krishnamurthy'}</strong></div>
       </div>
       <div style="background:var(--surface-dim);border-radius:14px;padding:20px;margin-top:20px;text-align:center;">
-        <div style="font-size:48px;margin-bottom:8px;">ðŸ“„</div>
+        <div style="font-size:48px;margin-bottom:8px;">📄</div>
         <div style="font-size:14px;font-weight:600;color:var(--text-primary);">${r.title}</div>
-        <div style="font-size:12px;color:var(--text-tertiary);margin-top:4px;">Tap to view full report</div>
+        <div style="font-size:12px;color:var(--text-tertiary);margin-top:4px;">${r.file_url ? 'File stored on Supabase Storage' : 'Tap to view report'}</div>
       </div>
       <div style="display:flex;gap:10px;margin-top:20px;">
-        <button class="btn btn-primary" style="flex:1;" onclick="showToast('Downloading report...','success');closeModal()">
+        <button class="btn btn-primary" style="flex:1;" onclick="window.open('${r.file_url || '#'}', '_blank');showToast('Opening report...','success');closeModal()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Download
         </button>
@@ -202,7 +194,75 @@ function initRecordHandlers() {
     `);
   };
 
-  window.uploadRecord = () => {
-    showToast('Upload dialog opened â€” select PDF, image, or scan', 'info');
+  window.uploadRecordModal = () => {
+    const content = `
+      <div style="padding:16px;">
+        <h3 class="text-h2 text-center" style="margin-bottom:8px;">Upload Health Record</h3>
+        <p class="text-caption text-center" style="margin-bottom:20px;">Files are stored securely in Supabase Storage</p>
+
+        <div class="form-group">
+          <label class="form-label">Record Title</label>
+          <input type="text" id="upload-title" class="form-input" placeholder="e.g. Annual Blood Panel" />
+        </div>
+
+        <div class="form-group mt-3">
+          <label class="form-label">Record Type</label>
+          <select id="upload-type" class="form-input form-select">
+            <option>Blood Report</option>
+            <option>Prescription</option>
+            <option>Vaccination</option>
+            <option>X-Ray</option>
+            <option>MRI Scan</option>
+            <option>ECG Report</option>
+          </select>
+        </div>
+
+        <div class="form-group mt-3">
+          <label class="form-label">Select File (PDF, Image)</label>
+          <input type="file" id="upload-file" class="form-input" accept="image/*,.pdf" />
+        </div>
+
+        <button class="btn btn-primary btn-full mt-4" onclick="handleFileUpload()">
+          Upload to Supabase Storage
+        </button>
+      </div>
+    `;
+    showModal(content);
+
+    window.handleFileUpload = async () => {
+      const title = document.getElementById('upload-title').value.trim();
+      const type = document.getElementById('upload-type').value;
+      const fileInput = document.getElementById('upload-file');
+
+      if (!title) { showToast('Please enter record title', 'error'); return; }
+      if (!fileInput.files || fileInput.files.length === 0) {
+        showToast('Please select a file to upload', 'error'); return;
+      }
+
+      const file = fileInput.files[0];
+      showToast('Uploading to Supabase Storage...', 'info');
+
+      const path = `${Date.now()}_${file.name}`;
+      const { publicUrl } = await uploadFile('health-records', path, file);
+
+      const newRecord = {
+        id: `r_${Date.now()}`,
+        title,
+        type,
+        date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+        hospital: 'Apollo Hospitals',
+        doctor: 'Dr. Priya Krishnamurthy',
+        status: 'normal',
+        icon: 'file-text',
+        file_url: publicUrl
+      };
+
+      await createHealthRecord(newRecord);
+      currentRecords.unshift(newRecord);
+
+      showToast('Record uploaded successfully to Supabase! 🎉', 'success');
+      closeModal();
+      renderHealthRecords();
+    };
   };
 }

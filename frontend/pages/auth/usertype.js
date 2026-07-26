@@ -1,7 +1,8 @@
-// HealthVerse â€” User Type Selection
+// HealthVerse — User Type Selection with Supabase Role Synchronization
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
 import { showToast } from '../../utils/utils.js';
+import { updateUserRole, signOutUser } from '../../services/supabase/auth.js';
 
 export function renderUserType() {
   const app = document.getElementById('app');
@@ -12,7 +13,7 @@ export function renderUserType() {
       <div style="padding:60px 24px 32px;text-align:center;" class="animate-slide-up">
         <div style="font-size:13px;font-weight:600;color:var(--text-tertiary);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;">Welcome Back</div>
         <h1 style="font-size:26px;font-weight:800;font-family:var(--font-display);color:var(--text-primary);">
-          Hi, ${user?.name?.split(' ')[0] || 'there'} ðŸ‘‹
+          Hi, ${user?.name?.split(' ')[0] || 'there'} 👋
         </h1>
         <p style="color:var(--text-secondary);margin-top:8px;font-size:15px;">Who are you continuing as today?</p>
       </div>
@@ -117,11 +118,12 @@ export function renderUserType() {
     document.head.appendChild(s);
   }
 
-  window.selectUserType = (type) => {
+  window.selectUserType = async (type) => {
     document.querySelectorAll('.user-type-card').forEach(c => c.classList.remove('selected'));
     document.getElementById(`card-${type}`).classList.add('selected');
 
-    store.userType = type;
+    // Sync role to Supabase User Metadata & Profiles
+    await updateUserRole(type);
     store.setUser(store.currentUser, type);
 
     setTimeout(() => {
@@ -131,7 +133,8 @@ export function renderUserType() {
     }, 400);
   };
 
-  window.signOut = () => {
+  window.signOut = async () => {
+    await signOutUser();
     store.clearUser();
     navigate('login');
   };

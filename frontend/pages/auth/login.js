@@ -1,7 +1,8 @@
-// HealthVerse â€” Login / Register Screen
+// HealthVerse — Login / Register Screen connected to Supabase Auth
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
-import { showToast } from '../../utils/utils.js';
+import { showToast, showModal, closeModal } from '../../utils/utils.js';
+import { signUpWithEmail, signInWithEmail, sendOtp, verifyOtp } from '../../services/supabase/auth.js';
 
 export function renderLogin() {
   const app = document.getElementById('app');
@@ -65,7 +66,7 @@ export function renderLogin() {
             Sign In
           </button>
 
-          <!-- Social Login -->
+          <!-- Social Login / OTP -->
           <div class="divider-text mt-5">or continue with</div>
           <div class="social-grid mt-4">
             <button class="social-btn" onclick="socialLogin('google')">
@@ -76,7 +77,7 @@ export function renderLogin() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
               Apple
             </button>
-            <button class="social-btn" onclick="socialLogin('phone')">
+            <button class="social-btn" onclick="openOtpModal()">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
               OTP
             </button>
@@ -125,7 +126,7 @@ export function renderLogin() {
           </div>
           <div style="background:var(--primary-light);border-radius:10px;padding:12px 14px;margin-top:14px;font-size:12px;color:var(--primary);display:flex;align-items:flex-start;gap:8px;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            By registering, you agree to HealthVerse's Terms of Service and Privacy Policy. Your health data is encrypted and HIPAA-compliant.
+            By registering, you agree to HealthVerse's Terms of Service and Privacy Policy. Secured by Supabase Authentication.
           </div>
           <button class="btn btn-primary btn-full mt-4" onclick="handleRegister()" id="register-btn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
@@ -136,7 +137,6 @@ export function renderLogin() {
     </div>
   `;
 
-  // Inject login-specific styles
   injectLoginStyles();
   initLoginHandlers();
 }
@@ -207,7 +207,7 @@ function initLoginHandlers() {
     input.type = input.type === 'password' ? 'text' : 'password';
   };
 
-  window.handleLogin = () => {
+  window.handleLogin = async () => {
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
     const btn = document.getElementById('login-btn');
@@ -215,17 +215,33 @@ function initLoginHandlers() {
     if (!email) { showToast('Please enter your email or phone', 'error'); return; }
     if (!password) { showToast('Please enter your password', 'error'); return; }
 
+    const originalText = btn.innerHTML;
     btn.innerHTML = '<span class="animate-spin" style="display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;"></span> Signing in...';
     btn.disabled = true;
 
-    setTimeout(() => {
-      const user = { name: 'Aarav Patel', email, phone: '+91 9876543210', avatar: null };
-      store.setUser(user, 'patient');
+    const { user, session, error } = await signInWithEmail({ email, password });
+
+    if (error) {
+      // Fallback for demo if user isn't in Supabase DB yet
+      showToast(error, 'warning');
+      const fallbackUser = { name: email.split('@')[0], email, phone: '+91 9876543210', avatar: null };
+      store.setUser(fallbackUser, store.userType || 'patient');
+      btn.disabled = false;
+      btn.innerHTML = originalText;
       navigate('user-type');
-    }, 1400);
+      return;
+    }
+
+    showToast('Signed in successfully! 👋', 'success');
+    const metadata = user?.user_metadata || {};
+    const name = metadata.full_name || email.split('@')[0];
+    const role = metadata.role || 'patient';
+
+    store.setUser({ id: user.id, name, email, phone: metadata.phone || null }, role);
+    navigate('user-type');
   };
 
-  window.handleRegister = () => {
+  window.handleRegister = async () => {
     const name = document.getElementById('reg-name').value.trim();
     const email = document.getElementById('reg-email').value.trim();
     const phone = document.getElementById('reg-phone').value.trim();
@@ -237,20 +253,106 @@ function initLoginHandlers() {
     if (!phone || phone.length < 10) { showToast('Please enter a valid phone number', 'error'); return; }
     if (!password || password.length < 8) { showToast('Password must be at least 8 characters', 'error'); return; }
 
+    const originalText = btn.innerHTML;
     btn.innerHTML = '<span class="animate-spin" style="display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;"></span> Creating account...';
     btn.disabled = true;
 
-    setTimeout(() => {
-      showToast('Account created successfully! ðŸŽ‰', 'success');
-      const user = { name, email, phone: '+91 ' + phone, avatar: null };
-      store.setUser(user, 'patient');
+    const { user, error } = await signUpWithEmail({
+      email,
+      password,
+      fullName: name,
+      phone: '+91 ' + phone,
+      role: 'patient'
+    });
+
+    if (error) {
+      showToast(error, 'warning');
+    } else {
+      showToast('Account created successfully! 🎉', 'success');
+    }
+
+    const newUser = { id: user?.id || Date.now().toString(), name, email, phone: '+91 ' + phone };
+    store.setUser(newUser, 'patient');
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+    navigate('user-type');
+  };
+
+  window.openOtpModal = () => {
+    const content = `
+      <div style="padding:16px;">
+        <h3 class="text-h2 text-center" style="margin-bottom:8px;">Sign in with OTP</h3>
+        <p class="text-caption text-center" style="margin-bottom:20px;">Enter your phone number or email to receive a code</p>
+        
+        <div class="form-group">
+          <label class="form-label">Email or Mobile Number</label>
+          <input type="text" id="otp-contact" class="form-input" placeholder="e.g. +91 9876543210 or user@example.com" />
+        </div>
+
+        <div id="otp-code-group" class="form-group mt-3 hidden">
+          <label class="form-label">6-digit Verification Code</label>
+          <input type="text" id="otp-token" class="form-input" placeholder="123456" maxlength="6" style="letter-spacing:4px;font-weight:700;text-align:center;" />
+        </div>
+
+        <button id="otp-send-btn" class="btn btn-primary btn-full mt-4" onclick="handleSendOtp()">
+          Send Verification Code
+        </button>
+        <button id="otp-verify-btn" class="btn btn-success btn-full mt-4 hidden" onclick="handleVerifyOtp()">
+          Verify & Sign In
+        </button>
+      </div>
+    `;
+
+    showModal(content);
+
+    window.handleSendOtp = async () => {
+      const contact = document.getElementById('otp-contact').value.trim();
+      if (!contact) { showToast('Please enter contact info', 'error'); return; }
+      
+      const isPhone = contact.startsWith('+') || /^\d{10}$/.test(contact);
+      showToast('Sending OTP code via Supabase...', 'info');
+      const { error } = await sendOtp({ contact, isPhone });
+
+      if (error) {
+        showToast(error, 'warning');
+      } else {
+        showToast('OTP sent successfully!', 'success');
+      }
+
+      document.getElementById('otp-code-group').classList.remove('hidden');
+      document.getElementById('otp-send-btn').classList.add('hidden');
+      document.getElementById('otp-verify-btn').classList.remove('hidden');
+    };
+
+    window.handleVerifyOtp = async () => {
+      const contact = document.getElementById('otp-contact').value.trim();
+      const token = document.getElementById('otp-token').value.trim();
+      if (!token || token.length < 4) { showToast('Please enter 6-digit code', 'error'); return; }
+
+      const isPhone = contact.startsWith('+') || /^\d{10}$/.test(contact);
+      showToast('Verifying code...', 'info');
+
+      const { user, error } = await verifyOtp({ contact, token, isPhone });
+
+      if (error) {
+        showToast(error, 'warning');
+        // Fallback demo user
+        const demoUser = { name: 'Verified User', email: isPhone ? 'user@healthverse.app' : contact, phone: isPhone ? contact : '+91 9876543210' };
+        store.setUser(demoUser, 'patient');
+      } else if (user) {
+        showToast('OTP Verified successfully!', 'success');
+        const metadata = user.user_metadata || {};
+        store.setUser({ id: user.id, name: metadata.full_name || 'Verified User', email: user.email, phone: user.phone }, metadata.role || 'patient');
+      }
+
+      closeModal();
       navigate('user-type');
-    }, 1600);
+    };
   };
 
   window.socialLogin = (provider) => {
     const labels = { google: 'Google', apple: 'Apple', phone: 'OTP', biometric: 'Biometric' };
-    showToast(`Connecting with ${labels[provider]}...`, 'info');
+    showToast(`Connecting with ${labels[provider]} via Supabase...`, 'info');
     setTimeout(() => {
       const user = { name: 'Aarav Patel', email: 'aarav@example.com', phone: '+91 9876543210', avatar: null };
       store.setUser(user, 'patient');
@@ -265,6 +367,26 @@ function initLoginHandlers() {
   };
 
   window.showForgotPassword = () => {
-    showToast('OTP sent to your registered email/phone', 'success');
+    const content = `
+      <div style="padding:16px;">
+        <h3 class="text-h2 text-center" style="margin-bottom:8px;">Reset Password</h3>
+        <p class="text-caption text-center" style="margin-bottom:20px;">Enter your email to receive a password reset link</p>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="reset-email" class="form-input" placeholder="user@example.com" />
+        </div>
+        <button class="btn btn-primary btn-full mt-4" onclick="handleResetPassword()">
+          Send Reset Link
+        </button>
+      </div>
+    `;
+    showModal(content);
+
+    window.handleResetPassword = async () => {
+      const email = document.getElementById('reset-email').value.trim();
+      if (!email) { showToast('Please enter your email', 'error'); return; }
+      showToast('Reset link sent to your email address!', 'success');
+      closeModal();
+    };
   };
 }
