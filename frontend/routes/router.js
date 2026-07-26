@@ -48,6 +48,16 @@ export function navigate(page, params = {}, addHistory = true) {
 
 export function goBack() {
   const prev = store.history.pop();
-  if (prev) navigate(prev, {}, false);
-  else navigate('login');
+  if (prev && prev !== store.currentPage) {
+    navigate(prev, {}, false);
+  } else {
+    // Default fallback depending on user role
+    if (store.userType === 'doctor') navigate('doctor-home');
+    else if (store.userType === 'ambulance') navigate('ambulance-home');
+    else navigate('patient-home');
+  }
 }
+
+// Bind globally
+window.navigate = navigate;
+window.goBack = goBack;

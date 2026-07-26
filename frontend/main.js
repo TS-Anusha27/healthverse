@@ -1,11 +1,13 @@
 // HealthVerse — App Entry Point
 import './styles/style.css';
-import { register, navigate } from './routes/router.js';
+import { register, navigate, goBack } from './routes/router.js';
 import { store } from './store/store.js';
 import * as utils from './utils/utils.js';
 import * as routerModule from './routes/router.js';
 
-// Expose utilities globally for inline onclick handlers
+// Expose routing and utilities globally for inline onclick handlers across all pages
+window.navigate = navigate;
+window.goBack = goBack;
 window._utils = utils;
 window._router = routerModule;
 
