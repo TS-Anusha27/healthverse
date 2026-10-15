@@ -107,7 +107,7 @@ export function renderSettings() {
 
   window.handleSignOut = () => {
     store.clearUser();
-    showToast('Logged out successfully', 'info');
-    navigate('login');
+    showToast('Reset to default trial profile', 'info');
+    navigate('patient-home');
   };
 }

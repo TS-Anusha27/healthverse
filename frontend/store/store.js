@@ -1,11 +1,19 @@
-// HealthVerse — Global State Store with Supabase Auth Session Persistence
+// HealthVerse — Global State Store
 import { supabase } from '../services/supabase/client.js';
+
+const defaultDemoUser = {
+  id: 'demo-patient-001',
+  name: 'Aarav Patel',
+  email: 'aarav.patel@healthverse.com',
+  phone: '+91 98765 43210',
+  avatar: null
+};
 
 export const store = {
   // Auth
-  currentUser: null,
-  userType: null, // 'patient' | 'doctor' | 'ambulance'
-  isLoggedIn: false,
+  currentUser: defaultDemoUser,
+  userType: 'patient', // 'patient' | 'doctor' | 'ambulance'
+  isLoggedIn: true,
   supabaseSession: null,
 
   // Theme
@@ -13,27 +21,44 @@ export const store = {
 
   // Navigation history
   history: [],
-  currentPage: 'splash',
+  currentPage: 'patient-home',
 
   // Patient data
-  patient: null,
-  doctor: null,
-  driver: null,
+  patient: {
+    id: 'demo-patient-001',
+    name: 'Aarav Patel',
+    bloodGroup: 'B+',
+    healthScore: 82,
+    age: 28,
+    gender: 'Male'
+  },
+  doctor: {
+    id: 'dr_001',
+    name: 'Dr. Priya Krishnamurthy',
+    specialty: 'Cardiologist',
+    hospital: 'Apollo Hospitals'
+  },
+  driver: {
+    id: 'amb_001',
+    name: 'Emergency Driver Ramesh',
+    phone: '+91 98765 43210',
+    vehicleNumber: 'TN 07 HV 2026'
+  },
   notifications: [],
   mapInstance: null,
 
   // Methods
   setUser(user, type) {
-    this.currentUser = user;
-    this.userType = type;
+    this.currentUser = user || defaultDemoUser;
+    this.userType = type || 'patient';
     this.isLoggedIn = true;
-    localStorage.setItem('hv_user', JSON.stringify({ user, type }));
+    localStorage.setItem('hv_user', JSON.stringify({ user: this.currentUser, type: this.userType }));
   },
 
   clearUser() {
-    this.currentUser = null;
-    this.userType = null;
-    this.isLoggedIn = false;
+    this.currentUser = defaultDemoUser;
+    this.userType = 'patient';
+    this.isLoggedIn = true;
     this.supabaseSession = null;
     localStorage.removeItem('hv_user');
     supabase.auth.signOut().catch(() => {});
@@ -47,12 +72,12 @@ export const store = {
 
   async loadSavedUser() {
     try {
-      // Restore session from Supabase Auth
+      // Restore session from Supabase Auth if available
       const { data: { session } } = await supabase.auth.getSession();
       if (session && session.user) {
         this.supabaseSession = session;
         const metadata = session.user.user_metadata || {};
-        const name = metadata.full_name || session.user.email?.split('@')[0] || 'HealthVerse User';
+        const name = metadata.full_name || session.user.email?.split('@')[0] || defaultDemoUser.name;
         const type = metadata.role || 'patient';
         
         const user = {
@@ -67,19 +92,25 @@ export const store = {
         return true;
       }
     } catch (e) {
-      console.warn('Supabase session restore error:', e.message);
+      console.warn('Supabase session restore note:', e.message);
     }
 
-    // Fallback to localStorage if offline
+    // Fallback to localStorage
     const saved = localStorage.getItem('hv_user');
     if (saved) {
-      const { user, type } = JSON.parse(saved);
-      this.currentUser = user;
-      this.userType = type;
-      this.isLoggedIn = true;
-      return true;
+      try {
+        const { user, type } = JSON.parse(saved);
+        this.currentUser = user || defaultDemoUser;
+        this.userType = type || 'patient';
+        this.isLoggedIn = true;
+        return true;
+      } catch (e) {}
     }
-    return false;
+
+    this.currentUser = defaultDemoUser;
+    this.userType = 'patient';
+    this.isLoggedIn = true;
+    return true;
   },
 
   initSupabaseListener() {
@@ -87,7 +118,7 @@ export const store = {
       if (session && session.user) {
         this.supabaseSession = session;
         const metadata = session.user.user_metadata || {};
-        const name = metadata.full_name || session.user.email?.split('@')[0] || 'HealthVerse User';
+        const name = metadata.full_name || session.user.email?.split('@')[0] || defaultDemoUser.name;
         const type = metadata.role || this.userType || 'patient';
 
         const user = {
@@ -99,9 +130,9 @@ export const store = {
         };
         this.setUser(user, type);
       } else if (event === 'SIGNED_OUT') {
-        this.currentUser = null;
-        this.userType = null;
-        this.isLoggedIn = false;
+        this.currentUser = defaultDemoUser;
+        this.userType = 'patient';
+        this.isLoggedIn = true;
         this.supabaseSession = null;
         localStorage.removeItem('hv_user');
       }

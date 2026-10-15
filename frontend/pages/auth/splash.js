@@ -62,14 +62,10 @@ export function renderSplash() {
       splash.style.transform = 'scale(1.04)';
     }
     setTimeout(() => {
-      if (store.isLoggedIn && store.currentUser) {
-        const type = store.userType;
-        if (type === 'doctor') navigate('doctor-home');
-        else if (type === 'ambulance') navigate('ambulance-home');
-        else navigate('patient-home');
-      } else {
-        navigate('login');
-      }
+      const type = store.userType || 'patient';
+      if (type === 'doctor') navigate('doctor-home');
+      else if (type === 'ambulance') navigate('ambulance-home');
+      else navigate('patient-home');
     }, 600);
   }, 2000);
 }

@@ -56,8 +56,8 @@ register('ambulance-home', renderAmbulanceDriver);
 register('settings', renderSettings);
 register('notifications', renderNotifications);
 
-// Load saved user state or start splash
+// Load saved user state and enter website directly
 store.loadSavedUser();
 
-// Initial navigation
-navigate('splash');
+// Initial navigation: Direct entry to HealthVerse
+navigate('patient-home');

@@ -203,9 +203,9 @@ function initDriverHandlers() {
   };
 
   window.handleDriverSignOut = async () => {
-    await signOutUser();
+    try { await signOutUser(); } catch (e) {}
     store.clearUser();
-    showToast('Signed out of Ambulance Driver module', 'info');
-    navigate('login');
+    showToast('Switched to Patient view', 'info');
+    navigate('patient-home');
   };
 }

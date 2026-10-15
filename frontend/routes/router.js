@@ -11,10 +11,9 @@ export function register(name, renderFn) {
 }
 
 export function navigate(page, params = {}, addHistory = true) {
-  // Protected Route Middleware: Redirect to login if unauthenticated
-  if (!PUBLIC_ROUTES.includes(page) && !store.isLoggedIn) {
-    console.warn(`Unauthenticated access attempt to '${page}'. Redirecting to login.`);
-    page = 'login';
+  // Direct trial bypass: ignore login/patient-registration screens and direct to home
+  if (page === 'login' || page === 'patient-registration') {
+    page = store.userType === 'doctor' ? 'doctor-home' : (store.userType === 'ambulance' ? 'ambulance-home' : 'patient-home');
   }
 
   if (addHistory && store.currentPage !== page) {

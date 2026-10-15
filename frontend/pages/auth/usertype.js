@@ -101,7 +101,7 @@ export function renderUserType() {
     document.querySelectorAll('.user-type-card').forEach(c => c.classList.remove('selected'));
     document.getElementById(`card-${type}`).classList.add('selected');
 
-    await updateUserRole(type);
+    try { await updateUserRole(type); } catch (e) {}
     store.setUser(store.currentUser, type);
 
     setTimeout(() => {
@@ -112,9 +112,9 @@ export function renderUserType() {
   };
 
   window.handleSignOut = async () => {
-    await signOutUser();
+    try { await signOutUser(); } catch (e) {}
     store.clearUser();
-    showToast('Signed out of Supabase Auth', 'info');
-    navigate('login');
+    showToast('Reset to default profile', 'info');
+    navigate('patient-home');
   };
 }
