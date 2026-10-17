@@ -27,9 +27,11 @@ import { renderMedicines } from './pages/records/medicines.js';
 import { renderHealthInsights } from './pages/ai/health-insights.js';
 import { renderSOS } from './pages/emergency/sos.js';
 import { renderDoctorDashboard } from './pages/doctor/doctor-dashboard.js';
+import { renderDoctorSetup } from './pages/doctor/doctor-setup.js';
 import { renderDoctorSummary } from './pages/doctor/doctor-summary.js';
 import { renderDoctorPrescription } from './pages/doctor/doctor-prescription.js';
 import { renderAmbulanceDriver } from './pages/ambulance/ambulance-driver.js';
+import { renderAmbulanceSetup } from './pages/ambulance/ambulance-setup.js';
 import { renderSettings } from './pages/profile/settings.js';
 import { renderNotifications } from './pages/profile/notifications.js';
 
@@ -50,14 +52,16 @@ register('medicines', renderMedicines);
 register('health-insights', renderHealthInsights);
 register('sos', renderSOS);
 register('doctor-home', renderDoctorDashboard);
+register('doctor-setup', renderDoctorSetup);
 register('doctor-summary', renderDoctorSummary);
 register('doctor-prescription', renderDoctorPrescription);
 register('ambulance-home', renderAmbulanceDriver);
+register('ambulance-setup', renderAmbulanceSetup);
 register('settings', renderSettings);
 register('notifications', renderNotifications);
 
-// Load saved user state and enter website directly
+// Load saved user state and profile credentials
 store.loadSavedUser();
 
-// Initial navigation: Direct entry to HealthVerse
-navigate('patient-home');
+// Initial navigation: Direct entry to Login page as requested
+navigate('login');

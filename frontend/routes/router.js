@@ -11,10 +11,6 @@ export function register(name, renderFn) {
 }
 
 export function navigate(page, params = {}, addHistory = true) {
-  // Direct trial bypass: ignore login/patient-registration screens and direct to home
-  if (page === 'login' || page === 'patient-registration') {
-    page = store.userType === 'doctor' ? 'doctor-home' : (store.userType === 'ambulance' ? 'ambulance-home' : 'patient-home');
-  }
 
   if (addHistory && store.currentPage !== page) {
     store.history.push(store.currentPage);

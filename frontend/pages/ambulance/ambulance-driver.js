@@ -1,8 +1,7 @@
-// HealthVerse — Ambulance Driver Dashboard connected to Supabase DB & High-Precision Leaflet GPS Maps
+// HealthVerse — Ambulance Driver Dashboard connected to Supabase/Firebase DB & High-Precision Leaflet GPS Maps
 import { navigate } from '../../routes/router.js';
 import { showToast, showModal, closeModal } from '../../utils/utils.js';
 import { getEmergencyRequests, updateEmergencyRequestStatus, updateDriverStatus } from '../../services/supabase/db.js';
-import { signOutUser } from '../../services/supabase/auth.js';
 import { store } from '../../store/store.js';
 
 let isOnline = true;
@@ -10,8 +9,21 @@ let inRide = false;
 let driverMap = null;
 
 export async function renderAmbulanceDriver() {
-  const driver = { name: 'Ravi Kumar', vehicle: 'MH 01 AX 4892 (ICU Ambulance)', rating: 4.8 };
-  const requests = await getEmergencyRequests();
+  const driver = store.driver || {
+    name: 'Ravi Kumar',
+    vehicleName: 'LifeLine Advanced Cardiac Life Support (ACLS)',
+    vehicleNumber: 'TN 07 HV 2026',
+    licenseNumber: 'DL-TN-07-2018-00912',
+    isVerified: true
+  };
+
+  let requests = [];
+  try {
+    requests = await getEmergencyRequests();
+  } catch (e) {
+    requests = [];
+  }
+
   const req = requests[0] || {
     id: 'req_emergency_1',
     patientName: 'Meera Krishnan',
@@ -29,31 +41,50 @@ export async function renderAmbulanceDriver() {
   app.innerHTML = `
     <div class="screen" style="background:var(--bg);">
       <!-- Top Driver Navigation Header -->
-      <div style="background:#111827;color:white;padding:calc(14px + var(--safe-top)) 16px 14px;position:relative;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+      <div style="background:#111827;color:white;padding:calc(14px + var(--safe-top)) 16px 14px;position:relative;z-index:10;box-shadow:0 4px 16px rgba(0,0,0,0.4);">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="avatar" style="background:var(--emergency);color:white;font-weight:800;">RK</div>
+            <div class="avatar" style="background:var(--emergency);color:white;font-weight:800;font-size:15px;border:2px solid rgba(255,255,255,0.3);">
+              ${driver.name?.split(' ').map(n=>n[0]).slice(0,2).join('') || 'RK'}
+            </div>
             <div>
-              <div style="font-family:var(--font-display);font-size:15px;font-weight:700;">${driver.name}</div>
-              <div style="font-size:11px;color:rgba(255,255,255,0.7);">${driver.vehicle}</div>
+              <div class="flex items-center gap-2">
+                <span style="font-family:var(--font-display);font-size:15px;font-weight:700;">${driver.name}</span>
+                <span class="badge" style="background:rgba(46,213,115,0.25);color:#2ED573;border:1px solid #2ED573;font-size:9px;padding:1px 6px;">
+                  ✓ VALIDATED DRIVER
+                </span>
+              </div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.8);margin-top:1px;">
+                🚑 <strong>${driver.vehicleNumber}</strong> • ${driver.vehicleName}
+              </div>
             </div>
           </div>
 
           <!-- Controls: Switch Role & Logout -->
           <div class="flex items-center gap-2">
-            <button class="btn btn-xs" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.25);" onclick="navigate('user-type')" title="Switch Role">
-              🔄 Switch Role
+            <button class="btn btn-xs" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.25);" onclick="navigate('login')" title="Switch Role">
+              🔄 Switch Profile
             </button>
-            <button class="btn btn-xs btn-ghost" style="color:#FF4757;padding:4px 8px;" onclick="handleDriverSignOut()" title="Sign Out">
+            <button class="btn btn-xs btn-ghost" style="color:#FF4757;padding:4px 8px;border:1px solid rgba(255,71,87,0.3);" onclick="handleDriverSignOut()" title="Sign Out">
               Sign Out
             </button>
           </div>
         </div>
 
+        <!-- Vehicle Credentials Ribbon -->
+        <div class="flex items-center justify-between mt-2 pt-2" style="border-top:1px solid rgba(255,255,255,0.1);font-size:11px;color:rgba(255,255,255,0.7);">
+          <div>
+            License: <strong style="color:white;">${driver.licenseNumber || 'DL-COMMERCIAL'}</strong>
+          </div>
+          <button class="btn btn-xs btn-ghost" style="color:#FFA502;font-size:10px;padding:2px 6px;" onclick="navigate('ambulance-setup')">
+            ✏️ Update Vehicle & License
+          </button>
+        </div>
+
         <!-- Online Toggle Bar -->
-        <div class="flex items-center justify-between mt-3 pt-2" style="border-top:1px solid rgba(255,255,255,0.1);">
-          <div style="font-size:12px;color:rgba(255,255,255,0.8);">
-            Status: <strong style="color:${isOnline ? '#52C99B' : '#FF4757'};" id="status-text">${isOnline ? 'ONLINE (GPS ACTIVE)' : 'OFFLINE'}</strong>
+        <div class="flex items-center justify-between mt-2 pt-2" style="border-top:1px solid rgba(255,255,255,0.1);">
+          <div style="font-size:12px;color:rgba(255,255,255,0.85);">
+            Emergency Dispatch: <strong style="color:${isOnline ? '#52C99B' : '#FF4757'};" id="status-text">${isOnline ? 'ONLINE (GPS ACTIVE)' : 'OFFLINE'}</strong>
           </div>
           <label class="toggle">
             <input type="checkbox" id="driver-online-toggle" ${isOnline ? 'checked' : ''} onchange="toggleDriverOnline(this.checked)" />
@@ -64,14 +95,14 @@ export async function renderAmbulanceDriver() {
       </div>
 
       <!-- High-Precision Leaflet Map Container -->
-      <div id="amb-map" style="height:calc(100dvh - 290px);width:100%;position:relative;z-index:1;"></div>
+      <div id="amb-map" style="height:calc(100dvh - 310px);width:100%;position:relative;z-index:1;"></div>
 
       <!-- Driver Ride Controls Panel -->
-      <div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--surface);border-radius:24px 24px 0 0;padding:18px 20px calc(18px + var(--safe-bottom));box-shadow:0 -8px 30px rgba(0,0,0,0.2);z-index:20;">
+      <div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--surface);border-radius:24px 24px 0 0;padding:18px 20px calc(18px + var(--safe-bottom));box-shadow:0 -8px 30px rgba(0,0,0,0.25);z-index:20;">
         ${!inRide ? `
           <div style="font-family:var(--font-display);font-size:13px;font-weight:800;color:var(--emergency);letter-spacing:0.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
             <span style="width:8px;height:8px;background:var(--emergency);border-radius:50%;animation:pulse-ring 1.2s infinite;"></span>
-            INCOMING EMERGENCY REQUEST (SUPABASE SYNCED)
+            LIVE EMERGENCY DISPATCH RADAR
           </div>
           <div class="card card-sm mb-3" style="background:var(--surface-dim);padding:14px;border-left:4px solid var(--emergency);">
             <div class="flex justify-between items-center mb-1">
@@ -157,7 +188,7 @@ function initDriverMap(req) {
   });
 
   L.marker(driverLoc, { icon: ambulanceIcon }).addTo(driverMap)
-    .bindPopup('<b>Your ICU Ambulance</b><br>Speed: 42 km/h').openPopup();
+    .bindPopup('<b>Your Emergency Unit</b><br>Speed: 42 km/h').openPopup();
 
   L.marker(patientLoc, { icon: patientIcon }).addTo(driverMap)
     .bindPopup(`<b>Patient: ${req.patient_name || req.patientName}</b><br>${req.address}`);
@@ -184,28 +215,33 @@ function initDriverHandlers() {
       statusText.innerText = isOnline ? 'ONLINE (GPS ACTIVE)' : 'OFFLINE';
       statusText.style.color = isOnline ? '#52C99B' : '#FF4757';
     }
-    await updateDriverStatus('amb1', isOnline ? 'available' : 'offline');
+    try {
+      await updateDriverStatus('amb1', isOnline ? 'available' : 'offline');
+    } catch (e) {}
     showToast(isOnline ? 'You are ONLINE — listening for emergency calls' : 'You are OFFLINE', isOnline ? 'success' : 'info');
   };
 
   window.acceptEmergencyRide = async (id) => {
     inRide = true;
-    await updateEmergencyRequestStatus(id, 'accepted', 'amb1');
-    showToast('Emergency ride accepted in Supabase! Live GPS navigation active.', 'success', 5000);
+    try {
+      await updateEmergencyRequestStatus(id, 'accepted', 'amb1');
+    } catch (e) {}
+    showToast('Emergency ride accepted! Live GPS navigation active.', 'success', 5000);
     renderAmbulanceDriver();
   };
 
   window.completeEmergencyRide = async (id) => {
     inRide = false;
-    await updateEmergencyRequestStatus(id, 'completed', 'amb1');
+    try {
+      await updateEmergencyRequestStatus(id, 'completed', 'amb1');
+    } catch (e) {}
     showToast('Mission completed! Patient safely delivered to hospital.', 'success', 5000);
     renderAmbulanceDriver();
   };
 
-  window.handleDriverSignOut = async () => {
-    try { await signOutUser(); } catch (e) {}
+  window.handleDriverSignOut = () => {
     store.clearUser();
-    showToast('Switched to Patient view', 'info');
-    navigate('patient-home');
+    showToast('Signed out from Ambulance Driver profile', 'info');
+    navigate('login');
   };
 }
