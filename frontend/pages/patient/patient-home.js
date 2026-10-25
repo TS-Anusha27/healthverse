@@ -25,7 +25,10 @@ export function renderPatientHome() {
               <div class="home-greeting">${greeting} 👋</div>
               <div class="home-name">${firstName}</div>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+              <button class="btn btn-xs" style="background:rgba(255,255,255,0.18);color:white;border:1px solid rgba(255,255,255,0.25);border-radius:12px;padding:4px 8px;font-size:11px;" onclick="navigate('login')" title="Switch to Doctor or Ambulance Driver">
+                🔄 Switch Profile
+              </button>
               <button class="header-icon-btn" onclick="navigate('notifications')" id="notif-btn" aria-label="Notifications">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                 <span class="notif-dot"></span>
@@ -43,7 +46,7 @@ export function renderPatientHome() {
               <div class="score-value">${patient.healthScore || 82}<span style="font-size:18px;">/100</span></div>
               <div class="score-status">
                 <div class="score-dot" style="background:var(--secondary);"></div>
-                <span>Good â€” Keep it up!</span>
+                <span>Good — Keep it up!</span>
               </div>
             </div>
             <div class="health-score-right">
