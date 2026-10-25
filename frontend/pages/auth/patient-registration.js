@@ -300,19 +300,20 @@ function collectStepData() {
 }
 
 function buildDefaultProfile() {
+  const current = store.patient || {};
   return {
-    name: store.currentUser?.name || 'Aarav Patel',
-    email: store.currentUser?.email || 'aarav@example.com',
-    phone: store.currentUser?.phone || '+91 9876543210',
-    gender: 'male',
-    dob: '1998-03-15',
-    bloodGroup: 'B+',
-    height: '175',
-    weight: '72',
+    name: store.currentUser?.name || current.fullName || current.name || 'Patient',
+    email: store.currentUser?.email || current.email || '',
+    phone: store.currentUser?.phone || current.phone || '',
+    gender: current.gender || 'prefer_not',
+    dob: current.dob || '',
+    bloodGroup: current.bloodGroup || '',
+    height: '170',
+    weight: '68',
     healthScore: 85,
-    emergencyName: 'Meera Patel',
-    emergencyPhone: '+91 9876543200',
-    address: '45, Velachery Main Road, Chennai',
+    emergencyName: current.emergencyName || '',
+    emergencyPhone: current.emergencyPhone || '',
+    address: current.address || '',
     ...formData
   };
 }

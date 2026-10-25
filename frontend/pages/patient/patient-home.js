@@ -5,12 +5,13 @@ import { mockData } from '../../services/data.js';
 import { showToast, getInitials, avatarColor } from '../../utils/utils.js';
 
 export function renderPatientHome() {
-  const patient = store.patient || JSON.parse(localStorage.getItem('hv_patient_profile') || 'null') || { name: store.currentUser?.name || 'Aarav Patel', bloodGroup: 'B+', healthScore: 82 };
+  const patient = store.patient || JSON.parse(localStorage.getItem('hv_patient_profile') || 'null') || (store.currentUser ? { name: store.currentUser.name, email: store.currentUser.email, bloodGroup: 'Not set', healthScore: 85 } : { name: 'Patient', bloodGroup: 'Not set', healthScore: 85 });
   store.patient = patient;
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
-  const firstName = patient.name?.split(' ')[0] || 'there';
+  const displayName = patient.fullName || patient.name || store.currentUser?.name || 'Patient';
+  const firstName = displayName.split(' ')[0] || 'Patient';
 
   const app = document.getElementById('app');
   app.innerHTML = `
@@ -21,7 +22,7 @@ export function renderPatientHome() {
         <div class="home-header-content">
           <div class="flex items-center justify-between">
             <div>
-              <div class="home-greeting">${greeting} ðŸ‘‹</div>
+              <div class="home-greeting">${greeting} 👋</div>
               <div class="home-name">${firstName}</div>
             </div>
             <div class="flex items-center gap-3">
@@ -29,8 +30,8 @@ export function renderPatientHome() {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                 <span class="notif-dot"></span>
               </button>
-              <div class="avatar" style="background:${avatarColor(patient.name || 'User')};color:white;cursor:pointer;" onclick="navigate('settings')" id="profile-avatar">
-                ${getInitials(patient.name || 'User')}
+              <div class="avatar" style="background:${avatarColor(displayName)};color:white;cursor:pointer;" onclick="navigate('settings')" id="profile-avatar">
+                ${getInitials(displayName)}
               </div>
             </div>
           </div>

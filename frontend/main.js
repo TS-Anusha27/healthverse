@@ -1,15 +1,17 @@
 // HealthVerse — App Entry Point
 import './styles/style.css';
-import { register, navigate, goBack } from './routes/router.js';
+import { register, navigate, goBack, initRouter, parseHash } from './routes/router.js';
 import { store } from './store/store.js';
 import * as utils from './utils/utils.js';
 import * as routerModule from './routes/router.js';
+import { authService } from './services/auth/authService.js';
 
-// Expose routing and utilities globally for inline onclick handlers across all pages
+// Expose routing and utilities globally for inline onclick handlers across templates
 window.navigate = navigate;
 window.goBack = goBack;
 window._utils = utils;
 window._router = routerModule;
+window._authService = authService;
 
 // Import pages
 import { renderSplash } from './pages/auth/splash.js';
@@ -37,6 +39,7 @@ import { renderNotifications } from './pages/profile/notifications.js';
 register('splash', renderSplash);
 register('login', renderLogin);
 register('user-type', renderUserType);
+register('landing', renderUserType);
 register('patient-registration', renderPatientRegistration);
 register('patient-home', renderPatientHome);
 register('appointments', renderAppointments);
@@ -56,8 +59,28 @@ register('ambulance-home', renderAmbulanceDriver);
 register('settings', renderSettings);
 register('notifications', renderNotifications);
 
-// Load saved user state or start splash
-store.loadSavedUser();
+// Initialize router popstate/hashchange event listeners
+initRouter();
 
-// Initial navigation
-navigate('splash');
+// Startup bootstrap: restore session & navigate to targeted route
+async function bootstrap() {
+  await store.loadSavedUser();
+
+  const currentHash = window.location.hash.trim();
+  if (currentHash && currentHash !== '#' && currentHash !== '#/') {
+    // User refreshed or bookmarked a specific route
+    const { page, params } = parseHash();
+    navigate(page, params, false);
+  } else {
+    // Initial visit or clean root: show public landing / role selection
+    if (store.isLoggedIn && store.userType) {
+      if (store.userType === 'doctor') navigate('doctor-home', {}, false);
+      else if (store.userType === 'ambulance') navigate('ambulance-home', {}, false);
+      else navigate('patient-home', {}, false);
+    } else {
+      navigate('user-type', {}, false);
+    }
+  }
+}
+
+bootstrap();

@@ -1,21 +1,20 @@
-// HealthVerse — Global State Store with Supabase Auth Session Persistence
-import { supabase } from '../services/supabase/client.js';
+// HealthVerse — Global State Store with Local Session Persistence
+import { sessionService } from '../services/auth/sessionService.js';
 
 export const store = {
   // Auth
   currentUser: null,
   userType: null, // 'patient' | 'doctor' | 'ambulance'
   isLoggedIn: false,
-  supabaseSession: null,
 
-  // Theme
+  // Theme: strictly default to 'light'
   theme: localStorage.getItem('hv_theme') || 'light',
 
-  // Navigation history
+  // Navigation history & current page
   history: [],
-  currentPage: 'splash',
+  currentPage: 'user-type',
 
-  // Patient data
+  // Role profiles
   patient: null,
   doctor: null,
   driver: null,
@@ -23,92 +22,70 @@ export const store = {
   mapInstance: null,
 
   // Methods
-  setUser(user, type) {
+  setUser(user, type, profile = null) {
     this.currentUser = user;
     this.userType = type;
     this.isLoggedIn = true;
-    localStorage.setItem('hv_user', JSON.stringify({ user, type }));
+
+    if (type === 'patient') {
+      this.patient = profile || this.patient;
+    } else if (type === 'doctor') {
+      this.doctor = profile || this.doctor;
+    } else if (type === 'ambulance') {
+      this.driver = profile || this.driver;
+    }
+
+    sessionService.saveSession(user, profile, type);
   },
 
   clearUser() {
     this.currentUser = null;
     this.userType = null;
     this.isLoggedIn = false;
-    this.supabaseSession = null;
-    localStorage.removeItem('hv_user');
-    supabase.auth.signOut().catch(() => {});
+    this.patient = null;
+    this.doctor = null;
+    this.driver = null;
+    sessionService.clearSession();
   },
 
-  toggleTheme() {
-    this.theme = this.theme === 'light' ? 'dark' : 'light';
+  setTheme(theme) {
+    this.theme = theme === 'dark' ? 'dark' : 'light';
     localStorage.setItem('hv_theme', this.theme);
     document.documentElement.setAttribute('data-theme', this.theme);
   },
 
+  toggleTheme() {
+    this.setTheme(this.theme === 'light' ? 'dark' : 'light');
+  },
+
   async loadSavedUser() {
     try {
-      // Restore session from Supabase Auth
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session && session.user) {
-        this.supabaseSession = session;
-        const metadata = session.user.user_metadata || {};
-        const name = metadata.full_name || session.user.email?.split('@')[0] || 'HealthVerse User';
-        const type = metadata.role || 'patient';
-        
-        const user = {
-          id: session.user.id,
-          name: name,
-          email: session.user.email,
-          phone: session.user.phone || metadata.phone || null,
-          avatar: metadata.avatar_url || null
-        };
+      const session = sessionService.getSession();
+      if (session && session.user && session.role) {
+        this.currentUser = session.user;
+        this.userType = session.role;
+        this.isLoggedIn = true;
 
-        this.setUser(user, type);
+        if (session.role === 'patient') {
+          this.patient = session.profile;
+        } else if (session.role === 'doctor') {
+          this.doctor = session.profile;
+        } else if (session.role === 'ambulance') {
+          this.driver = session.profile;
+        }
         return true;
       }
     } catch (e) {
-      console.warn('Supabase session restore error:', e.message);
+      console.warn('Session restore notice:', e.message);
     }
 
-    // Fallback to localStorage if offline
-    const saved = localStorage.getItem('hv_user');
-    if (saved) {
-      const { user, type } = JSON.parse(saved);
-      this.currentUser = user;
-      this.userType = type;
-      this.isLoggedIn = true;
-      return true;
-    }
+    this.clearUser();
     return false;
-  },
-
-  initSupabaseListener() {
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (session && session.user) {
-        this.supabaseSession = session;
-        const metadata = session.user.user_metadata || {};
-        const name = metadata.full_name || session.user.email?.split('@')[0] || 'HealthVerse User';
-        const type = metadata.role || this.userType || 'patient';
-
-        const user = {
-          id: session.user.id,
-          name: name,
-          email: session.user.email,
-          phone: session.user.phone || metadata.phone || null,
-          avatar: metadata.avatar_url || null
-        };
-        this.setUser(user, type);
-      } else if (event === 'SIGNED_OUT') {
-        this.currentUser = null;
-        this.userType = null;
-        this.isLoggedIn = false;
-        this.supabaseSession = null;
-        localStorage.removeItem('hv_user');
-      }
-    });
   }
 };
 
-// Restore theme on load
+// Initialize theme on script load (ensures light theme is applied immediately)
+if (!localStorage.getItem('hv_theme')) {
+  localStorage.setItem('hv_theme', 'light');
+}
 document.documentElement.setAttribute('data-theme', store.theme);
-store.initSupabaseListener();

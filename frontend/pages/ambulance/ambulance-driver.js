@@ -1,6 +1,6 @@
 // HealthVerse — Ambulance Driver Dashboard connected to Supabase DB & High-Precision Leaflet GPS Maps
 import { navigate } from '../../routes/router.js';
-import { showToast, showModal, closeModal } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, getInitials } from '../../utils/utils.js';
 import { getEmergencyRequests, updateEmergencyRequestStatus, updateDriverStatus } from '../../services/supabase/db.js';
 import { signOutUser } from '../../services/supabase/auth.js';
 import { store } from '../../store/store.js';
@@ -10,7 +10,20 @@ let inRide = false;
 let driverMap = null;
 
 export async function renderAmbulanceDriver() {
-  const driver = { name: 'Ravi Kumar', vehicle: 'MH 01 AX 4892 (ICU Ambulance)', rating: 4.8 };
+  const driver = store.driver || (store.currentUser ? {
+    name: store.currentUser.name,
+    vehicle: store.driver?.vehicleNumber || 'Emergency Response Ambulance',
+    rating: 4.8,
+    verificationStatus: store.currentUser.verificationStatus || 'pending_verification'
+  } : {
+    name: 'Emergency Driver',
+    vehicle: 'Emergency Vehicle',
+    rating: 4.8,
+    verificationStatus: 'pending_verification'
+  });
+  const driverName = driver.fullName || driver.name;
+  const isPending = driver.verificationStatus === 'pending_verification';
+
   const requests = await getEmergencyRequests();
   const req = requests[0] || {
     id: 'req_emergency_1',
@@ -32,10 +45,15 @@ export async function renderAmbulanceDriver() {
       <div style="background:#111827;color:white;padding:calc(14px + var(--safe-top)) 16px 14px;position:relative;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="avatar" style="background:var(--emergency);color:white;font-weight:800;">RK</div>
+            <div class="avatar" style="background:var(--emergency);color:white;font-weight:800;" onclick="navigate('settings')">${getInitials(driverName)}</div>
             <div>
-              <div style="font-family:var(--font-display);font-size:15px;font-weight:700;">${driver.name}</div>
-              <div style="font-size:11px;color:rgba(255,255,255,0.7);">${driver.vehicle}</div>
+              <div style="display:flex;align-items:center;">
+                <span style="font-family:var(--font-display);font-size:15px;font-weight:700;">${driverName}</span>
+                <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:${isPending ? '#FEF3C7' : '#D1FAE5'};color:${isPending ? '#92400E' : '#065F46'};margin-left:6px;">
+                  ${isPending ? '⏳ Pending' : '✓ Verified'}
+                </span>
+              </div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.7);">${driver.vehicle || driver.vehicleNumber || 'Emergency Fleet'}</div>
             </div>
           </div>
 
@@ -205,7 +223,7 @@ function initDriverHandlers() {
   window.handleDriverSignOut = async () => {
     await signOutUser();
     store.clearUser();
-    showToast('Signed out of Ambulance Driver module', 'info');
+    showToast('Signed out of Driver module', 'info');
     navigate('login');
   };
 }

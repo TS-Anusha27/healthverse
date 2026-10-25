@@ -2,11 +2,26 @@
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
 import { mockData } from '../../services/data.js';
-import { showToast } from '../../utils/utils.js';
+import { showToast, getInitials } from '../../utils/utils.js';
 import { getAppointments, getEmergencyRequests } from '../../services/supabase/db.js';
 
 export async function renderDoctorDashboard() {
-  const doctor = store.doctor || { name: 'Dr. Priya Krishnamurthy', specialty: 'Cardiologist', hospital: 'Apollo Hospitals' };
+  const doctor = store.doctor || (store.currentUser ? {
+    name: store.currentUser.name?.startsWith('Dr.') ? store.currentUser.name : `Dr. ${store.currentUser.name}`,
+    specialty: 'General Practitioner',
+    hospital: 'Apollo Hospitals',
+    verificationStatus: store.currentUser.verificationStatus || 'pending_verification'
+  } : {
+    name: 'Dr. Medical Specialist',
+    specialty: 'General Practitioner',
+    hospital: 'Affiliated Hospital',
+    verificationStatus: 'pending_verification'
+  });
+  const docName = doctor.fullName || doctor.name;
+  const docSpecialty = doctor.specialisation || doctor.specialty || 'General Practitioner';
+  const docHospital = doctor.hospital || 'Affiliated Hospital';
+  const isPending = doctor.verificationStatus === 'pending_verification';
+
   const appts = await getAppointments();
   const emergencies = await getEmergencyRequests();
   const activeEmergencies = emergencies.filter(e => e.status !== 'completed').length;
@@ -18,12 +33,17 @@ export async function renderDoctorDashboard() {
       <div style="background:linear-gradient(135deg,#1E3A5F,#0D4F3C);padding:calc(20px + var(--safe-top)) 20px 20px;color:white;">
         <div class="flex items-center justify-between">
           <div>
-            <div style="font-size:12px;color:rgba(255,255,255,0.7);font-weight:600;letter-spacing:0.5px;">DOCTOR DASHBOARD (SUPABASE LIVE)</div>
-            <div style="font-family:var(--font-display);font-size:22px;font-weight:800;margin-top:2px;">${doctor.name}</div>
-            <div style="font-size:13px;color:rgba(255,255,255,0.8);">${doctor.specialty} • ${doctor.hospital}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+              <span style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:700;letter-spacing:0.5px;">DOCTOR WORKSPACE</span>
+              <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:${isPending ? '#FEF3C7' : '#D1FAE5'};color:${isPending ? '#92400E' : '#065F46'};">
+                ${isPending ? '⏳ Pending Verification' : '✓ Verified'}
+              </span>
+            </div>
+            <div style="font-family:var(--font-display);font-size:22px;font-weight:800;margin-top:2px;">${docName}</div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.8);">${docSpecialty} • ${docHospital}</div>
           </div>
-          <button class="avatar" style="background:rgba(255,255,255,0.2);color:white;cursor:pointer;" onclick="navigate('settings')" id="doc-avatar">
-            PK
+          <button class="avatar" style="background:rgba(255,255,255,0.2);color:white;cursor:pointer;font-weight:700;" onclick="navigate('settings')" id="doc-avatar" aria-label="Settings">
+            ${getInitials(docName)}
           </button>
         </div>
 
