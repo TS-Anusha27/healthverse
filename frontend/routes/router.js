@@ -13,10 +13,10 @@ export const PATIENT_ROUTES = [
   'health-records', 'blood-donation', 'organ-donation', 'medicines', 'health-insights', 'sos'
 ];
 export const DOCTOR_ROUTES = [
-  'doctor-home', 'doctor-summary', 'doctor-prescription'
+  'doctor-home', 'doctor-summary', 'doctor-prescription', 'doctor-setup'
 ];
 export const AMBULANCE_ROUTES = [
-  'ambulance-home'
+  'ambulance-home', 'ambulance-setup'
 ];
 export const SHARED_AUTH_ROUTES = [
   'settings', 'notifications'

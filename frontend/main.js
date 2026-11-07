@@ -31,7 +31,9 @@ import { renderSOS } from './pages/emergency/sos.js';
 import { renderDoctorDashboard } from './pages/doctor/doctor-dashboard.js';
 import { renderDoctorSummary } from './pages/doctor/doctor-summary.js';
 import { renderDoctorPrescription } from './pages/doctor/doctor-prescription.js';
+import { renderDoctorSetup } from './pages/doctor/doctor-setup.js';
 import { renderAmbulanceDriver } from './pages/ambulance/ambulance-driver.js';
+import { renderAmbulanceSetup } from './pages/ambulance/ambulance-setup.js';
 import { renderSettings } from './pages/profile/settings.js';
 import { renderNotifications } from './pages/profile/notifications.js';
 
@@ -55,7 +57,9 @@ register('sos', renderSOS);
 register('doctor-home', renderDoctorDashboard);
 register('doctor-summary', renderDoctorSummary);
 register('doctor-prescription', renderDoctorPrescription);
+register('doctor-setup', renderDoctorSetup);
 register('ambulance-home', renderAmbulanceDriver);
+register('ambulance-setup', renderAmbulanceSetup);
 register('settings', renderSettings);
 register('notifications', renderNotifications);
 

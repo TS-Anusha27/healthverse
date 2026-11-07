@@ -65,6 +65,18 @@ export async function renderDoctorDashboard() {
       </div>
 
       <div class="screen-content" style="padding:20px;padding-bottom:100px;">
+        ${isPending ? `
+        <div class="card p-3 mb-4" style="background:var(--warning-light, #FEF3C7);border:1px solid #FCD34D;border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <div class="flex items-center gap-2">
+            <span style="font-size:18px;">📋</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#92400E;">Verification Incomplete</div>
+              <div style="font-size:11px;color:#B45309;">Upload medical license and hospital credentials</div>
+            </div>
+          </div>
+          <button class="btn btn-xs" style="background:#D97706;color:white;font-weight:700;white-space:nowrap;" onclick="navigate('doctor-setup')">Complete verification &rarr;</button>
+        </div>` : ''}
+
         <!-- AI Priority Queue -->
         <div class="section-header">
           <div class="section-title">AI Priority Patient Queue</div>

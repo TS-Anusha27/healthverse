@@ -81,6 +81,15 @@ export async function renderAmbulanceDriver() {
         </div>
       </div>
 
+      ${isPending ? `
+      <div style="background:#FEF3C7;border-top:1px solid #FCD34D;border-bottom:1px solid #FCD34D;padding:8px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;z-index:10;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:14px;">⚠️</span>
+          <span style="font-size:11px;font-weight:700;color:#92400E;">Vehicle verification pending</span>
+        </div>
+        <button class="btn btn-xs" style="background:#D97706;color:white;font-weight:700;padding:3px 8px;border-radius:4px;border:none;cursor:pointer;" onclick="navigate('ambulance-setup')">Complete verification &rarr;</button>
+      </div>` : ''}
+
       <!-- High-Precision Leaflet Map Container -->
       <div id="amb-map" style="height:calc(100dvh - 290px);width:100%;position:relative;z-index:1;"></div>
 
