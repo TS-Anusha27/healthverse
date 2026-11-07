@@ -1,6 +1,6 @@
 // HealthVerse — Notifications Panel connected to Supabase DB
 import { navigate, goBack } from '../../routes/router.js';
-import { showToast } from '../../utils/utils.js';
+import { showToast, escapeHtml } from '../../utils/utils.js';
 import { getNotifications } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 
@@ -41,10 +41,10 @@ export async function renderNotifications() {
                 </div>
                 <div style="flex:1;">
                   <div class="flex justify-between items-center">
-                    <span style="font-family:var(--font-display);font-size:14px;font-weight:700;">${n.title}</span>
-                    <span style="font-size:11px;color:var(--text-tertiary);">${n.time}</span>
+                    <span style="font-family:var(--font-display);font-size:14px;font-weight:700;">${escapeHtml(n.title)}</span>
+                    <span style="font-size:11px;color:var(--text-tertiary);">${escapeHtml(n.time)}</span>
                   </div>
-                  <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;line-height:1.4;">${n.desc}</div>
+                  <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;line-height:1.4;">${escapeHtml(n.desc)}</div>
                 </div>
               </div>
             </div>

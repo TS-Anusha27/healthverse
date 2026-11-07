@@ -1,6 +1,6 @@
 import { navigate, goBack } from '../../routes/router.js';
 import { mockAISummary } from '../../services/data.js';
-import { showToast } from '../../utils/utils.js';
+import { showToast, escapeHtml } from '../../utils/utils.js';
 import { createPrescription } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 
@@ -82,7 +82,7 @@ export function renderDoctorPrescription() {
 
     listEl.innerHTML = selectedMeds.map((m, i) => `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--surface-dim);border-radius:10px;font-size:13px;">
-        <span style="font-weight:600;">${m.name}</span>
+        <span style="font-weight:600;">${escapeHtml(m.name)}</span>
         <button style="border:none;background:none;color:var(--emergency);cursor:pointer;font-weight:700;" onclick="removeMed(${i})">✖</button>
       </div>
     `).join('');

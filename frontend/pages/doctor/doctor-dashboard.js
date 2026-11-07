@@ -2,7 +2,7 @@
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
 import { mockData } from '../../services/data.js';
-import { showToast, getInitials } from '../../utils/utils.js';
+import { showToast, getInitials, escapeHtml } from '../../utils/utils.js';
 import { getAppointments, getEmergencyRequests } from '../../services/supabase/db.js';
 
 export async function renderDoctorDashboard() {
@@ -39,8 +39,8 @@ export async function renderDoctorDashboard() {
                 ${isPending ? '⏳ Pending Verification' : '✓ Verified'}
               </span>
             </div>
-            <div style="font-family:var(--font-display);font-size:22px;font-weight:800;margin-top:2px;">${docName}</div>
-            <div style="font-size:13px;color:rgba(255,255,255,0.8);">${docSpecialty} • ${docHospital}</div>
+            <div style="font-family:var(--font-display);font-size:22px;font-weight:800;margin-top:2px;">${escapeHtml(docName)}</div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.8);">${escapeHtml(docSpecialty)} • ${escapeHtml(docHospital)}</div>
           </div>
           <button class="avatar" style="background:rgba(255,255,255,0.2);color:white;cursor:pointer;font-weight:700;" onclick="navigate('settings')" id="doc-avatar" aria-label="Settings">
             ${getInitials(docName)}
@@ -85,16 +85,16 @@ export async function renderDoctorDashboard() {
 
         <div style="display:flex;flex-direction:column;gap:12px;" class="mt-3">
           ${mockData.doctorQueue.map(q => `
-            <div class="card" style="padding:16px;cursor:pointer;" onclick="openPatientSummary('${q.id}')">
+            <div class="card" style="padding:16px;cursor:pointer;" onclick="openPatientSummary('${escapeHtml(q.id)}')">
               <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center gap-2">
-                  <div style="font-family:var(--font-display);font-weight:800;font-size:14px;color:var(--primary);">${q.token}</div>
-                  <div style="font-family:var(--font-display);font-size:16px;font-weight:700;">${q.name}</div>
-                  <span style="font-size:12px;color:var(--text-tertiary);">(${q.age}y)</span>
+                  <div style="font-family:var(--font-display);font-weight:800;font-size:14px;color:var(--primary);">${escapeHtml(q.token)}</div>
+                  <div style="font-family:var(--font-display);font-size:16px;font-weight:700;">${escapeHtml(q.name)}</div>
+                  <span style="font-size:12px;color:var(--text-tertiary);">(${escapeHtml(q.age)}y)</span>
                 </div>
-                <span class="badge badge-triage-${q.triage}">${q.triage.toUpperCase()}</span>
+                <span class="badge badge-triage-${escapeHtml(q.triage)}">${escapeHtml(q.triage.toUpperCase())}</span>
               </div>
-              <div style="font-size:13px;color:var(--text-secondary);">Condition: <strong>${q.condition}</strong> • Wait: ${q.wait}</div>
+              <div style="font-size:13px;color:var(--text-secondary);">Condition: <strong>${escapeHtml(q.condition)}</strong> • Wait: ${escapeHtml(q.wait)}</div>
               <div class="flex gap-2 mt-3">
                 <button class="btn btn-primary btn-xs flex-1" onclick="event.stopPropagation();navigate('doctor-summary')">View AI Summary</button>
                 <button class="btn btn-outline btn-xs flex-1" onclick="event.stopPropagation();navigate('doctor-prescription')">Prescribe</button>

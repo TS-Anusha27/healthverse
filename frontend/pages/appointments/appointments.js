@@ -1,7 +1,7 @@
 // HealthVerse — Appointments + Map Screen
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
-import { showToast, showModal, closeModal, generateQRDisplay } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, generateQRDisplay, escapeHtml } from '../../utils/utils.js';
 import { getHospitals, getDoctors, createAppointment } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 
@@ -197,31 +197,31 @@ function initApptHandlers() {
     const h = mockData.hospitals.find(h => h.id === id);
     if (!h) return;
     showModal(`
-      <h3 style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text-primary);">${h.name}</h3>
+      <h3 style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text-primary);">${escapeHtml(h.name)}</h3>
       <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
-        <span class="badge badge-primary">⭐ ${h.rating}</span>
-        <span class="badge badge-secondary">📍 ${h.distance}</span>
+        <span class="badge badge-primary">⭐ ${escapeHtml(h.rating)}</span>
+        <span class="badge badge-secondary">📍 ${escapeHtml(h.distance)}</span>
         ${h.emergency ? '<span class="badge badge-emergency">🚨 Emergency</span>' : ''}
       </div>
       <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;font-size:14px;color:var(--text-secondary);">
-        <div>📍 ${h.address}</div>
-        <div>📞 ${h.phone}</div>
-        <div>⏱️ Wait time: <strong style="color:var(--text-primary);">${h.waitTime}</strong></div>
-        <div>👥 Queue: <strong style="color:var(--text-primary);">${h.queue} patients</strong></div>
-        <div>🛏️ Available beds: <strong style="color:var(--secondary);">${h.beds.available} / ${h.beds.total}</strong></div>
+        <div>📍 ${escapeHtml(h.address)}</div>
+        <div>📞 ${escapeHtml(h.phone)}</div>
+        <div>⏱️ Wait time: <strong style="color:var(--text-primary);">${escapeHtml(h.waitTime)}</strong></div>
+        <div>👥 Queue: <strong style="color:var(--text-primary);">${escapeHtml(h.queue)} patients</strong></div>
+        <div>🛏️ Available beds: <strong style="color:var(--secondary);">${escapeHtml(h.beds.available)} / ${escapeHtml(h.beds.total)}</strong></div>
       </div>
       <div style="margin-top:16px;">
         <div style="font-size:12px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Specialties</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;">
-          ${h.specialties.map(s => `<span class="chip active">${s}</span>`).join('')}
+          ${h.specialties.map(s => `<span class="chip active">${escapeHtml(s)}</span>`).join('')}
         </div>
       </div>
       <div style="margin-top:16px;">
         <div style="font-size:12px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Insurance Accepted</div>
-        <div style="font-size:13px;color:var(--text-secondary);">${h.insurance.join(' • ')}</div>
+        <div style="font-size:13px;color:var(--text-secondary);">${h.insurance.map(i => escapeHtml(i)).join(' • ')}</div>
       </div>
-      <button class="btn btn-primary btn-full mt-4" onclick="bookAtHospital('${h.id}');closeModal()">
-        Book Appointment at ${h.name}
+      <button class="btn btn-primary btn-full mt-4" onclick="bookAtHospital('${escapeHtml(h.id)}');closeModal()">
+        Book Appointment at ${escapeHtml(h.name)}
       </button>
     `);
   };
@@ -282,21 +282,21 @@ function showBookingFlow() {
 
   showModal(`
     <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:4px;">Select Doctor</h3>
-    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">${selectedHospital.name}</p>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">${escapeHtml(selectedHospital.name)}</p>
     <div style="display:flex;flex-direction:column;gap:12px;" id="doctor-list">
       ${doctors.length > 0 ? doctors.map(d => `
-        <div class="doctor-card ${!d.available ? 'unavailable' : ''}" onclick="selectDoctor('${d.id}')" id="doc-sel-${d.id}">
+        <div class="doctor-card ${!d.available ? 'unavailable' : ''}" onclick="selectDoctor('${escapeHtml(d.id)}')" id="doc-sel-${escapeHtml(d.id)}">
           <div class="doc-avatar">${d.name.split(' ').slice(-1)[0].charAt(0)}</div>
           <div style="flex:1;">
-            <div style="font-family:var(--font-display);font-size:15px;font-weight:700;">${d.name}</div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${d.specialty} • ${d.experience}yr exp</div>
+            <div style="font-family:var(--font-display);font-size:15px;font-weight:700;">${escapeHtml(d.name)}</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${escapeHtml(d.specialty)} • ${escapeHtml(d.experience)}yr exp</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
-              <span style="font-size:11px;font-weight:600;color:var(--warning);">⭐ ${d.rating}</span>
-              <span style="font-size:11px;color:var(--text-tertiary);">${d.reviews} reviews</span>
+              <span style="font-size:11px;font-weight:600;color:var(--warning);">⭐ ${escapeHtml(d.rating)}</span>
+              <span style="font-size:11px;color:var(--text-tertiary);">${escapeHtml(d.reviews)} reviews</span>
             </div>
           </div>
           <div style="text-align:right;">
-            <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--primary);">₹${d.fee}</div>
+            <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--primary);">₹${escapeHtml(d.fee)}</div>
             <div class="badge ${d.available ? 'badge-success' : 'badge-warning'}" style="margin-top:4px;">${d.available ? 'Available' : 'Busy'}</div>
           </div>
         </div>
@@ -305,14 +305,14 @@ function showBookingFlow() {
           <p style="font-size:14px;">Showing general doctors for this hospital</p>
         </div>
         ${mockData.doctors.slice(0, 2).map(d => `
-          <div class="doctor-card" onclick="selectDoctor('${d.id}')" id="doc-sel-${d.id}">
+          <div class="doctor-card" onclick="selectDoctor('${escapeHtml(d.id)}')" id="doc-sel-${escapeHtml(d.id)}">
             <div class="doc-avatar">${d.name.split(' ').slice(-1)[0].charAt(0)}</div>
             <div style="flex:1;">
-              <div style="font-family:var(--font-display);font-size:15px;font-weight:700;">${d.name}</div>
-              <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${d.specialty} • ${d.experience}yr exp</div>
+              <div style="font-family:var(--font-display);font-size:15px;font-weight:700;">${escapeHtml(d.name)}</div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${escapeHtml(d.specialty)} • ${escapeHtml(d.experience)}yr exp</div>
             </div>
             <div style="text-align:right;">
-              <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--primary);">₹${d.fee}</div>
+              <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--primary);">₹${escapeHtml(d.fee)}</div>
               <div class="badge badge-success" style="margin-top:4px;">Available</div>
             </div>
           </div>

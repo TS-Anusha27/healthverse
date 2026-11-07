@@ -1,6 +1,6 @@
 // HealthVerse — Ambulance Driver Dashboard connected to Supabase DB & High-Precision Leaflet GPS Maps
 import { navigate } from '../../routes/router.js';
-import { showToast, showModal, closeModal, getInitials } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, getInitials, escapeHtml } from '../../utils/utils.js';
 import { getEmergencyRequests, updateEmergencyRequestStatus, updateDriverStatus } from '../../services/supabase/db.js';
 import { signOutUser } from '../../services/supabase/auth.js';
 import { store } from '../../store/store.js';
@@ -48,12 +48,12 @@ export async function renderAmbulanceDriver() {
             <div class="avatar" style="background:var(--emergency);color:white;font-weight:800;" onclick="navigate('settings')">${getInitials(driverName)}</div>
             <div>
               <div style="display:flex;align-items:center;">
-                <span style="font-family:var(--font-display);font-size:15px;font-weight:700;">${driverName}</span>
+                <span style="font-family:var(--font-display);font-size:15px;font-weight:700;">${escapeHtml(driverName)}</span>
                 <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:${isPending ? '#FEF3C7' : '#D1FAE5'};color:${isPending ? '#92400E' : '#065F46'};margin-left:6px;">
                   ${isPending ? '⏳ Pending' : '✓ Verified'}
                 </span>
               </div>
-              <div style="font-size:11px;color:rgba(255,255,255,0.7);">${driver.vehicle || driver.vehicleNumber || 'Emergency Fleet'}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.7);">${escapeHtml(driver.vehicle || driver.vehicleNumber || 'Emergency Fleet')}</div>
             </div>
           </div>
 
@@ -102,11 +102,11 @@ export async function renderAmbulanceDriver() {
           </div>
           <div class="card card-sm mb-3" style="background:var(--surface-dim);padding:14px;border-left:4px solid var(--emergency);">
             <div class="flex justify-between items-center mb-1">
-              <span style="font-size:15px;font-weight:800;color:var(--text-primary);">${req.patient_name || req.patientName}</span>
-              <span class="badge badge-emergency">${req.condition || 'SOS Emergency'}</span>
+              <span style="font-size:15px;font-weight:800;color:var(--text-primary);">${escapeHtml(req.patient_name || req.patientName)}</span>
+              <span class="badge badge-emergency">${escapeHtml(req.condition || 'SOS Emergency')}</span>
             </div>
-            <div style="font-size:13px;color:var(--text-primary);margin-top:4px;">📍 Pickup: <strong>${req.address}</strong> (${req.distance || '1.2 km'})</div>
-            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">🏥 Target: <strong>${req.hospital || 'Apollo Hospitals'}</strong></div>
+            <div style="font-size:13px;color:var(--text-primary);margin-top:4px;">📍 Pickup: <strong>${escapeHtml(req.address)}</strong> (${escapeHtml(req.distance || '1.2 km')})</div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">🏥 Target: <strong>${escapeHtml(req.hospital || 'Apollo Hospitals')}</strong></div>
           </div>
           <button class="btn btn-emergency btn-full btn-lg" onclick="acceptEmergencyRide('${req.id}')" style="font-weight:800;">
             ACCEPT EMERGENCY RIDE (ETA ${req.eta || '4 min'})
@@ -187,10 +187,10 @@ function initDriverMap(req) {
     .bindPopup('<b>Your ICU Ambulance</b><br>Speed: 42 km/h').openPopup();
 
   L.marker(patientLoc, { icon: patientIcon }).addTo(driverMap)
-    .bindPopup(`<b>Patient: ${req.patient_name || req.patientName}</b><br>${req.address}`);
+    .bindPopup(`<b>Patient: ${escapeHtml(req.patient_name || req.patientName)}</b><br>${escapeHtml(req.address)}`);
 
   L.marker(hospitalLoc, { icon: hospitalIcon }).addTo(driverMap)
-    .bindPopup(`<b>Target: ${req.hospital || 'Apollo Hospitals'}</b><br>ICU Bed Reserved`);
+    .bindPopup(`<b>Target: ${escapeHtml(req.hospital || 'Apollo Hospitals')}</b><br>ICU Bed Reserved`);
 
   // Draw High-Visibility Navigation Polyline Route
   const route = L.polyline([driverLoc, patientLoc, hospitalLoc], {

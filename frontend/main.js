@@ -9,6 +9,7 @@ import { authService } from './services/auth/authService.js';
 // Expose routing and utilities globally for inline onclick handlers across templates
 window.navigate = navigate;
 window.goBack = goBack;
+window.escapeHtml = utils.escapeHtml;
 window._utils = utils;
 window._router = routerModule;
 window._authService = authService;

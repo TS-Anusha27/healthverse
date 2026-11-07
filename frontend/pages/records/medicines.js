@@ -1,6 +1,6 @@
 // HealthVerse — Medicine Reminders & Pharmacy Orders connected to Supabase DB
 import { navigate, goBack } from '../../routes/router.js';
-import { showToast, showModal, closeModal } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, escapeHtml } from '../../utils/utils.js';
 import { getMedicines, createMedicine, createMedicineOrder } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 
@@ -47,20 +47,20 @@ export async function renderMedicines() {
               <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center gap-2">
                   <div style="width:10px;height:10px;border-radius:50%;background:${med.color || '#4A90D9'};"></div>
-                  <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text-primary);">${med.name}</div>
+                  <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text-primary);">${escapeHtml(med.name)}</div>
                 </div>
-                <span class="badge badge-primary">${med.dosage || '5mg'}</span>
+                <span class="badge badge-primary">${escapeHtml(med.dosage || '5mg')}</span>
               </div>
               <div style="font-size:13px;color:var(--text-secondary);display:flex;flex-direction:column;gap:4px;">
-                <div>⏰ Schedule: <strong>${med.time || '8:00 AM'}</strong> (${med.frequency || 'Once daily'})</div>
-                <div>🍽️ Timing: <strong>${med.meals || 'After meals'}</strong></div>
-                <div>📦 Refill: <span style="color:${(med.refill_days || med.refillDays) <= 5 ? 'var(--emergency)' : 'var(--text-secondary)'};font-weight:600;">${med.refill_days || med.refillDays || 10} days remaining</span></div>
+                <div>⏰ Schedule: <strong>${escapeHtml(med.time || '8:00 AM')}</strong> (${escapeHtml(med.frequency || 'Once daily')})</div>
+                <div>🍽️ Timing: <strong>${escapeHtml(med.meals || 'After meals')}</strong></div>
+                <div>📦 Refill: <span style="color:${(med.refill_days || med.refillDays) <= 5 ? 'var(--emergency)' : 'var(--text-secondary)'};font-weight:600;">${escapeHtml(med.refill_days || med.refillDays || 10)} days remaining</span></div>
               </div>
               <div class="flex gap-2 mt-3">
-                <button class="btn ${med.taken ? 'btn-ghost' : 'btn-secondary'} btn-xs flex-1" onclick="toggleMedState('${med.id}', this)">
+                <button class="btn ${med.taken ? 'btn-ghost' : 'btn-secondary'} btn-xs flex-1" onclick="toggleMedState('${escapeHtml(med.id)}', this)">
                   ${med.taken ? '✓ Taken Today' : 'Mark as Taken'}
                 </button>
-                <button class="btn btn-ghost btn-xs" onclick="orderRefillModal('${med.name}')">Refill</button>
+                <button class="btn btn-ghost btn-xs" onclick="orderRefillModal('${escapeHtml(med.name)}')">Refill</button>
               </div>
             </div>
           `).join('')}
@@ -146,14 +146,14 @@ function initMedicineHandlers() {
         <h3 class="text-h2 text-center" style="margin-bottom:8px;">Order Pharmacy Refill</h3>
         <p class="text-caption text-center" style="margin-bottom:20px;">Saved to Supabase medicine_orders table</p>
         <div class="card card-sm mb-3" style="background:var(--surface-dim);padding:12px;">
-          <div style="font-size:14px;font-weight:700;">Refill: ${medName}</div>
+          <div style="font-size:14px;font-weight:700;">Refill: ${escapeHtml(medName)}</div>
           <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">30 days supply • ₹249</div>
         </div>
         <div class="form-group">
           <label class="form-label">Delivery Address</label>
           <textarea id="refill-address" class="form-input" rows="2">45, Velachery Main Road, Chennai</textarea>
         </div>
-        <button class="btn btn-primary btn-full mt-4" onclick="handleRefillOrder('${medName}')">
+        <button class="btn btn-primary btn-full mt-4" onclick="handleRefillOrder('${escapeHtml(medName)}')">
           Place Refill Order (₹249)
         </button>
       </div>

@@ -1,7 +1,7 @@
 // HealthVerse — Health Records Timeline with Supabase DB & Storage
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
-import { showToast, showModal, closeModal } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, escapeHtml } from '../../utils/utils.js';
 import { getHealthRecords, createHealthRecord } from '../../services/supabase/db.js';
 import { uploadFile } from '../../services/supabase/storage.js';
 
@@ -90,7 +90,7 @@ export async function renderHealthRecords() {
 
 function renderRecordItems(records) {
   return records.map((r, i) => `
-    <div class="timeline-item" onclick="openRecord('${r.id}')" style="animation:slideUp 0.4s ease ${i * 0.08}s both;">
+    <div class="timeline-item" onclick="openRecord('${escapeHtml(r.id)}')" style="animation:slideUp 0.4s ease ${i * 0.08}s both;">
       <div class="timeline-line ${i === records.length - 1 ? 'last' : ''}"></div>
       <div class="timeline-dot" style="background:${getRecordColor(r.type)};"></div>
       <div class="timeline-card">
@@ -99,16 +99,16 @@ function renderRecordItems(records) {
             ${getRecordIcon(r.type)}
           </div>
           <div style="flex:1;">
-            <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text-primary);">${r.title}</div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${r.type}</div>
+            <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text-primary);">${escapeHtml(r.title)}</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${escapeHtml(r.type)}</div>
           </div>
-          <div class="badge ${r.status === 'normal' ? 'badge-success' : r.status === 'active' ? 'badge-primary' : 'badge-secondary'}">${r.status}</div>
+          <div class="badge ${r.status === 'normal' ? 'badge-success' : r.status === 'active' ? 'badge-primary' : 'badge-secondary'}">${escapeHtml(r.status)}</div>
         </div>
         <div style="display:flex;align-items:center;gap:12px;margin-top:12px;font-size:12px;color:var(--text-tertiary);">
-          <span>📅 ${r.date}</span>
-          <span>🏥 ${r.hospital || 'Apollo Hospitals'}</span>
+          <span>📅 ${escapeHtml(r.date)}</span>
+          <span>🏥 ${escapeHtml(r.hospital || 'Apollo Hospitals')}</span>
         </div>
-        <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">👨‍⚕️ ${r.doctor || 'Dr. Priya Krishnamurthy'}</div>
+        <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">👨‍⚕️ ${escapeHtml(r.doctor || 'Dr. Priya Krishnamurthy')}</div>
       </div>
     </div>
   `).join('');
@@ -168,17 +168,17 @@ function initRecordHandlers() {
     const r = currentRecords.find(rec => rec.id === id);
     if (!r) return;
     showModal(`
-      <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;">${r.title}</h3>
-      <div class="badge ${r.status==='normal'?'badge-success':'badge-primary'}" style="margin-top:8px;">${r.status}</div>
+      <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;">${escapeHtml(r.title)}</h3>
+      <div class="badge ${r.status==='normal'?'badge-success':'badge-primary'}" style="margin-top:8px;">${escapeHtml(r.status)}</div>
       <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;font-size:14px;">
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">Type</span><strong>${r.type}</strong></div>
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">Date</span><strong>${r.date}</strong></div>
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">Hospital</span><strong>${r.hospital || 'Apollo Hospitals'}</strong></div>
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">Doctor</span><strong>${r.doctor || 'Dr. Priya Krishnamurthy'}</strong></div>
+        <div class="flex justify-between"><span style="color:var(--text-secondary);">Type</span><strong>${escapeHtml(r.type)}</strong></div>
+        <div class="flex justify-between"><span style="color:var(--text-secondary);">Date</span><strong>${escapeHtml(r.date)}</strong></div>
+        <div class="flex justify-between"><span style="color:var(--text-secondary);">Hospital</span><strong>${escapeHtml(r.hospital || 'Apollo Hospitals')}</strong></div>
+        <div class="flex justify-between"><span style="color:var(--text-secondary);">Doctor</span><strong>${escapeHtml(r.doctor || 'Dr. Priya Krishnamurthy')}</strong></div>
       </div>
       <div style="background:var(--surface-dim);border-radius:14px;padding:20px;margin-top:20px;text-align:center;">
         <div style="font-size:48px;margin-bottom:8px;">📄</div>
-        <div style="font-size:14px;font-weight:600;color:var(--text-primary);">${r.title}</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text-primary);">${escapeHtml(r.title)}</div>
         <div style="font-size:12px;color:var(--text-tertiary);margin-top:4px;">${r.file_url ? 'File stored on Supabase Storage' : 'Tap to view report'}</div>
       </div>
       <div style="display:flex;gap:10px;margin-top:20px;">

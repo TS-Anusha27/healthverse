@@ -2,7 +2,7 @@
 import { navigate, goBack } from '../../routes/router.js';
 import { store } from '../../store/store.js';
 import { authService } from '../../services/auth/authService.js';
-import { showToast, showModal, closeModal, getInitials, avatarColor } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, getInitials, avatarColor, escapeHtml } from '../../utils/utils.js';
 
 export function renderSettings() {
   const profile = authService.getCurrentProfile() || store.patient || store.doctor || store.driver || {};
@@ -35,8 +35,8 @@ export function renderSettings() {
                 ${getInitials(user.name || 'User')}
               </div>
               <div>
-                <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--text-primary);">${user.name}</div>
-                <div style="font-size:13px;color:var(--text-secondary);">${user.email}</div>
+                <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--text-primary);">${escapeHtml(user.name)}</div>
+                <div style="font-size:13px;color:var(--text-secondary);">${escapeHtml(user.email)}</div>
                 <div style="display:flex;gap:6px;align-items:center;margin-top:6px;">
                   <span class="badge badge-primary">${roleName.toUpperCase()}</span>
                   ${profile.verificationStatus === 'pending_verification'
@@ -106,32 +106,32 @@ export function renderSettings() {
 function getRoleSpecificDetailsHtml(role, p) {
   if (role === 'doctor') {
     return `
-      <div class="flex justify-between"><span style="color:var(--text-secondary);">Specialisation</span><strong style="color:var(--text-primary);">${p.specialisation || p.specialty || 'General Practitioner'}</strong></div>
-      <div class="flex justify-between"><span style="color:var(--text-secondary);">Qualification</span><strong style="color:var(--text-primary);">${p.qualification || 'MBBS'}</strong></div>
-      <div class="flex justify-between"><span style="color:var(--text-secondary);">Hospital Affiliation</span><strong style="color:var(--text-primary);">${p.hospital || 'Affiliated Clinic'}</strong></div>
-      <div class="flex justify-between"><span style="color:var(--text-secondary);">Medical Licence No.</span><strong style="color:var(--text-primary);">${p.medicalRegNo || 'Pending Verification'}</strong></div>
-      <div class="flex justify-between"><span style="color:var(--text-secondary);">Contact Mobile</span><strong style="color:var(--text-primary);">${p.phone || 'Not provided'}</strong></div>
-      ${p.experience ? `<div class="flex justify-between"><span style="color:var(--text-secondary);">Experience</span><strong style="color:var(--text-primary);">${p.experience}</strong></div>` : ''}
+      <div class="flex justify-between"><span style="color:var(--text-secondary);">Specialisation</span><strong style="color:var(--text-primary);">${escapeHtml(p.specialisation || p.specialty || 'General Practitioner')}</strong></div>
+      <div class="flex justify-between"><span style="color:var(--text-secondary);">Qualification</span><strong style="color:var(--text-primary);">${escapeHtml(p.qualification || 'MBBS')}</strong></div>
+      <div class="flex justify-between"><span style="color:var(--text-secondary);">Hospital Affiliation</span><strong style="color:var(--text-primary);">${escapeHtml(p.hospital || 'Affiliated Clinic')}</strong></div>
+      <div class="flex justify-between"><span style="color:var(--text-secondary);">Medical Licence No.</span><strong style="color:var(--text-primary);">${escapeHtml(p.medicalRegNo || 'Pending Verification')}</strong></div>
+      <div class="flex justify-between"><span style="color:var(--text-secondary);">Contact Mobile</span><strong style="color:var(--text-primary);">${escapeHtml(p.phone || 'Not provided')}</strong></div>
+      ${p.experience ? `<div class="flex justify-between"><span style="color:var(--text-secondary);">Experience</span><strong style="color:var(--text-primary);">${escapeHtml(p.experience)}</strong></div>` : ''}
     `;
   }
   if (role === 'ambulance') {
     return `
-      <div class="flex justify-between"><span style="color:var(--text-secondary);">Vehicle / Ambulance No.</span><strong style="color:var(--text-primary);">${p.vehicleNumber || 'Pending'}</strong></div>
-      <div class="flex justify-between"><span style="color:var(--text-secondary);">Service Affiliation</span><strong style="color:var(--text-primary);">${p.serviceAffiliation || 'Emergency Service'}</strong></div>
-      <div class="flex justify-between"><span style="color:var(--text-secondary);">Driving Licence No.</span><strong style="color:var(--text-primary);">${p.drivingLicenceNo || 'Pending Verification'}</strong></div>
-      <div class="flex justify-between"><span style="color:var(--text-secondary);">Driver Mobile</span><strong style="color:var(--text-primary);">${p.phone || 'Not provided'}</strong></div>
-      <div class="flex justify-between"><span style="color:var(--text-secondary);">Duty Status</span><strong style="color:var(--text-primary);text-transform:capitalize;">${p.dutyStatus || 'offline'}</strong></div>
+      <div class="flex justify-between"><span style="color:var(--text-secondary);">Vehicle / Ambulance No.</span><strong style="color:var(--text-primary);">${escapeHtml(p.vehicleNumber || 'Pending')}</strong></div>
+      <div class="flex justify-between"><span style="color:var(--text-secondary);">Service Affiliation</span><strong style="color:var(--text-primary);">${escapeHtml(p.serviceAffiliation || 'Emergency Service')}</strong></div>
+      <div class="flex justify-between"><span style="color:var(--text-secondary);">Driving Licence No.</span><strong style="color:var(--text-primary);">${escapeHtml(p.drivingLicenceNo || 'Pending Verification')}</strong></div>
+      <div class="flex justify-between"><span style="color:var(--text-secondary);">Driver Mobile</span><strong style="color:var(--text-primary);">${escapeHtml(p.phone || 'Not provided')}</strong></div>
+      <div class="flex justify-between"><span style="color:var(--text-secondary);">Duty Status</span><strong style="color:var(--text-primary);text-transform:capitalize;">${escapeHtml(p.dutyStatus || 'offline')}</strong></div>
     `;
   }
   // Patient
   return `
-    <div class="flex justify-between"><span style="color:var(--text-secondary);">Date of Birth</span><strong style="color:var(--text-primary);">${p.dob || 'Not set'}</strong></div>
-    <div class="flex justify-between"><span style="color:var(--text-secondary);">Calculated Age</span><strong style="color:var(--text-primary);">${p.age !== null && p.age !== undefined ? p.age + ' years' : 'Not calculated'}</strong></div>
-    <div class="flex justify-between"><span style="color:var(--text-secondary);">Blood Group</span><strong style="color:var(--text-primary);">${p.bloodGroup || 'Not set'}</strong></div>
-    <div class="flex justify-between"><span style="color:var(--text-secondary);">Gender</span><strong style="color:var(--text-primary);text-transform:capitalize;">${p.gender ? p.gender.replace('_', ' ') : 'Not specified'}</strong></div>
-    <div class="flex justify-between"><span style="color:var(--text-secondary);">Mobile Phone</span><strong style="color:var(--text-primary);">${p.phone || 'Not provided'}</strong></div>
-    <div class="flex justify-between"><span style="color:var(--text-secondary);">Address</span><strong style="color:var(--text-primary);text-align:right;">${p.address || 'Not provided'}</strong></div>
-    <div class="flex justify-between"><span style="color:var(--text-secondary);">Emergency Contact</span><strong style="color:var(--text-primary);">${p.emergencyName || 'None'} ${p.emergencyPhone ? '(' + p.emergencyPhone + ')' : ''}</strong></div>
+    <div class="flex justify-between"><span style="color:var(--text-secondary);">Date of Birth</span><strong style="color:var(--text-primary);">${escapeHtml(p.dob || 'Not set')}</strong></div>
+    <div class="flex justify-between"><span style="color:var(--text-secondary);">Calculated Age</span><strong style="color:var(--text-primary);">${p.age !== null && p.age !== undefined ? escapeHtml(p.age + ' years') : 'Not calculated'}</strong></div>
+    <div class="flex justify-between"><span style="color:var(--text-secondary);">Blood Group</span><strong style="color:var(--text-primary);">${escapeHtml(p.bloodGroup || 'Not set')}</strong></div>
+    <div class="flex justify-between"><span style="color:var(--text-secondary);">Gender</span><strong style="color:var(--text-primary);text-transform:capitalize;">${escapeHtml(p.gender ? p.gender.replace('_', ' ') : 'Not specified')}</strong></div>
+    <div class="flex justify-between"><span style="color:var(--text-secondary);">Mobile Phone</span><strong style="color:var(--text-primary);">${escapeHtml(p.phone || 'Not provided')}</strong></div>
+    <div class="flex justify-between"><span style="color:var(--text-secondary);">Address</span><strong style="color:var(--text-primary);text-align:right;">${escapeHtml(p.address || 'Not provided')}</strong></div>
+    <div class="flex justify-between"><span style="color:var(--text-secondary);">Emergency Contact</span><strong style="color:var(--text-primary);">${escapeHtml(p.emergencyName || 'None')} ${p.emergencyPhone ? '(' + escapeHtml(p.emergencyPhone) + ')' : ''}</strong></div>
   `;
 }
 
@@ -163,18 +163,18 @@ function attachSettingsHandlers(profile, role) {
         <form id="edit-profile-form" onsubmit="event.preventDefault(); saveProfileChanges();">
           <div class="form-group mb-3">
             <label class="form-label">Full Name *</label>
-            <input type="text" class="form-input" id="edit-fullname" value="${current.fullName || current.name || ''}" required />
+            <input type="text" class="form-input" id="edit-fullname" value="${escapeHtml(current.fullName || current.name || '')}" required />
           </div>
 
           <div class="form-group mb-3">
             <label class="form-label">Contact Phone</label>
-            <input type="tel" class="form-input" id="edit-phone" value="${current.phone || ''}" placeholder="+91 9876543210" />
+            <input type="tel" class="form-input" id="edit-phone" value="${escapeHtml(current.phone || '')}" placeholder="+91 9876543210" />
           </div>
 
           ${isPatient ? `
             <div class="form-group mb-3">
               <label class="form-label">Date of Birth</label>
-              <input type="date" class="form-input" id="edit-dob" value="${current.dob || ''}" />
+              <input type="date" class="form-input" id="edit-dob" value="${escapeHtml(current.dob || '')}" />
             </div>
             <div class="form-group mb-3">
               <label class="form-label">Blood Group</label>
@@ -187,33 +187,33 @@ function attachSettingsHandlers(profile, role) {
             </div>
             <div class="form-group mb-3">
               <label class="form-label">Address / Location</label>
-              <input type="text" class="form-input" id="edit-address" value="${current.address || ''}" placeholder="Street, City" />
+              <input type="text" class="form-input" id="edit-address" value="${escapeHtml(current.address || '')}" placeholder="Street, City" />
             </div>
             <div class="form-group mb-3">
               <label class="form-label">Emergency Contact Name</label>
-              <input type="text" class="form-input" id="edit-emer-name" value="${current.emergencyName || ''}" placeholder="Contact name" />
+              <input type="text" class="form-input" id="edit-emer-name" value="${escapeHtml(current.emergencyName || '')}" placeholder="Contact name" />
             </div>
             <div class="form-group mb-3">
               <label class="form-label">Emergency Phone</label>
-              <input type="tel" class="form-input" id="edit-emer-phone" value="${current.emergencyPhone || ''}" placeholder="Contact number" />
+              <input type="tel" class="form-input" id="edit-emer-phone" value="${escapeHtml(current.emergencyPhone || '')}" placeholder="Contact number" />
             </div>
           ` : ''}
 
           ${isDoctor ? `
             <div class="form-group mb-3">
               <label class="form-label">Hospital Affiliation</label>
-              <input type="text" class="form-input" id="edit-hospital" value="${current.hospital || ''}" />
+              <input type="text" class="form-input" id="edit-hospital" value="${escapeHtml(current.hospital || '')}" />
             </div>
             <div class="form-group mb-3">
               <label class="form-label">Years of Experience</label>
-              <input type="text" class="form-input" id="edit-experience" value="${current.experience || ''}" />
+              <input type="text" class="form-input" id="edit-experience" value="${escapeHtml(current.experience || '')}" />
             </div>
           ` : ''}
 
           ${isAmb ? `
             <div class="form-group mb-3">
               <label class="form-label">Ambulance Service Affiliation</label>
-              <input type="text" class="form-input" id="edit-service" value="${current.serviceAffiliation || ''}" />
+              <input type="text" class="form-input" id="edit-service" value="${escapeHtml(current.serviceAffiliation || '')}" />
             </div>
           ` : ''}
 

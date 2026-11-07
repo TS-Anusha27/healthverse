@@ -2,7 +2,7 @@
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
 import { mockData } from '../../services/data.js';
-import { showToast, getInitials, avatarColor } from '../../utils/utils.js';
+import { showToast, getInitials, avatarColor, escapeHtml } from '../../utils/utils.js';
 
 export function renderPatientHome() {
   const patient = store.patient || JSON.parse(localStorage.getItem('hv_patient_profile') || 'null') || (store.currentUser ? { name: store.currentUser.name, email: store.currentUser.email, bloodGroup: 'Not set', healthScore: 85 } : { name: 'Patient', bloodGroup: 'Not set', healthScore: 85 });
@@ -23,7 +23,7 @@ export function renderPatientHome() {
           <div class="flex items-center justify-between">
             <div>
               <div class="home-greeting">${greeting} 👋</div>
-              <div class="home-name">${firstName}</div>
+              <div class="home-name">${escapeHtml(firstName)}</div>
             </div>
             <div class="flex items-center gap-2">
               <button class="btn btn-xs" style="background:rgba(255,255,255,0.18);color:white;border:1px solid rgba(255,255,255,0.25);border-radius:12px;padding:4px 8px;font-size:11px;" onclick="navigate('login')" title="Switch to Doctor or Ambulance Driver">

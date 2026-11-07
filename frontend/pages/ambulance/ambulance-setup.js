@@ -1,7 +1,7 @@
 // HealthVerse — Ambulance Driver Onboarding & Vehicle Verification
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
-import { showToast } from '../../utils/utils.js';
+import { showToast, escapeHtml } from '../../utils/utils.js';
 
 export function renderAmbulanceSetup() {
   const app = document.getElementById('app');
@@ -50,7 +50,7 @@ export function renderAmbulanceSetup() {
             <label class="form-label">Driver Full Name *</label>
             <div class="input-group">
               <span class="input-icon">👤</span>
-              <input type="text" class="form-input" id="setup-amb-name" value="${driver.name || user.name || 'Ravi Kumar'}" required placeholder="e.g. Ravi Kumar" />
+              <input type="text" class="form-input" id="setup-amb-name" value="${escapeHtml(driver.name || user.name || 'Ravi Kumar')}" required placeholder="e.g. Ravi Kumar" />
             </div>
           </div>
 
@@ -59,7 +59,7 @@ export function renderAmbulanceSetup() {
             <label class="form-label">Vehicle Name & Model *</label>
             <div class="input-group">
               <span class="input-icon">🚑</span>
-              <input type="text" class="form-input" id="setup-amb-vehiclename" value="${driver.vehicleName || 'LifeLine Advanced Cardiac Life Support (ACLS)'}" required placeholder="e.g. Force Traveller ICU Ambulance" />
+              <input type="text" class="form-input" id="setup-amb-vehiclename" value="${escapeHtml(driver.vehicleName || 'LifeLine Advanced Cardiac Life Support (ACLS)')}" required placeholder="e.g. Force Traveller ICU Ambulance" />
             </div>
             <!-- Quick Suggestion Chips -->
             <div class="flex gap-2 flex-wrap mt-2">
@@ -74,7 +74,7 @@ export function renderAmbulanceSetup() {
             <label class="form-label">Vehicle Registration Number *</label>
             <div class="input-group">
               <span class="input-icon">🔢</span>
-              <input type="text" class="form-input" id="setup-amb-vehiclenum" value="${driver.vehicleNumber || 'TN 07 HV 2026'}" required placeholder="e.g. TN 07 HV 2026 or MH 01 AX 4892" style="font-weight:700;letter-spacing:1px;text-transform:uppercase;" />
+              <input type="text" class="form-input" id="setup-amb-vehiclenum" value="${escapeHtml(driver.vehicleNumber || 'TN 07 HV 2026')}" required placeholder="e.g. TN 07 HV 2026 or MH 01 AX 4892" style="font-weight:700;letter-spacing:1px;text-transform:uppercase;" />
             </div>
           </div>
 
@@ -83,7 +83,7 @@ export function renderAmbulanceSetup() {
             <label class="form-label">Driving License / Commercial Permit Number *</label>
             <div class="input-group">
               <span class="input-icon">🪪</span>
-              <input type="text" class="form-input" id="setup-amb-licensenum" value="${driver.licenseNumber || 'DL-TN-07-2018-00912'}" required placeholder="e.g. DL-TN-07-2018-00912" />
+              <input type="text" class="form-input" id="setup-amb-licensenum" value="${escapeHtml(driver.licenseNumber || 'DL-TN-07-2018-00912')}" required placeholder="e.g. DL-TN-07-2018-00912" />
             </div>
           </div>
 
@@ -94,7 +94,7 @@ export function renderAmbulanceSetup() {
               <input type="file" id="license-file-input" style="display:none;" accept=".pdf,.png,.jpg,.jpeg" onchange="handleLicenseFileChosen(this)" />
               <div class="dropzone-icon" id="license-icon">🪪</div>
               <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-top:6px;" id="license-title">
-                ${driver.licenseName || 'Click or Drag & Drop Commercial Driving License'}
+                ${escapeHtml(driver.licenseName || 'Click or Drag & Drop Commercial Driving License')}
               </div>
               <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;" id="license-sub">
                 Supported formats: PDF, PNG, JPG (Commercial Heavy / Emergency Badge)

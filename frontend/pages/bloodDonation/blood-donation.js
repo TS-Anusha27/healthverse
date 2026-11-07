@@ -1,7 +1,7 @@
 // HealthVerse — Blood & Organ Donation connected to Supabase DB
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
-import { showToast, showModal, closeModal } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, escapeHtml } from '../../utils/utils.js';
 import { getBloodDonors, getBloodBanks, registerBloodDonor, registerOrganDonor } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 
@@ -47,14 +47,14 @@ export async function renderBloodDonation() {
               <div class="card card-sm flex items-center justify-between" style="padding:14px;">
                 <div class="flex items-center gap-3">
                   <div style="width:40px;height:40px;border-radius:50%;background:#FFF0F1;color:#E74C3C;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:var(--font-display);">
-                    ${d.group_type || d.group || 'O+'}
+                    ${escapeHtml(d.group_type || d.group || 'O+')}
                   </div>
                   <div>
-                    <div style="font-size:14px;font-weight:700;">${d.name}</div>
-                    <div style="font-size:12px;color:var(--text-secondary);">${d.distance || '1.0 km'} • Last: ${d.last_donated || d.lastDonated || 'Recent'}</div>
+                    <div style="font-size:14px;font-weight:700;">${escapeHtml(d.name)}</div>
+                    <div style="font-size:12px;color:var(--text-secondary);">${escapeHtml(d.distance || '1.0 km')} • Last: ${escapeHtml(d.last_donated || d.lastDonated || 'Recent')}</div>
                   </div>
                 </div>
-                <button class="btn btn-outline btn-xs" style="border-color:#E74C3C;color:#E74C3C;" onclick="showToast('Calling donor ${d.phone}...','info')">
+                <button class="btn btn-outline btn-xs" style="border-color:#E74C3C;color:#E74C3C;" onclick="showToast('Calling donor ${escapeHtml(d.phone || '')}...','info')">
                   Call
                 </button>
               </div>
@@ -109,11 +109,11 @@ export function renderOrganDonation() {
         <p class="text-caption text-center" style="margin-bottom:20px;">Saved into Supabase organ_donors table</p>
         <div class="form-group">
           <label class="form-label">Full Name</label>
-          <input type="text" id="organ-name" class="form-input" value="${store.currentUser?.name || ''}" />
+          <input type="text" id="organ-name" class="form-input" value="${escapeHtml(store.currentUser?.name || '')}" />
         </div>
         <div class="form-group mt-3">
           <label class="form-label">Phone Number</label>
-          <input type="tel" id="organ-phone" class="form-input" value="${store.currentUser?.phone || ''}" />
+          <input type="tel" id="organ-phone" class="form-input" value="${escapeHtml(store.currentUser?.phone || '')}" />
         </div>
         <div class="form-group mt-3">
           <label class="form-label">Organs to Pledge</label>
@@ -163,7 +163,7 @@ function initBloodHandlers() {
         <p class="text-caption text-center" style="margin-bottom:20px;">Information saved to Supabase blood_donors table</p>
         <div class="form-group">
           <label class="form-label">Full Name</label>
-          <input type="text" id="donor-name" class="form-input" value="${store.currentUser?.name || ''}" />
+          <input type="text" id="donor-name" class="form-input" value="${escapeHtml(store.currentUser?.name || '')}" />
         </div>
         <div class="form-group mt-3">
           <label class="form-label">Blood Group</label>
@@ -174,7 +174,7 @@ function initBloodHandlers() {
         </div>
         <div class="form-group mt-3">
           <label class="form-label">Phone Number</label>
-          <input type="tel" id="donor-phone" class="form-input" value="${store.currentUser?.phone || ''}" />
+          <input type="tel" id="donor-phone" class="form-input" value="${escapeHtml(store.currentUser?.phone || '')}" />
         </div>
         <button class="btn btn-emergency btn-full mt-4" onclick="handleDonorSubmit()">
           Save Donor Profile to Supabase

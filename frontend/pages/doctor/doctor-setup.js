@@ -1,7 +1,7 @@
 // HealthVerse — Doctor Onboarding & Credential Verification
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
-import { showToast } from '../../utils/utils.js';
+import { showToast, escapeHtml } from '../../utils/utils.js';
 
 export function renderDoctorSetup() {
   const app = document.getElementById('app');
@@ -50,7 +50,7 @@ export function renderDoctorSetup() {
             <label class="form-label">Doctor Full Legal Name *</label>
             <div class="input-group">
               <span class="input-icon">👨‍⚕️</span>
-              <input type="text" class="form-input" id="setup-doc-name" value="${doc.name || user.name || 'Dr. Priya Krishnamurthy'}" required placeholder="e.g. Dr. Jane Smith, MD" />
+              <input type="text" class="form-input" id="setup-doc-name" value="${escapeHtml(doc.name || user.name || 'Dr. Priya Krishnamurthy')}" required placeholder="e.g. Dr. Jane Smith, MD" />
             </div>
           </div>
 
@@ -59,7 +59,7 @@ export function renderDoctorSetup() {
             <label class="form-label">Hospital / Clinic Affiliation *</label>
             <div class="input-group">
               <span class="input-icon">🏥</span>
-              <input type="text" class="form-input" id="setup-doc-hospital" value="${doc.hospital || 'Apollo Hospitals, Greams Road'}" required placeholder="e.g. Apollo Hospitals, Greams Rd" />
+              <input type="text" class="form-input" id="setup-doc-hospital" value="${escapeHtml(doc.hospital || 'Apollo Hospitals, Greams Road')}" required placeholder="e.g. Apollo Hospitals, Greams Rd" />
             </div>
             <!-- Quick Suggestion Chips -->
             <div class="flex gap-2 flex-wrap mt-2">
@@ -90,7 +90,7 @@ export function renderDoctorSetup() {
             <label class="form-label">Medical Council Registration / License No. *</label>
             <div class="input-group">
               <span class="input-icon">📜</span>
-              <input type="text" class="form-input" id="setup-doc-regnum" value="${doc.regNumber || 'NMC-2024-88421'}" required placeholder="e.g. NMC-2024-88421" />
+              <input type="text" class="form-input" id="setup-doc-regnum" value="${escapeHtml(doc.regNumber || 'NMC-2024-88421')}" required placeholder="e.g. NMC-2024-88421" />
             </div>
           </div>
 
@@ -101,7 +101,7 @@ export function renderDoctorSetup() {
               <input type="file" id="cert-file-input" style="display:none;" accept=".pdf,.png,.jpg,.jpeg" onchange="handleCertFileChosen(this)" />
               <div class="dropzone-icon" id="cert-icon">📑</div>
               <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-top:6px;" id="cert-title">
-                ${doc.certificateName || 'Click or Drag & Drop Doctor Certificate'}
+                ${escapeHtml(doc.certificateName || 'Click or Drag & Drop Doctor Certificate')}
               </div>
               <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;" id="cert-sub">
                 Supported formats: PDF, PNG, JPG (Medical Degree / State Council Registration)

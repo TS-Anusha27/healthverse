@@ -1,7 +1,7 @@
 // HealthVerse — AI Triage Chat
 import { navigate, goBack } from '../../routes/router.js';
 import { triageEngine } from '../../services/data.js';
-import { showToast } from '../../utils/utils.js';
+import { showToast, escapeHtml } from '../../utils/utils.js';
 
 let answers = [];
 let currentQ = 0;
@@ -129,7 +129,7 @@ function addChatMessage(text, sender) {
   div.className = `chat-row ${sender === 'ai' ? 'ai-row' : 'user-row'}`;
   div.innerHTML = sender === 'ai'
     ? `<div class="ai-avatar">🤖</div><div class="chat-bubble ai">${text}</div>`
-    : `<div class="chat-bubble user">${text}</div>`;
+    : `<div class="chat-bubble user">${escapeHtml(text)}</div>`;
 
   // Insert before options container
   const optionsEl = document.getElementById('options-container');

@@ -1,7 +1,7 @@
 // HealthVerse — Live Queue Tracker with Supabase Real-time Sync
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
-import { showToast, showModal, closeModal } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, escapeHtml } from '../../utils/utils.js';
 import { getAppointments, cancelAppointment, rescheduleAppointment } from '../../services/supabase/db.js';
 
 let queueInterval = null;
@@ -30,8 +30,8 @@ export async function renderLiveQueue() {
           <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
             <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:22px;font-weight:700;color:white;">P</div>
             <div>
-              <div style="font-family:var(--font-display);font-size:17px;font-weight:700;color:white;">${appt.doctor_name || appt.doctorName}</div>
-              <div style="font-size:13px;color:rgba(255,255,255,0.7);">${appt.specialty}</div>
+              <div style="font-family:var(--font-display);font-size:17px;font-weight:700;color:white;">${escapeHtml(appt.doctor_name || appt.doctorName)}</div>
+              <div style="font-size:13px;color:rgba(255,255,255,0.7);">${escapeHtml(appt.specialty)}</div>
               <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
                 <div style="width:8px;height:8px;border-radius:50%;background:var(--success);animation:pulse-ring 1.5s infinite;"></div>
                 <span style="font-size:12px;color:var(--success);font-weight:600;" id="doctor-status">In Consultation</span>
@@ -45,7 +45,7 @@ export async function renderLiveQueue() {
             </div>
             <div style="background:rgba(255,255,255,0.15);"></div>
             <div style="text-align:center;">
-              <div style="font-size:28px;font-weight:800;color:var(--warning);font-family:var(--font-display);">${appt.token || 'TK-047'}</div>
+              <div style="font-size:28px;font-weight:800;color:var(--warning);font-family:var(--font-display);">${escapeHtml(appt.token || 'TK-047')}</div>
               <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:2px;">YOUR TOKEN</div>
             </div>
             <div style="background:rgba(255,255,255,0.15);"></div>

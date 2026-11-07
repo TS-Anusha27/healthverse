@@ -1,7 +1,7 @@
 // HealthVerse — Telemedicine / Video Call UI
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
-import { showToast, showModal } from '../../utils/utils.js';
+import { showToast, showModal, escapeHtml } from '../../utils/utils.js';
 import { getDoctors, createTelemedicineSession } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 
@@ -45,9 +45,9 @@ export function renderTelemedicine() {
               <div class="tele-doctor-card" onclick="openBookingModal('${doc.id}')">
                 <div class="tele-doc-avatar">${doc.name.split(' ').pop().charAt(0)}</div>
                 <div style="flex:1;">
-                  <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);">${doc.name}</div>
-                  <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${doc.specialty}</div>
-                  <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">${doc.qualification}</div>
+                  <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);">${escapeHtml(doc.name)}</div>
+                  <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${escapeHtml(doc.specialty)}</div>
+                  <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">${escapeHtml(doc.qualification)}</div>
                   <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                     <span style="font-size:11px;font-weight:600;color:var(--warning);">⭐ ${doc.rating}</span>
                     <span style="font-size:11px;color:var(--text-tertiary);">${doc.experience}yrs exp</span>
@@ -174,10 +174,10 @@ function initTeleHandlers() {
     const doc = mockData.doctors.find(d => d.id === docId);
     if (!doc) return;
     showModal(`
-      <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:4px;">${doc.name}</h3>
-      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">${doc.specialty} • ${doc.hospital}</div>
+      <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:4px;">${escapeHtml(doc.name)}</h3>
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">${escapeHtml(doc.specialty)} • ${escapeHtml(doc.hospital)}</div>
       <div style="background:var(--surface-dim);border-radius:14px;padding:14px;margin-bottom:16px;font-size:14px;">
-        <p style="color:var(--text-secondary);line-height:1.6;">${doc.about}</p>
+        <p style="color:var(--text-secondary);line-height:1.6;">${escapeHtml(doc.about)}</p>
       </div>
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
         <div class="flex justify-between"><span style="color:var(--text-secondary);">Experience</span><strong>${doc.experience} years</strong></div>
