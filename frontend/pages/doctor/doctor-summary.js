@@ -1,4 +1,4 @@
-// HealthVerse â€” Doctor's AI Patient Summary View
+// HealthVerse — Doctor's AI Patient Summary View
 import { navigate, goBack } from '../../routes/router.js';
 import { mockAISummary } from '../../services/data.js';
 import { showToast, showModal } from '../../utils/utils.js';
@@ -16,7 +16,7 @@ export function renderDoctorSummary() {
         </button>
         <div style="flex:1;">
           <div style="font-family:var(--font-display);font-size:17px;font-weight:700;color:white;">AI Medical Summary</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.75);">${p.name} â€¢ ${p.age} yrs (${p.gender}) â€¢ ${p.bloodGroup}</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.75);">${p.name} • ${p.age} yrs (${p.gender}) • ${p.bloodGroup}</div>
         </div>
         <button class="btn btn-ghost btn-xs" onclick="viewOriginalReport()" style="background:rgba(255,255,255,0.15);color:white;border:none;">
           View Reports
@@ -27,12 +27,12 @@ export function renderDoctorSummary() {
         <!-- High Risk & Allergy Alert Box -->
         <div class="card mb-4" style="background:#FFF0F1;border:1.5px solid var(--emergency);padding:16px;">
           <div style="font-family:var(--font-display);font-size:14px;font-weight:800;color:var(--emergency);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-            ðŸš¨ HIGH RISK ALERTS & ALLERGIES
+            🚨 HIGH RISK ALERTS & ALLERGIES
           </div>
           <div style="display:flex;flex-direction:column;gap:8px;">
             ${p.criticalAlerts.map(a => `
               <div style="background:white;padding:10px 12px;border-radius:10px;font-size:12px;font-weight:700;color:var(--emergency);border-left:3px solid var(--emergency);">
-                âš ï¸ ${a.message}
+                ⚠️ ${a.message}
               </div>
             `).join('')}
           </div>
@@ -74,7 +74,7 @@ export function renderDoctorSummary() {
 
         <!-- Action Button -->
         <button class="btn btn-primary btn-full btn-lg" onclick="navigate('doctor-prescription')">
-          âœï¸ Create Digital Prescription
+          ✍️ Create Digital Prescription
         </button>
       </div>
     </div>
@@ -86,7 +86,7 @@ export function renderDoctorSummary() {
       <div style="display:flex;flex-direction:column;gap:10px;">
         ${['Blood_Report_CBC_Jul2026.pdf', 'ECG_Report_Fortis.pdf', 'Chest_XRay_MIOT.pdf'].map(f => `
           <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--surface-dim);border-radius:12px;">
-            <span style="font-size:13px;font-weight:600;">ðŸ“„ ${f}</span>
+            <span style="font-size:13px;font-weight:600;">📄 ${f}</span>
             <button class="btn btn-ghost btn-xs" onclick="showToast('Opening ${f}...','info')">View</button>
           </div>
         `).join('')}

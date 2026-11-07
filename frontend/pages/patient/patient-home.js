@@ -1,4 +1,4 @@
-// HealthVerse â€” Patient Home Dashboard
+// HealthVerse — Patient Home Dashboard
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
 import { mockData } from '../../services/data.js';
@@ -101,18 +101,18 @@ export function renderPatientHome() {
               </div>
               <div style="flex:1;">
                 <div class="appt-doctor">${mockData.appointments[0].doctorName}</div>
-                <div class="appt-spec">${mockData.appointments[0].specialty} â€¢ ${mockData.appointments[0].hospital}</div>
+                <div class="appt-spec">${mockData.appointments[0].specialty} • ${mockData.appointments[0].hospital}</div>
               </div>
               <div class="badge badge-success">Confirmed</div>
             </div>
             <div class="appt-details">
               <div class="appt-detail-item">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                ${mockData.appointments[0].date} â€¢ ${mockData.appointments[0].time}
+                ${mockData.appointments[0].date} • ${mockData.appointments[0].time}
               </div>
               <div class="appt-detail-item">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                Token: ${mockData.appointments[0].token} â€¢ ${mockData.appointments[0].room}
+                Token: ${mockData.appointments[0].token} • ${mockData.appointments[0].room}
               </div>
             </div>
             <div style="margin-top:14px;display:flex;gap:10px;">
@@ -138,10 +138,10 @@ export function renderPatientHome() {
                 <div class="med-dot" style="background:${med.color};"></div>
                 <div style="flex:1;">
                   <div class="med-name">${med.name} <span class="med-dosage">${med.dosage}</span></div>
-                  <div class="med-time">${med.time} â€¢ ${med.meals}</div>
+                  <div class="med-time">${med.time} • ${med.meals}</div>
                 </div>
                 <div class="med-status ${med.taken ? 'taken' : 'pending'}" onclick="event.stopPropagation();toggleMed(this,'${med.id}')">
-                  ${med.taken ? 'âœ“' : 'â—‹'}
+                  ${med.taken ? '✓' : '○'}
                 </div>
               </div>
             `).join('')}
@@ -164,7 +164,7 @@ export function renderPatientHome() {
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="#FFA502" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                   <span style="font-size:11px;font-weight:600;">${h.rating}</span>
                 </div>
-                ${h.emergency ? '<div style="font-size:10px;color:var(--emergency);font-weight:600;margin-top:3px;">ðŸš¨ Emergency</div>' : ''}
+                ${h.emergency ? '<div style="font-size:10px;color:var(--emergency);font-weight:600;margin-top:3px;">🚨 Emergency</div>' : ''}
               </div>
             `).join('')}
           </div>
@@ -175,9 +175,9 @@ export function renderPatientHome() {
           <div class="card-gradient" style="padding:20px;cursor:pointer;" onclick="navigate('blood-donation')">
             <div class="flex items-center justify-between">
               <div>
-                <div style="font-size:13px;opacity:0.8;margin-bottom:4px;">ðŸ©¸ Save Lives</div>
+                <div style="font-size:13px;opacity:0.8;margin-bottom:4px;">🩸 Save Lives</div>
                 <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:white;">Donate Blood</div>
-                <div style="font-size:13px;opacity:0.8;margin-top:4px;">3 nearby requests â€¢ B+ needed</div>
+                <div style="font-size:13px;opacity:0.8;margin-top:4px;">3 nearby requests • B+ needed</div>
               </div>
               <div style="width:60px;height:60px;background:rgba(255,255,255,0.15);border-radius:var(--radius-full);display:flex;align-items:center;justify-content:center;">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg>
@@ -349,8 +349,8 @@ function initHomeHandlers() {
     const isTaken = el.classList.contains('taken');
     el.classList.toggle('taken', !isTaken);
     el.classList.toggle('pending', isTaken);
-    el.textContent = isTaken ? 'â—‹' : 'âœ“';
-    showToast(isTaken ? 'Medicine marked as pending' : 'Medicine taken! âœ“', isTaken ? 'info' : 'success');
+    el.textContent = isTaken ? '○' : '✓';
+    showToast(isTaken ? 'Medicine marked as pending' : 'Medicine taken! ✓', isTaken ? 'info' : 'success');
   };
 
   window.showQR = () => {
@@ -362,8 +362,8 @@ function initHomeHandlers() {
         ${generateQRDisplay('QR-A1-HEALTHVERSE')}
       </div>
       <div style="background:var(--primary-light);border-radius:12px;padding:14px;margin-top:20px;text-align:center;">
-        <div style="font-size:13px;color:var(--primary);font-weight:600;">Token: TK-047 â€¢ Room 204, 2nd Floor</div>
-        <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Today, 3:30 PM â€¢ Dr. Priya Krishnamurthy</div>
+        <div style="font-size:13px;color:var(--primary);font-weight:600;">Token: TK-047 • Room 204, 2nd Floor</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Today, 3:30 PM • Dr. Priya Krishnamurthy</div>
       </div>
     `);
   };

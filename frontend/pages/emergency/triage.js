@@ -1,4 +1,4 @@
-// HealthVerse â€” AI Triage Chat
+// HealthVerse — AI Triage Chat
 import { navigate, goBack } from '../../routes/router.js';
 import { triageEngine } from '../../services/data.js';
 import { showToast } from '../../utils/utils.js';
@@ -22,7 +22,7 @@ export function renderTriage() {
           <div style="font-family:var(--font-display);font-size:17px;font-weight:700;color:white;">AI Health Triage</div>
           <div style="font-size:12px;color:rgba(255,255,255,0.7);display:flex;align-items:center;gap:5px;">
             <div style="width:7px;height:7px;background:var(--success);border-radius:50%;animation:pulse-ring 1.5s infinite;"></div>
-            HealthVerse AI â€¢ Online
+            HealthVerse AI • Online
           </div>
         </div>
         <div style="background:rgba(255,255,255,0.15);padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700;color:white;font-family:var(--font-display);">
@@ -40,7 +40,7 @@ export function renderTriage() {
       <div class="screen-content" id="chat-area" style="padding:16px;padding-bottom:200px;display:flex;flex-direction:column;gap:12px;">
         <!-- Initial AI message -->
         <div class="chat-row ai-row">
-          <div class="ai-avatar">ðŸ¤–</div>
+          <div class="ai-avatar">🤖</div>
           <div class="chat-bubble ai">
             Hello! I'm HealthVerse AI. I'll ask you a few questions to assess the urgency of your symptoms. Remember, I'm not a substitute for a real doctor.<br><br>
             <strong>Let's begin. ${triageEngine.questions[0].text}</strong>
@@ -128,7 +128,7 @@ function addChatMessage(text, sender) {
   const div = document.createElement('div');
   div.className = `chat-row ${sender === 'ai' ? 'ai-row' : 'user-row'}`;
   div.innerHTML = sender === 'ai'
-    ? `<div class="ai-avatar">ðŸ¤–</div><div class="chat-bubble ai">${text}</div>`
+    ? `<div class="ai-avatar">🤖</div><div class="chat-bubble ai">${text}</div>`
     : `<div class="chat-bubble user">${text}</div>`;
 
   // Insert before options container
@@ -148,7 +148,7 @@ function addTypingIndicator() {
   div.id = id;
   div.className = 'chat-row ai-row';
   div.innerHTML = `
-    <div class="ai-avatar">ðŸ¤–</div>
+    <div class="ai-avatar">🤖</div>
     <div class="chat-bubble ai" style="padding:12px;">
       <div class="typing-indicator">
         <div class="typing-dot"></div>
@@ -186,7 +186,7 @@ function showTriageResult() {
     resultDiv.innerHTML = `
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
         <div style="width:52px;height:52px;border-radius:16px;background:${result.color}20;display:flex;align-items:center;justify-content:center;font-size:24px;">
-          ${result.level === 'red' ? 'ðŸš¨' : result.level === 'orange' ? 'âš ï¸' : result.level === 'yellow' ? 'â°' : 'âœ…'}
+          ${result.level === 'red' ? '🚨' : result.level === 'orange' ? '⚠️' : result.level === 'yellow' ? '⏰' : '✅'}
         </div>
         <div>
           <div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:${result.color};">${result.label}</div>
@@ -197,19 +197,19 @@ function showTriageResult() {
       <div style="display:flex;flex-direction:column;gap:8px;">
         ${result.level === 'red' ? `
           <button class="btn btn-emergency btn-full" onclick="navigate('sos')">
-            ðŸš¨ Call Emergency Services Now
+            🚨 Call Emergency Services Now
           </button>
         ` : result.level === 'orange' ? `
           <button class="btn btn-primary btn-full" onclick="navigate('appointments')">
-            ðŸ“… Book Urgent Appointment
+            📅 Book Urgent Appointment
           </button>
         ` : result.level === 'yellow' ? `
           <button class="btn btn-primary btn-full" onclick="navigate('appointments')">
-            ðŸ“… Schedule Appointment
+            📅 Schedule Appointment
           </button>
         ` : `
           <button class="btn btn-secondary btn-full" onclick="showHomeCare()">
-            ðŸ  View Home Care Tips
+            🏡 View Home Care Tips
           </button>
         `}
         <button class="btn btn-ghost btn-full" onclick="restartTriage()">
@@ -227,7 +227,7 @@ function showTriageResult() {
     setTimeout(() => chatArea.scrollTop = chatArea.scrollHeight, 200);
 
     if (result.level === 'red') {
-      showToast('ðŸš¨ Critical condition detected. Emergency services alert sent!', 'error', 5000);
+      showToast('🚨 Critical condition detected. Emergency services alert sent!', 'error', 5000);
     }
   }, 800);
 

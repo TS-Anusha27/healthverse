@@ -1,4 +1,4 @@
-// HealthVerse â€” Appointments + Map Screen
+// HealthVerse — Appointments + Map Screen
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
 import { showToast, showModal, closeModal, generateQRDisplay } from '../../utils/utils.js';
@@ -146,8 +146,8 @@ function initMap() {
         .bindPopup(`
           <div style="font-family:var(--font-display);min-width:160px;">
             <div style="font-weight:700;font-size:14px;color:#1A2332;">${h.name}</div>
-            <div style="color:#6B7A8D;font-size:12px;margin-top:3px;">â­ ${h.rating} â€¢ ${h.distance}</div>
-            <div style="color:#6B7A8D;font-size:12px;margin-top:2px;">â±ï¸ Wait: ${h.waitTime}</div>
+            <div style="color:#6B7A8D;font-size:12px;margin-top:3px;">⭐ ${h.rating} • ${h.distance}</div>
+            <div style="color:#6B7A8D;font-size:12px;margin-top:2px;">⏱️ Wait: ${h.waitTime}</div>
             <button onclick="bookAtHospital('${h.id}')" style="margin-top:8px;width:100%;padding:6px;background:#4A90D9;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;">Book Now</button>
           </div>
         `);
@@ -160,7 +160,7 @@ function initMap() {
       iconSize: [14, 14],
       iconAnchor: [7, 7]
     });
-    L.marker([13.0570, 80.2290], { icon: userIcon }).addTo(map).bindPopup('<div style="font-size:12px;font-weight:600;">ðŸ“ Your Location</div>');
+    L.marker([13.0570, 80.2290], { icon: userIcon }).addTo(map).bindPopup('<div style="font-size:12px;font-weight:600;">📍 Your Location</div>');
 
     // Circles for nearby
     L.circle([13.0570, 80.2290], { radius: 5000, color: '#4A90D9', fillColor: '#4A90D9', fillOpacity: 0.04, weight: 1 }).addTo(map);
@@ -199,16 +199,16 @@ function initApptHandlers() {
     showModal(`
       <h3 style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text-primary);">${h.name}</h3>
       <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
-        <span class="badge badge-primary">â­ ${h.rating}</span>
-        <span class="badge badge-secondary">ðŸ“ ${h.distance}</span>
-        ${h.emergency ? '<span class="badge badge-emergency">ðŸš¨ Emergency</span>' : ''}
+        <span class="badge badge-primary">⭐ ${h.rating}</span>
+        <span class="badge badge-secondary">📍 ${h.distance}</span>
+        ${h.emergency ? '<span class="badge badge-emergency">🚨 Emergency</span>' : ''}
       </div>
       <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;font-size:14px;color:var(--text-secondary);">
-        <div>ðŸ“ ${h.address}</div>
-        <div>ðŸ“ž ${h.phone}</div>
-        <div>â±ï¸ Wait time: <strong style="color:var(--text-primary);">${h.waitTime}</strong></div>
-        <div>ðŸ‘¥ Queue: <strong style="color:var(--text-primary);">${h.queue} patients</strong></div>
-        <div>ðŸ›ï¸ Available beds: <strong style="color:var(--secondary);">${h.beds.available} / ${h.beds.total}</strong></div>
+        <div>📍 ${h.address}</div>
+        <div>📞 ${h.phone}</div>
+        <div>⏱️ Wait time: <strong style="color:var(--text-primary);">${h.waitTime}</strong></div>
+        <div>👥 Queue: <strong style="color:var(--text-primary);">${h.queue} patients</strong></div>
+        <div>🛏️ Available beds: <strong style="color:var(--secondary);">${h.beds.available} / ${h.beds.total}</strong></div>
       </div>
       <div style="margin-top:16px;">
         <div style="font-size:12px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Specialties</div>
@@ -218,7 +218,7 @@ function initApptHandlers() {
       </div>
       <div style="margin-top:16px;">
         <div style="font-size:12px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Insurance Accepted</div>
-        <div style="font-size:13px;color:var(--text-secondary);">${h.insurance.join(' â€¢ ')}</div>
+        <div style="font-size:13px;color:var(--text-secondary);">${h.insurance.join(' • ')}</div>
       </div>
       <button class="btn btn-primary btn-full mt-4" onclick="bookAtHospital('${h.id}');closeModal()">
         Book Appointment at ${h.name}
@@ -239,9 +239,9 @@ function initApptHandlers() {
         <div class="form-group">
           <label class="form-label">Sort By</label>
           <select class="form-input form-select">
-            <option>Distance â€” Nearest First</option>
-            <option>Rating â€” Highest First</option>
-            <option>Wait Time â€” Shortest First</option>
+            <option>Distance — Nearest First</option>
+            <option>Rating — Highest First</option>
+            <option>Wait Time — Shortest First</option>
             <option>Availability</option>
           </select>
         </div>
@@ -289,14 +289,14 @@ function showBookingFlow() {
           <div class="doc-avatar">${d.name.split(' ').slice(-1)[0].charAt(0)}</div>
           <div style="flex:1;">
             <div style="font-family:var(--font-display);font-size:15px;font-weight:700;">${d.name}</div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${d.specialty} â€¢ ${d.experience}yr exp</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${d.specialty} • ${d.experience}yr exp</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
-              <span style="font-size:11px;font-weight:600;color:var(--warning);">â­ ${d.rating}</span>
+              <span style="font-size:11px;font-weight:600;color:var(--warning);">⭐ ${d.rating}</span>
               <span style="font-size:11px;color:var(--text-tertiary);">${d.reviews} reviews</span>
             </div>
           </div>
           <div style="text-align:right;">
-            <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--primary);">â‚¹${d.fee}</div>
+            <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--primary);">₹${d.fee}</div>
             <div class="badge ${d.available ? 'badge-success' : 'badge-warning'}" style="margin-top:4px;">${d.available ? 'Available' : 'Busy'}</div>
           </div>
         </div>
@@ -309,10 +309,10 @@ function showBookingFlow() {
             <div class="doc-avatar">${d.name.split(' ').slice(-1)[0].charAt(0)}</div>
             <div style="flex:1;">
               <div style="font-family:var(--font-display);font-size:15px;font-weight:700;">${d.name}</div>
-              <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${d.specialty} â€¢ ${d.experience}yr exp</div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${d.specialty} • ${d.experience}yr exp</div>
             </div>
             <div style="text-align:right;">
-              <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--primary);">â‚¹${d.fee}</div>
+              <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--primary);">₹${d.fee}</div>
               <div class="badge badge-success" style="margin-top:4px;">Available</div>
             </div>
           </div>
@@ -368,7 +368,7 @@ function showDatePicker() {
 
   showModal(`
     <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:4px;">Select Date & Slot</h3>
-    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">${selectedDoctor?.name} â€¢ ${selectedHospital?.name}</p>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">${selectedDoctor?.name} • ${selectedHospital?.name}</p>
     <div class="scroll-x" style="gap:8px;margin-bottom:20px;">
       ${dates.map((d, i) => `
         <div class="date-chip ${i===0?'selected':''}" onclick="selectDate(this,'${d.value}')" id="date-${d.value}">
@@ -442,11 +442,11 @@ function showPayment() {
         <div class="flex justify-between"><span style="color:var(--text-secondary);">Hospital</span><span style="font-weight:600;">${selectedHospital?.name}</span></div>
         <div class="flex justify-between"><span style="color:var(--text-secondary);">Date & Time</span><span style="font-weight:600;">${selectedDate === new Date().toISOString().split('T')[0] ? 'Today' : 'Tomorrow'}, ${selectedSlot}</span></div>
         <div class="divider" style="margin:4px 0;"></div>
-        <div class="flex justify-between"><span>Consultation Fee</span><span>â‚¹${fee}</span></div>
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">Platform Fee</span><span>â‚¹29</span></div>
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">GST (18%)</span><span>â‚¹${Math.round(fee * 0.18)}</span></div>
+        <div class="flex justify-between"><span>Consultation Fee</span><span>₹${fee}</span></div>
+        <div class="flex justify-between"><span style="color:var(--text-secondary);">Platform Fee</span><span>₹29</span></div>
+        <div class="flex justify-between"><span style="color:var(--text-secondary);">GST (18%)</span><span>₹${Math.round(fee * 0.18)}</span></div>
         <div class="divider" style="margin:4px 0;"></div>
-        <div class="flex justify-between"><span style="font-family:var(--font-display);font-weight:700;font-size:16px;">Total</span><span style="font-family:var(--font-display);font-weight:800;font-size:18px;color:var(--primary);">â‚¹${fee + 29 + Math.round(fee * 0.18)}</span></div>
+        <div class="flex justify-between"><span style="font-family:var(--font-display);font-weight:700;font-size:16px;">Total</span><span style="font-family:var(--font-display);font-weight:800;font-size:18px;color:var(--primary);">₹${fee + 29 + Math.round(fee * 0.18)}</span></div>
       </div>
     </div>
 
@@ -462,7 +462,7 @@ function showPayment() {
     </div>
 
     <button class="btn btn-primary btn-full btn-lg" onclick="completePayment()">
-      Pay â‚¹${fee + 29 + Math.round(fee * 0.18)} Securely
+      Pay ₹${fee + 29 + Math.round(fee * 0.18)} Securely
     </button>
   `);
 
