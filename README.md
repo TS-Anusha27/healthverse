@@ -396,7 +396,7 @@ Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for more informa
 
 ## 📞 Contact
 
-- **Project Lead**: [TS-Anusha27](https://github.com/TS-Anusha27)
+- **Project Lead**: [TS-Anusha27](https://github.com/TS-Anusha27) | [ashwinsiva007](https://github.com/ashwinsiva007)
 - **GitHub Repository**: [https://github.com/TS-Anusha27/healthverse](https://github.com/TS-Anusha27/healthverse)
 - **Project Issues**: [Report a Bug / Request Feature](https://github.com/TS-Anusha27/healthverse/issues)
 
