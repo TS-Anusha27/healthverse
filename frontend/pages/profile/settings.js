@@ -89,6 +89,12 @@ export function renderSettings() {
         <!-- Account Actions -->
         <div class="card mb-4" style="padding:18px;background:var(--surface);border:1px solid var(--border);border-radius:18px;">
           <div style="display:flex;flex-direction:column;gap:10px;">
+            ${role === 'patient' ? `
+              <button class="btn btn-ghost btn-full" onclick="navigate('payments')" style="justify-content:flex-start;font-size:14px;">
+                ${uiIcon('fileText', { size: 16 })} Payment Receipts
+              </button>
+              <div style="height:1px;background:var(--border-light);margin:4px 0;"></div>
+            ` : ''}
             <button class="btn btn-ghost btn-full" onclick="navigate('user-type')" style="justify-content:flex-start;font-size:14px;">
               ${uiIcon('repeat', { size: 16 })} Change Role / View Portals
             </button>

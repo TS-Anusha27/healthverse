@@ -38,6 +38,8 @@ import { renderAmbulanceDriver } from './pages/ambulance/ambulance-driver.js';
 import { renderAmbulanceSetup } from './pages/ambulance/ambulance-setup.js';
 import { renderSettings } from './pages/profile/settings.js';
 import { renderNotifications } from './pages/profile/notifications.js';
+import { renderPayments } from './pages/payments/payments.js';
+import { renderAiAssistant } from './pages/ai/ai-assistant.js';
 
 // Register routes
 register('splash', renderSplash);
@@ -64,6 +66,8 @@ register('ambulance-home', renderAmbulanceDriver);
 register('ambulance-setup', renderAmbulanceSetup);
 register('settings', renderSettings);
 register('notifications', renderNotifications);
+register('payments', renderPayments);
+register('ai-assistant', renderAiAssistant);
 
 // Initialize router popstate/hashchange event listeners
 initRouter();

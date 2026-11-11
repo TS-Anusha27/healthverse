@@ -11,7 +11,8 @@ let isHandlingPopState = false;
 export const PUBLIC_ROUTES = ['splash', 'login', 'user-type', 'landing', 'patient-registration'];
 export const PATIENT_ROUTES = [
   'patient-home', 'appointments', 'triage', 'live-queue', 'telemedicine',
-  'health-records', 'blood-donation', 'organ-donation', 'medicines', 'health-insights', 'sos'
+  'health-records', 'blood-donation', 'organ-donation', 'medicines', 'health-insights', 'sos',
+  'payments', 'ai-assistant'
 ];
 export const DOCTOR_ROUTES = [
   'doctor-home', 'doctor-summary', 'doctor-prescription', 'doctor-setup'

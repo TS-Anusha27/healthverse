@@ -45,6 +45,99 @@
 
 ---
 
+## 🏆 PayPal AI Hackathon Edition (Overview & Architecture)
+
+**HealthVerse** is a mobile-first healthcare companion built with **Vanilla ES Modules + Vite 8** and **Vercel Serverless Functions**, serving **Patients**, **Doctors**, and **Ambulance Drivers** with digital triage, emergency SOS dispatch, specialist booking, pharmacy refills, digital prescriptions, health records, and community blood donation.
+
+### What Was Added for the Hackathon
+
+1. **Real PayPal Sandbox Checkout (`/api/paypal/*`)**
+   - Server-side OAuth2 client-credentials flow with in-memory token caching (`api/_lib/paypal.js`) and same-origin request enforcement (`api/_lib/http.js`).
+   - `POST /api/paypal/create-order` validates USD amounts (`> 0` and `<= 500`), enforces `referenceType` (`"appointment"` or `"medicine"`), attaches an idempotency `PayPal-Request-Id`, and creates a `CAPTURE`-intent PayPal order.
+   - `POST /api/paypal/capture-order` captures the order and returns verified `{ status, captureId, amount, currency, payerEmail, createTime }`.
+   - Frontend `frontend/services/payments/paypalService.js` dynamically loads the PayPal JS SDK when `VITE_PAYPAL_CLIENT_ID` is configured, converts INR display prices to USD using `VITE_INR_PER_USD` (default `85`, labeled **demo conversion rate**), stores receipts in `localStorage` (`hv_receipts`), and attempts a non-blocking Supabase `payments` sync.
+   - Optional consultation checkout inside `#appointments` (with **"Pay later at clinic"** option and `"Paid"` badge), pharmacy refill PayPal checkout inside `#medicines` (`orderRefillModal`), and a dedicated **Payment Receipts** screen (`#payments`) accessible from Patient Home and Settings.
+
+2. **Real AI Health Guidance (`/api/ai/*`)**
+   - Provider-agnostic serverless wrapper (`api/_lib/llm.js`) supporting **Google Gemini** (`x-goog-api-key`) and **Anthropic Claude** (`x-api-key`), capped at 700 output tokens, 20-second `AbortController` timeouts, defensive JSON parsing, and per-IP in-memory rate limiting.
+   - `POST /api/ai/triage-explain` pairs rule-engine urgency levels (`red | orange | yellow | green`) with structured, non-diagnostic explanations, red-flag emergency reminders (`108` / `112`), safe supportive steps, and a suggested medical specialty rendered in `#triage` (`AI-generated, not medical advice`), falling back silently if offline or unconfigured.
+   - `POST /api/ai/assistant` powers the `#ai-assistant` chat screen (with quick starter chips and human-in-the-loop **Booking Concierge** confirmation cards that pre-fill `#appointments` ONLY after explicit user confirmation).
+   - `POST /api/ai/explain` powers **"Explain in simple words"** modals on `#medicines` and `#doctor-prescription` with **English**, **Tamil (`தமிழ்`)**, and **Hindi (`हिन्दी`)** language switching.
+
+### Architecture Diagram
+
+```mermaid
+flowchart TD
+  U["Patient / Doctor / Driver Browser (Vite SPA)"] -->|"#appointments Checkout"| SDK["PayPal JS SDK (Sandbox Client ID)"]
+  U -->|"POST /api/paypal/create-order"| PAPI["Vercel Serverless: PayPal API"]
+  U -->|"POST /api/paypal/capture-order"| PAPI
+  PAPI -->|"OAuth2 + Orders v2"| PP["PayPal Sandbox REST API"]
+  U -->|"Rule-Based Score + POST /api/ai/triage-explain"| AAPI["Vercel Serverless: AI API"]
+  AAPI -->|"Provider-Agnostic callLLM"| LLM["Gemini / Anthropic API"]
+  U -->|"Receipts (hv_receipts) + Best-Effort Sync"| SB["Supabase / Local Storage"]
+```
+
+### Local Setup & Vercel Deployment
+
+#### Prerequisites
+- Node.js `18+` (for native `fetch` and `crypto.randomUUID` in serverless handlers)
+- Optional: Vercel CLI (`npx vercel dev`) to run Vite + `/api/*` routes together locally
+
+#### Environment Variables
+
+Copy `.env.example` to `.env.local` (never commit `.env.local`):
+
+| Variable | Scope | Purpose |
+|---|---|---|
+| `VITE_PAYPAL_CLIENT_ID` | Client (Vite) | PayPal Sandbox Client ID passed to PayPal JS SDK |
+| `VITE_INR_PER_USD` | Client (Vite) | Demo conversion rate (default `85`) |
+| `PAYPAL_CLIENT_ID` | Server only | PayPal Sandbox REST Client ID |
+| `PAYPAL_CLIENT_SECRET` | Server only | PayPal Sandbox REST Secret |
+| `PAYPAL_ENV` | Server only | `sandbox` (default) or `live` |
+| `AI_PROVIDER` | Server only | `"gemini"` or `"anthropic"` |
+| `AI_API_KEY` | Server only | Server-side Gemini or Anthropic API key |
+| `AI_MODEL` | Server only | e.g. `gemini-3.5-flash` or `claude-3-5-sonnet-latest` |
+
+```bash
+npm install
+# Option A: Full stack locally (Vite frontend + /api/* serverless functions)
+npx vercel dev
+
+# Option B: Production frontend bundle check
+npm run build
+```
+
+On Vercel, add the server-only variables (`PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_ENV`, `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`) and client `VITE_*` variables in **Project Settings → Environment Variables**.
+
+### Judge Testing Guide
+
+1. **Instant Demo Login (`#login`)**
+   - Click **"Continue with Demo User"** on the login page to enter in one click, or sign in with:
+     - **Patient:** `patient@demo.com` / `demo123`
+     - **Doctor:** `doctor@demo.com` / `demo123`
+     - **Ambulance Driver:** `driver@demo.com` / `demo123`
+   - Phone/OTP sign-in in demo mode uses code `123456` (as shown in the OTP prompt hint).
+2. **Test Real AI Health Triage (`#triage`)**
+   - From Patient Home, open **AI Triage**, answer the 6 screening questions, and observe both the deterministic urgency badge and the live **Personalized Care Guidance** card (`AI-generated, not medical advice`).
+3. **Test Real AI Assistant & Booking Concierge (`#ai-assistant`)**
+   - From Patient Home, open **Ask AI** (`#ai-assistant`), try quick chips like *"I have a fever"* or *"Book a cardiologist tomorrow"*, and verify that booking suggestions show a confirmation card before opening pre-filtered `#appointments` (never auto-booking).
+4. **Test Plain-Language Explainer (`#medicines` & `#doctor-prescription`)**
+   - Click **"Explain in simple words"** on any medicine reminder card or prescription cart item and switch between **English**, **தமிழ் (Tamil)**, and **हिन्दी (Hindi)**.
+5. **Test Optional PayPal Sandbox Payment (`#appointments`, `#medicines`, `#payments`)**
+   - Book any hospital doctor appointment and confirm slot/date, OR open **Medicine Reminders → Refill** (`#medicines`).
+   - Choose **"Pay later at clinic"** / standard order, or pay via **PayPal Sandbox** to see the ₹ INR to USD conversion rate (`1 USD = ₹85`), **Paid** badge, printable receipt in `#payments`, and **Print / Save receipt** action.
+
+### Tech Stack & Known Limitations
+
+- **Frontend:** Vanilla JS (ES modules), CSS design tokens (light/dark theme), Vite 8, Lucide Icons, Chart.js
+- **Backend / Serverless:** Vercel Node.js Functions (`/api/*`), PayPal Orders v2 API, Google Gemini / Anthropic Messages API, Supabase (optional persistence)
+- **Known Limitations:**
+  - Rule-based triage scoring in `frontend/services/data.js` remains authoritative; AI outputs never diagnose or lower urgency.
+  - Per-IP AI rate limiting is in-memory per warm serverless instance (best-effort protection).
+  - Real PayPal capture requires both `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET` in server environment variables; when omitted, the UI falls back cleanly so **"Pay later at clinic"** and core booking continue uninterrupted.
+
+---
+
 ## 📌 Table of Contents
 
 - [About HealthVerse](#-about-healthverse)

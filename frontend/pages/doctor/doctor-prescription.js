@@ -4,6 +4,7 @@ import { showToast, escapeHtml } from '../../utils/utils.js';
 import { uiIcon } from '../../utils/icons.js';
 import { createPrescription } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
+import { openSimpleExplainModal } from '../../services/ai/explainHelper.js';
 
 let selectedMeds = [];
 
@@ -39,14 +40,19 @@ export function renderDoctorPrescription() {
       { name: 'Metformin 500mg', type: 'Antidiabetic', isAllergic: false },
       { name: 'Ibuprofen 400mg', type: 'NSAID (Kidney/GI caution)', isWarning: true }
     ].map(m => `
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--surface-dim);border-radius:12px;">
-                <div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:12px;background:var(--surface-dim);border-radius:12px;">
+                <div style="min-width:0;flex:1;">
                   <div style="font-size:14px;font-weight:600;">${m.name}</div>
                   <div style="font-size:11px;color:${m.isAllergic ? 'var(--emergency)' : m.isWarning ? 'var(--warning)' : 'var(--text-secondary)'};">${m.type}</div>
                 </div>
-                <button class="btn btn-outline btn-xs" onclick="addMedToScript('${m.name}', ${m.isAllergic}, ${m.isWarning || false})">
-                  + Add
-                </button>
+                <div class="flex gap-2">
+                  <button type="button" class="btn btn-ghost btn-xs" data-med-name="${escapeHtml(m.name)}" data-med-type="${escapeHtml(m.type)}" onclick="explainRxMedicine(this.dataset.medName, this.dataset.medType)">
+                    Explain in simple words
+                  </button>
+                  <button class="btn btn-outline btn-xs" onclick="addMedToScript('${m.name}', ${m.isAllergic}, ${m.isWarning || false})">
+                    + Add
+                  </button>
+                </div>
               </div>
             `).join('')}
           </div>
@@ -70,6 +76,10 @@ export function renderDoctorPrescription() {
     </div>
   `;
 
+  window.explainRxMedicine = (name, note) => {
+    openSimpleExplainModal({ kind: 'prescription', name, contextNote: note || '' });
+  };
+
   window.addMedToScript = (name, isAllergic, isWarning) => {
     selectedMeds.push({ name, isAllergic, isWarning });
     updateRxList();
@@ -82,9 +92,12 @@ export function renderDoctorPrescription() {
     if (!listEl) return;
 
     listEl.innerHTML = selectedMeds.map((m, i) => `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--surface-dim);border-radius:10px;font-size:13px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:10px;background:var(--surface-dim);border-radius:10px;font-size:13px;">
         <span style="font-weight:600;">${escapeHtml(m.name)}</span>
-        <button style="border:none;background:none;color:var(--emergency);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;" aria-label="Remove medicine" onclick="removeMed(${i})">${uiIcon('x', { size: 15, strokeWidth: 2.5 })}</button>
+        <div class="flex items-center gap-2">
+          <button type="button" class="btn btn-ghost btn-xs" data-med-name="${escapeHtml(m.name)}" onclick="explainRxMedicine(this.dataset.medName, 'Prescribed medication item')">Explain in simple words</button>
+          <button style="border:none;background:none;color:var(--emergency);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;" aria-label="Remove medicine" onclick="removeMed(${i})">${uiIcon('x', { size: 15, strokeWidth: 2.5 })}</button>
+        </div>
       </div>
     `).join('');
 
