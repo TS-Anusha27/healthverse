@@ -195,7 +195,7 @@ async function callGemini({ apiKey, model, system, messages, maxTokens, temperat
     };
   }
 
-  const res = await fetch(endpoint, {
+  let res = await fetch(endpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -204,6 +204,19 @@ async function callGemini({ apiKey, model, system, messages, maxTokens, temperat
     body: JSON.stringify(body),
     signal
   });
+
+  if (res.status === 503 && !signal?.aborted) {
+    await new Promise((r) => setTimeout(r, 600));
+    res = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey
+      },
+      body: JSON.stringify(body),
+      signal
+    });
+  }
 
   if (!res.ok) {
     throw mapUpstreamStatus(res.status);
@@ -247,7 +260,7 @@ export async function callLLM({
     throw new LlmApiError(500, 'Configured AI provider is unsupported.', 'AI_CONFIG_INVALID');
   }
 
-  const defaultModel = provider === 'anthropic' ? 'claude-3-5-sonnet-latest' : 'gemini-flash-latest';
+  const defaultModel = provider === 'anthropic' ? 'claude-3-5-sonnet-latest' : 'gemini-3.5-flash';
   const model = cleanString(process.env.AI_MODEL || defaultModel, 100) || defaultModel;
   const maxTokens = Math.min(Math.max(64, Math.floor(Number(maxOutputTokens) || MAX_OUTPUT_TOKENS_CAP)), MAX_OUTPUT_TOKENS_CAP);
   const normalizedMessages = normalizeMessages(messages);

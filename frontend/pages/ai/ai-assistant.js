@@ -7,7 +7,8 @@ import { renderBottomNav } from '../patient/patient-home.js';
 const QUICK_PROMPTS = [
   { label: 'I have a fever', prompt: 'I have a fever and feel fatigued. What should I monitor and when should I see a doctor?' },
   { label: 'Explain my medicines', prompt: 'What important questions should I check before taking prescribed medicines, and what warning side effects need medical attention?' },
-  { label: 'Find a doctor', prompt: 'How do I choose which specialist doctor in HealthVerse to consult for chest discomfort vs routine skin issues?' }
+  { label: 'Find a doctor', prompt: 'How do I choose which specialist doctor in HealthVerse to consult for chest discomfort vs routine skin issues?' },
+  { label: 'Book a cardiologist tomorrow', prompt: 'Please help me book a Cardiology doctor appointment for tomorrow.' }
 ];
 
 let chatMessages = [];
@@ -112,6 +113,25 @@ export function renderAiAssistant() {
     sendAssistantRequest(lastFailedPayload);
   };
 
+  window.confirmAssistantBooking = (msgIdx) => {
+    const msg = chatMessages[Number(msgIdx)];
+    const intent = msg?.intent;
+    if (!intent) return;
+    navigate('appointments', {
+      specialty: intent.specialty || '',
+      preferredDate: intent.preferredDate || '',
+      reason: intent.reason || '',
+      fromAssistant: '1'
+    });
+  };
+
+  window.dismissAssistantBooking = (msgIdx) => {
+    const msg = chatMessages[Number(msgIdx)];
+    if (!msg) return;
+    msg.intentDismissed = true;
+    renderConversation();
+  };
+
   renderConversation();
 }
 
@@ -141,7 +161,7 @@ function renderConversation(errorMessage = '') {
     return;
   }
 
-  const bubblesHtml = chatMessages.map((msg) => {
+  const bubblesHtml = chatMessages.map((msg, idx) => {
     if (msg.role === 'user') {
       return `
         <div class="ai-msg-row ai-msg-row--user">
@@ -150,11 +170,33 @@ function renderConversation(errorMessage = '') {
       `;
     }
 
+    const intent = msg.intent;
+    const intentCardHtml = intent && intent.action === 'book_appointment' && !msg.intentDismissed ? `
+      <div class="ai-intent-card" role="region" aria-label="Appointment booking confirmation">
+        <div class="ai-intent-title">${uiIcon('calendar', { size: 14, color: 'var(--primary)' })} Review Suggested Appointment Filter</div>
+        <div class="ai-intent-meta">
+          <div><strong>Specialty:</strong> ${escapeHtml(intent.specialty)}</div>
+          ${intent.preferredDate ? `<div><strong>Preferred Date:</strong> ${escapeHtml(intent.preferredDate)}</div>` : ''}
+          ${intent.reason ? `<div><strong>Reason:</strong> ${escapeHtml(intent.reason)}</div>` : ''}
+          <div style="margin-top:4px;font-size:11px;color:var(--text-muted);">Nothing is booked yet — confirm to open pre-filtered hospitals &amp; slots.</div>
+        </div>
+        <div class="ai-intent-actions">
+          <button type="button" class="btn btn-primary btn-xs" onclick="confirmAssistantBooking(${idx})">
+            Confirm &amp; Open Appointments
+          </button>
+          <button type="button" class="btn btn-ghost btn-xs" onclick="dismissAssistantBooking(${idx})">
+            Not now
+          </button>
+        </div>
+      </div>
+    ` : '';
+
     return `
       <div class="ai-msg-row ai-msg-row--ai">
         <div class="ai-msg-avatar" aria-hidden="true">${uiIcon('bot', { size: 15, color: 'white' })}</div>
         <div class="ai-msg-stack">
           <div class="ai-msg-bubble ai-msg-bubble--ai">${formatMessageText(msg.content)}</div>
+          ${intentCardHtml}
           ${msg.disclaimer ? `<div class="ai-msg-note">${escapeHtml(msg.disclaimer)}</div>` : ''}
         </div>
       </div>
@@ -221,6 +263,7 @@ async function sendAssistantRequest(payloadMessages) {
     chatMessages.push({
       role: 'assistant',
       content: data.reply,
+      intent: data.intent || null,
       disclaimer: data.disclaimer || 'AI-generated information only — not medical advice.'
     });
     isSending = false;

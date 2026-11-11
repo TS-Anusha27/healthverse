@@ -14,12 +14,35 @@ let selectedHospital = null;
 let selectedDoctor = null;
 let selectedDate = null;
 let selectedSlot = null;
+let aiPrefillState = null;
 
-export function renderAppointments() {
+function normalizeSpecialtyKeyword(rawSpecialty) {
+  const s = String(rawSpecialty || '').trim().toLowerCase();
+  if (!s) return '';
+  if (s.includes('cardio')) return 'Cardiology';
+  if (s.includes('neuro')) return 'Neurology';
+  if (s.includes('pediat') || s.includes('paediat')) return 'Pediatrics';
+  if (s.includes('ortho')) return 'Orthopedics';
+  if (s.includes('derma') || s.includes('skin')) return 'Dermatology';
+  if (s.includes('onco')) return 'Oncology';
+  if (s === 'ent' || s.includes('ear') || s.includes('throat')) return 'ENT';
+  return String(rawSpecialty).trim();
+}
+
+export function renderAppointments(params = {}) {
   if (map) {
     try { map.remove(); } catch (e) {}
     map = null;
   }
+
+  aiPrefillState = (params && (params.specialty || params.preferredDate || params.reason))
+    ? {
+        specialty: String(params.specialty || '').trim(),
+        preferredDate: String(params.preferredDate || '').trim(),
+        reason: String(params.reason || '').trim(),
+        sourceLabel: params.fromTriage === '1' ? 'Suggested by AI Triage' : 'Suggested by AI Assistant'
+      }
+    : null;
 
   const app = document.getElementById('app');
   app.innerHTML = `
@@ -70,6 +93,23 @@ export function renderAppointments() {
         </div>
 
         <!-- Hospital List -->
+        ${aiPrefillState ? `
+        <div class="section mt-3" id="ai-appt-banner">
+          <div class="card card-sm" style="background:var(--accent-light);border:1.5px solid rgba(123,104,238,0.28);padding:12px 14px;">
+            <div class="flex items-center justify-between gap-2">
+              <div style="font-size:12px;font-weight:800;color:var(--accent);">${escapeHtml(aiPrefillState.sourceLabel)}</div>
+              <button type="button" class="btn btn-ghost btn-xs" onclick="clearAiBookingPrefill()">Clear</button>
+            </div>
+            <div style="font-size:12.5px;color:var(--text-primary);margin-top:4px;line-height:1.45;">
+              ${aiPrefillState.specialty ? `<span><strong>Specialty:</strong> ${escapeHtml(aiPrefillState.specialty)}</span>` : ''}
+              ${aiPrefillState.preferredDate ? `<span style="margin-left:8px;"><strong>Preferred:</strong> ${escapeHtml(aiPrefillState.preferredDate)}</span>` : ''}
+              ${aiPrefillState.reason ? `<div style="color:var(--text-secondary);margin-top:2px;">Reason: ${escapeHtml(aiPrefillState.reason)}</div>` : ''}
+            </div>
+            <div id="ai-appt-filter-note" style="font-size:11px;color:var(--text-secondary);margin-top:4px;"></div>
+          </div>
+        </div>
+        ` : ''}
+
         <div class="section mt-4 mb-4" id="hospital-list">
           <div class="section-title mb-3">Available Hospitals</div>
           <div id="hospital-cards" class="flex-col gap-3">
@@ -111,6 +151,7 @@ async function loadHospitalsData() {
       });
     } else {
       cardsEl.innerHTML = loadedHospitals.map(h => renderHospitalCard(h)).join('');
+      applyAiBookingPrefill();
     }
     initMap();
   } catch (err) {
@@ -221,7 +262,52 @@ function initMap() {
   }, 200);
 }
 
+function applyAiBookingPrefill() {
+  if (!aiPrefillState || !aiPrefillState.specialty) return;
+
+  const filterKey = normalizeSpecialtyKeyword(aiPrefillState.specialty);
+  const q = filterKey.toLowerCase();
+  const chips = Array.from(document.querySelectorAll('#appt-screen .scroll-x .chip'));
+  const matchingChip = chips.find((c) => c.textContent.trim().toLowerCase() === q);
+
+  const hasMatchingHospitals = loadedHospitals.some((h) =>
+    (h.name || '').toLowerCase().includes(q) ||
+    (h.specialty || '').toLowerCase().includes(q) ||
+    (Array.isArray(h.specialties) && h.specialties.some((s) => s.toLowerCase().includes(q)))
+  );
+
+  const noteEl = document.getElementById('ai-appt-filter-note');
+
+  if (hasMatchingHospitals && typeof window.filterCategory === 'function') {
+    window.filterCategory(matchingChip || chips[0], filterKey);
+    const searchEl = document.getElementById('search-input');
+    if (searchEl && !matchingChip) searchEl.value = filterKey;
+    if (noteEl) noteEl.textContent = `Filtered hospitals offering ${filterKey}. Pick a hospital & slot below to continue.`;
+  } else if (noteEl) {
+    noteEl.textContent = `Showing all partner hospitals — select your preferred clinic to book a ${aiPrefillState.specialty} visit.`;
+  }
+}
+
+function resolveInitialDateIndex(dates) {
+  const pref = String(aiPrefillState?.preferredDate || '').trim().toLowerCase();
+  if (!pref || !Array.isArray(dates) || dates.length === 0) return 0;
+  if (pref === 'today') return 0;
+  if (pref === 'tomorrow' && dates.length > 1) return 1;
+  const exactIdx = dates.findIndex((d) => d.value.toLowerCase() === pref || d.label.toLowerCase().includes(pref));
+  return exactIdx >= 0 ? exactIdx : 0;
+}
+
 function initApptHandlers() {
+  window.clearAiBookingPrefill = () => {
+    aiPrefillState = null;
+    document.getElementById('ai-appt-banner')?.remove();
+    const searchEl = document.getElementById('search-input');
+    if (searchEl) searchEl.value = '';
+    const firstChip = document.querySelector('#appt-screen .scroll-x .chip');
+    if (typeof window.filterCategory === 'function') {
+      window.filterCategory(firstChip, 'All');
+    }
+  };
   window.filterHospitals = (query) => {
     const q = (query || '').toLowerCase();
     const list = document.getElementById('hospital-list');
@@ -427,12 +513,15 @@ function showDatePicker() {
     });
   }
 
+  const initialIdx = resolveInitialDateIndex(dates);
+  selectedDate = dates[initialIdx]?.value || selectedDate;
+
   showModal(`
     <h3 class="modal-title">Select Date & Slot</h3>
     <p class="modal-subtitle">${escapeHtml(selectedDoctor?.name)} • ${escapeHtml(selectedHospital?.name)}</p>
     <div class="scroll-x gap-2 mb-4">
       ${dates.map((d, i) => `
-        <div class="date-chip ${i===0?'selected':''}" onclick="selectDate(this,'${d.value}')" id="date-${d.value}">
+        <div class="date-chip ${i===initialIdx?'selected':''}" onclick="selectDate(this,'${d.value}')" id="date-${d.value}">
           <div class="date-label">${d.label}</div>
           <div class="date-slots">${d.slots} slots</div>
         </div>
@@ -473,7 +562,7 @@ function showDatePicker() {
     el.classList.add('selected');
     selectedDate = val;
   };
-  selectedDate = dates[0].value;
+  selectedDate = dates[initialIdx]?.value || dates[0].value;
 
   window.selectSlot = (el, time) => {
     document.querySelectorAll('.time-slot:not(.booked)').forEach(s => s.classList.remove('selected'));
