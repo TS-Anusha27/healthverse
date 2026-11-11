@@ -13,31 +13,31 @@ export function renderTriage() {
   currentQ = 0;
 
   app.innerHTML = `
-    <div class="screen" id="triage-screen" style="background:var(--bg);">
-      <div class="page-header" style="background:linear-gradient(135deg,#7B68EE,#5A4FCF);border-bottom:none;">
-        <button class="back-btn" onclick="goBack()" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.2);">
+    <div class="screen" id="triage-screen">
+      <div class="page-header triage-header">
+        <button class="back-btn btn-glass-back" onclick="goBack()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <div style="flex:1;">
-          <div style="font-family:var(--font-display);font-size:17px;font-weight:700;color:white;">AI Health Triage</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.7);display:flex;align-items:center;gap:5px;">
-            <div style="width:7px;height:7px;background:var(--success);border-radius:50%;animation:pulse-ring 1.5s infinite;"></div>
+        <div class="flex-1">
+          <div class="header-title-light">AI Health Triage</div>
+          <div class="triage-status">
+            <div class="triage-status-dot"></div>
             HealthVerse AI • Online
           </div>
         </div>
-        <div style="background:rgba(255,255,255,0.15);padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700;color:white;font-family:var(--font-display);">
+        <div class="triage-badge-pill">
           NOT a diagnosis
         </div>
       </div>
 
       <!-- Disclaimer Banner -->
-      <div style="background:#FFF8EC;padding:10px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--warning-light);">
+      <div class="triage-disclaimer">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        <span style="font-size:12px;color:var(--warning);font-weight:500;">This AI suggests urgency only. It does not prescribe medicine or diagnose conditions.</span>
+        <span class="triage-disclaimer-text">This AI suggests urgency only. It does not prescribe medicine or diagnose conditions.</span>
       </div>
 
       <!-- Chat Area -->
-      <div class="screen-content" id="chat-area" style="padding:16px;padding-bottom:200px;display:flex;flex-direction:column;gap:12px;">
+      <div class="screen-content triage-chat-area" id="chat-area">
         <!-- Initial AI message -->
         <div class="chat-row ai-row">
           <div class="ai-avatar">🤖</div>
@@ -50,8 +50,8 @@ export function renderTriage() {
       </div>
 
       <!-- Input Area -->
-      <div id="chat-input-area" style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;padding:12px 16px calc(12px + var(--safe-bottom));background:var(--surface);border-top:1px solid var(--border-light);box-shadow:0 -4px 20px rgba(26,35,50,0.08);">
-        <div id="quick-options" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div id="chat-input-area" class="triage-input-dock">
+        <div id="quick-options" class="flex-col gap-2"></div>
       </div>
     </div>
   `;
@@ -184,17 +184,17 @@ function showTriageResult() {
     const resultDiv = document.createElement('div');
     resultDiv.className = `triage-result triage-result-${result.level}`;
     resultDiv.innerHTML = `
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-        <div style="width:52px;height:52px;border-radius:16px;background:${result.color}20;display:flex;align-items:center;justify-content:center;font-size:24px;">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="triage-result-icon" style="background:${result.color}20;">
           ${result.level === 'red' ? '🚨' : result.level === 'orange' ? '⚠️' : result.level === 'yellow' ? '⏰' : '✅'}
         </div>
         <div>
           <div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:${result.color};">${result.label}</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">AI Triage Assessment</div>
+          <div class="text-caption">AI Triage Assessment</div>
         </div>
       </div>
-      <p style="font-size:14px;color:var(--text-primary);line-height:1.6;margin-bottom:16px;">${result.message}</p>
-      <div style="display:flex;flex-direction:column;gap:8px;">
+      <p class="triage-result-msg">${result.message}</p>
+      <div class="flex-col gap-2">
         ${result.level === 'red' ? `
           <button class="btn btn-emergency btn-full" onclick="navigate('sos')">
             🚨 Call Emergency Services Now

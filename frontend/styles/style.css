@@ -1405,6 +1405,596 @@ h1, h2, h3, h4, h5, h6 {
 .cursor-pointer { cursor: pointer; }
 .no-select { user-select: none; -webkit-tap-highlight-color: transparent; }
 
+/* --- Reusable Layout, Modal & Screen Component Classes (B3) --- */
+.screen-shell {
+  min-height: 100dvh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-main {
+  padding: 20px 20px 48px;
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+  flex: 1;
+}
+
+.flex-wrap-gap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.spinner-inline {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.btn-glass-back {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: white;
+}
+
+.header-spacer-sm { width: 38px; flex-shrink: 0; }
+.header-spacer-md { width: 70px; flex-shrink: 0; }
+
+.header-title-light {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: white;
+}
+
+.header-subtitle-light {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* Modal Content Typography & Containers */
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.modal-title-lg {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.modal-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+.modal-section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.modal-summary-box {
+  background: var(--surface-dim);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.modal-divider {
+  margin: 4px 0;
+}
+
+/* Landing / UserType Screen */
+.landing-header {
+  padding: 28px 24px 20px;
+  text-align: center;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: var(--shadow-xs);
+}
+
+.landing-brand-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.brand-logo-mark {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+}
+
+.landing-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.landing-subtitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.4px;
+}
+
+.landing-lead {
+  font-size: 14px;
+  color: var(--text-secondary);
+  max-width: 380px;
+  margin: 10px auto 0;
+  line-height: 1.5;
+}
+
+.active-session-banner {
+  background: var(--primary-light);
+  border: 1px solid rgba(74, 144, 217, 0.3);
+  border-radius: 12px;
+  padding: 12px 16px;
+  max-width: 400px;
+  margin: 14px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  gap: 12px;
+}
+
+.active-session-label {
+  font-size: 12px;
+  color: var(--primary);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.active-session-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.active-session-role {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.landing-heading-block {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.landing-heading {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.landing-subheading {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.landing-footer {
+  margin-top: 36px;
+  text-align: center;
+  padding: 16px 0;
+  border-top: 1px solid var(--border-light);
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.portal-icon--patient,
+.portal-pill--patient { background: var(--primary-light); color: var(--primary-dark); }
+.portal-cta--patient { color: var(--primary-dark); }
+
+.portal-icon--doctor,
+.portal-pill--doctor { background: var(--secondary-light); color: var(--secondary-dark); }
+.portal-cta--doctor { color: var(--secondary-dark); }
+
+.portal-icon--ambulance,
+.portal-pill--ambulance { background: var(--emergency-light); color: #9B2C2C; }
+.portal-cta--ambulance { color: var(--emergency); }
+
+/* Auth / Consent / Forgot Modal */
+.consent-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.consent-checkbox {
+  margin-top: 3px;
+  accent-color: var(--primary);
+}
+
+.consent-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.forgot-modal-box {
+  padding: 20px;
+  text-align: center;
+}
+
+.forgot-modal-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+/* Patient Home Additions */
+.switch-profile-btn {
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
+.score-unit { font-size: 18px; }
+.score-dot--active { background: var(--secondary); }
+
+.score-ring-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.score-ring-num {
+  font-size: 20px;
+  font-weight: 800;
+  color: white;
+}
+
+.score-ring-caption {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.hospital-mini-rating-row { margin-top: 4px; }
+.hospital-mini-rating-val { font-size: 11px; font-weight: 600; }
+.hospital-mini-emerg {
+  font-size: 10px;
+  color: var(--emergency);
+  font-weight: 600;
+  margin-top: 3px;
+}
+
+.blood-cta-card {
+  padding: 20px;
+  cursor: pointer;
+}
+
+.blood-cta-eyebrow { font-size: 13px; opacity: 0.85; margin-bottom: 4px; }
+.blood-cta-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: white; }
+.blood-cta-sub { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+.blood-cta-icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-modal-info {
+  background: var(--primary-light);
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.qr-modal-token { font-size: 13px; color: var(--primary); font-weight: 600; }
+.qr-modal-meta { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+/* Appointments Classes */
+.appt-location-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--secondary);
+}
+
+.appt-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.modal-slot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.pay-method-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--surface-dim);
+  border-radius: 12px;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+}
+
+.pay-method-option--active { border-color: var(--primary); }
+
+.booking-confirm-box { text-align: center; padding: 20px 0; }
+.booking-success-icon {
+  width: 80px;
+  height: 80px;
+  background: var(--success-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  animation: scaleInSpring 0.5s var(--transition-spring);
+}
+.booking-confirm-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+/* SOS Screen */
+.sos-screen {
+  background: linear-gradient(160deg, #1A0A0A 0%, #2D0B0E 50%, #1A2332 100%);
+  color: white;
+  min-height: 100dvh;
+  justify-content: space-between;
+  padding: calc(20px + var(--safe-top)) 24px calc(40px + var(--safe-bottom));
+}
+
+.sos-back-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.sos-header-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--emergency);
+}
+
+.sos-hero {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.sos-hero-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: white;
+}
+
+.sos-hero-sub {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.72);
+  margin-top: 6px;
+}
+
+.sos-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.sos-press-label {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.85;
+  margin-top: -2px;
+}
+
+.sos-countdown-text {
+  margin-top: 28px;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.82);
+  font-weight: 600;
+}
+
+.sos-countdown-urgent {
+  color: var(--emergency);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.sos-location-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.sos-location-title { font-size: 13px; font-weight: 600; color: white; }
+.sos-location-coords { font-size: 11px; color: rgba(255, 255, 255, 0.65); }
+.sos-cancel-btn {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: none;
+}
+
+.sos-dispatch-screen {
+  background: #111827;
+  color: white;
+  padding: 20px;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sos-dispatch-badge {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: var(--emergency);
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  box-shadow: 0 0 30px rgba(255, 71, 87, 0.6);
+  animation: pulse-ring 1.5s infinite;
+}
+
+.sos-dispatch-map {
+  height: 240px;
+  width: 100%;
+  border-radius: 18px;
+  margin: 16px 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.sos-dispatch-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.sos-eta-label { font-size: 12px; color: rgba(255, 255, 255, 0.72); font-weight: 700; }
+.sos-eta-value { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--secondary); }
+.sos-progress-dark { background: rgba(255, 255, 255, 0.15); }
+.sos-dispatch-meta { font-size: 12px; color: rgba(255, 255, 255, 0.85); }
+
+/* Triage Screen */
+.triage-header {
+  background: linear-gradient(135deg, #7B68EE, #5A4FCF);
+  border-bottom: none;
+}
+
+.triage-status {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.triage-status-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--success);
+  border-radius: 50%;
+  animation: pulse-ring 1.5s infinite;
+}
+
+.triage-badge-pill {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  font-family: var(--font-display);
+}
+
+.triage-disclaimer {
+  background: var(--warning-light);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 165, 2, 0.25);
+}
+
+.triage-disclaimer-text {
+  font-size: 12px;
+  color: #B45309;
+  font-weight: 500;
+}
+
+.triage-chat-area {
+  padding: 16px;
+  padding-bottom: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.triage-input-dock {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  padding: 12px 16px calc(12px + var(--safe-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--border-light);
+  box-shadow: 0 -4px 20px rgba(26, 35, 50, 0.08);
+}
+
+.triage-result-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.triage-result-msg {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
 /* --- Task B2: Motion, Transitions, Stagger & Press Feedback --- */
 @keyframes pageEnter {
   from {

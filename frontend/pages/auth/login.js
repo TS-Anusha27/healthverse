@@ -18,7 +18,7 @@ export function renderLogin(params = {}) {
 
   const app = document.getElementById('app');
   app.innerHTML = `
-    <div class="screen auth-screen" id="auth-screen" style="min-height:100dvh;background:var(--bg);display:flex;flex-direction:column;">
+    <div class="screen screen-shell auth-screen" id="auth-screen">
       <!-- Professional Top Navigation Bar -->
       <header class="auth-header">
         <div class="auth-header-inner">
@@ -39,12 +39,12 @@ export function renderLogin(params = {}) {
             <span class="brand-mini-name">HealthVerse</span>
           </div>
 
-          <div style="width:70px;"></div>
+          <div class="header-spacer-md"></div>
         </div>
       </header>
 
       <!-- Main Form Container -->
-      <main class="screen-content" style="padding:16px 20px 48px;max-width:480px;margin:0 auto;width:100%;flex:1;">
+      <main class="screen-content auth-main">
         <!-- Role Switcher Pills -->
         <div class="role-switcher-container">
           <div class="role-switcher" role="tablist" aria-label="User Category">
@@ -401,9 +401,9 @@ function getRegistrationFormHtml(role) {
       </div>
 
       <!-- Privacy Notice Acknowledgement -->
-      <div class="mt-3" style="display:flex;align-items:flex-start;gap:8px;">
-        <input type="checkbox" id="pat-privacy" style="margin-top:3px;accent-color:var(--primary);" required />
-        <label for="pat-privacy" style="font-size:12px;color:var(--text-secondary);cursor:pointer;line-height:1.4;">
+      <div class="mt-3 consent-row">
+        <input type="checkbox" id="pat-privacy" class="consent-checkbox" required />
+        <label for="pat-privacy" class="consent-label">
           I acknowledge HealthVerse's privacy notice and consent to storing my healthcare profile for emergency and consultation access.
         </label>
       </div>
@@ -727,7 +727,7 @@ function attachAuthHandlers() {
     }
 
     const originalText = btn.innerHTML;
-    btn.innerHTML = '<span class="animate-spin" style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;margin-right:8px;"></span> Verifying Credentials...';
+    btn.innerHTML = '<span class="spinner-inline animate-spin"></span> Verifying Credentials...';
     btn.disabled = true;
 
     const res = await authService.login({
@@ -773,7 +773,7 @@ function attachAuthHandlers() {
     }
 
     const originalText = btn.innerHTML;
-    btn.innerHTML = '<span class="animate-spin" style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;margin-right:8px;"></span> Creating Account...';
+    btn.innerHTML = '<span class="spinner-inline animate-spin"></span> Creating Account...';
     btn.disabled = true;
 
     const res = await authService.registerPatient({
@@ -817,7 +817,7 @@ function attachAuthHandlers() {
     const btn = document.getElementById('btn-doc-submit');
 
     const originalText = btn.innerHTML;
-    btn.innerHTML = '<span class="animate-spin" style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;margin-right:8px;"></span> Registering Doctor...';
+    btn.innerHTML = '<span class="spinner-inline animate-spin"></span> Registering Doctor...';
     btn.disabled = true;
 
     const res = await authService.registerDoctor({
@@ -857,7 +857,7 @@ function attachAuthHandlers() {
     const btn = document.getElementById('btn-amb-submit');
 
     const originalText = btn.innerHTML;
-    btn.innerHTML = '<span class="animate-spin" style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;margin-right:8px;"></span> Registering Driver...';
+    btn.innerHTML = '<span class="spinner-inline animate-spin"></span> Registering Driver...';
     btn.disabled = true;
 
     const res = await authService.registerAmbulance({
@@ -885,10 +885,10 @@ function attachAuthHandlers() {
 
   window.openForgotNotice = () => {
     const content = `
-      <div style="padding:20px;text-align:center;">
+      <div class="forgot-modal-box">
         <div style="font-size:36px;margin-bottom:12px;">🔑</div>
-        <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:8px;">Account Password Reset</h3>
-        <p style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:20px;">
+        <h3 class="modal-title mb-2">Account Password Reset</h3>
+        <p class="forgot-modal-desc">
           In development demo mode, your account credentials are encrypted and stored in local client storage. If you forgot your password, you can register a new test account with your email or contact support.
         </p>
         <button class="btn btn-primary btn-full" onclick="closeModal()">Understood</button>

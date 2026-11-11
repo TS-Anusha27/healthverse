@@ -56,7 +56,7 @@ export function renderAppointments() {
         <div class="section mt-4">
           <div class="section-header">
             <div class="section-title">Hospitals Near You</div>
-            <div style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--secondary);">
+            <div class="appt-location-badge">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
               Chennai, TN
             </div>
@@ -69,7 +69,7 @@ export function renderAppointments() {
         <!-- Hospital List -->
         <div class="section mt-4 mb-4" id="hospital-list">
           <div class="section-title mb-3">Available Hospitals</div>
-          <div id="hospital-cards" style="display:flex;flex-direction:column;gap:14px;">
+          <div id="hospital-cards" class="flex-col gap-3">
             ${renderSkeletonCards(3)}
           </div>
         </div>
@@ -127,13 +127,13 @@ function renderHospitalCard(h) {
     <div class="hosp-card" id="hosp-${escapeHtml(h.id)}" onclick="openHospital('${escapeHtml(h.id)}')">
       <div class="hosp-card-header">
         <div class="hosp-avatar">${escapeHtml(name.charAt(0))}</div>
-        <div style="flex:1;">
+        <div class="flex-1">
           <div class="hosp-name">${escapeHtml(name)}</div>
           <div class="hosp-spec">${escapeHtml(h.specialty || 'Multi-Specialty')}</div>
-          <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+          <div class="appt-meta-row">
             <div class="hosp-rating">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFA502" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              ${escapeHtml(h.rating || '4.8')} <span style="color:var(--text-tertiary);">(${Number(h.reviews || 0).toLocaleString()})</span>
+              ${escapeHtml(h.rating || '4.8')} <span class="text-tertiary">(${Number(h.reviews || 0).toLocaleString()})</span>
             </div>
             <div class="hosp-distance">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -254,28 +254,28 @@ function initApptHandlers() {
     const h = loadedHospitals.find(h => h.id === id) || mockData.hospitals.find(h => h.id === id);
     if (!h) return;
     showModal(`
-      <h3 style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text-primary);">${escapeHtml(h.name)}</h3>
-      <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
+      <h3 class="modal-title-lg">${escapeHtml(h.name)}</h3>
+      <div class="flex-wrap-gap mt-2">
         <span class="badge badge-primary">⭐ ${escapeHtml(h.rating)}</span>
         <span class="badge badge-secondary">📍 ${escapeHtml(h.distance)}</span>
         ${h.emergency ? '<span class="badge badge-emergency">🚨 Emergency</span>' : ''}
       </div>
-      <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;font-size:14px;color:var(--text-secondary);">
+      <div class="flex-col gap-2 mt-4 text-body-sm text-secondary">
         <div>📍 ${escapeHtml(h.address)}</div>
         <div>📞 ${escapeHtml(h.phone)}</div>
-        <div>⏱️ Wait time: <strong style="color:var(--text-primary);">${escapeHtml(h.waitTime)}</strong></div>
-        <div>👥 Queue: <strong style="color:var(--text-primary);">${escapeHtml(h.queue)} patients</strong></div>
-        <div>🛏️ Available beds: <strong style="color:var(--secondary);">${escapeHtml(h.beds?.available ?? 0)} / ${escapeHtml(h.beds?.total ?? 0)}</strong></div>
+        <div>⏱️ Wait time: <strong class="text-primary">${escapeHtml(h.waitTime)}</strong></div>
+        <div>👥 Queue: <strong class="text-primary">${escapeHtml(h.queue)} patients</strong></div>
+        <div>🛏️ Available beds: <strong class="text-secondary">${escapeHtml(h.beds?.available ?? 0)} / ${escapeHtml(h.beds?.total ?? 0)}</strong></div>
       </div>
-      <div style="margin-top:16px;">
-        <div style="font-size:12px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Specialties</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      <div class="mt-4">
+        <div class="modal-section-label">Specialties</div>
+        <div class="flex-wrap-gap">
           ${(h.specialties || []).map(s => `<span class="chip active">${escapeHtml(s)}</span>`).join('')}
         </div>
       </div>
-      <div style="margin-top:16px;">
-        <div style="font-size:12px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Insurance Accepted</div>
-        <div style="font-size:13px;color:var(--text-secondary);">${(h.insurance || []).map(i => escapeHtml(i)).join(' • ')}</div>
+      <div class="mt-4">
+        <div class="modal-section-label">Insurance Accepted</div>
+        <div class="text-body-sm text-secondary">${(h.insurance || []).map(i => escapeHtml(i)).join(' • ')}</div>
       </div>
       <button class="btn btn-primary btn-full mt-4" onclick="bookAtHospital('${escapeHtml(h.id)}');closeModal()">
         Book Appointment at ${escapeHtml(h.name)}
@@ -291,8 +291,8 @@ function initApptHandlers() {
 
   window.showFilters = () => {
     showModal(`
-      <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:20px;">Filter Hospitals</h3>
-      <div style="display:flex;flex-direction:column;gap:16px;">
+      <h3 class="modal-title mb-4">Filter Hospitals</h3>
+      <div class="flex-col gap-4">
         <div class="form-group">
           <label class="form-label">Sort By</label>
           <select class="form-input form-select">
@@ -304,7 +304,7 @@ function initApptHandlers() {
         </div>
         <div class="form-group">
           <label class="form-label">Consultation Type</label>
-          <div style="display:flex;gap:8px;">
+          <div class="flex gap-2">
             <div class="chip active">In-Person</div>
             <div class="chip">Video Call</div>
             <div class="chip">Home Visit</div>
@@ -312,14 +312,14 @@ function initApptHandlers() {
         </div>
         <div class="form-group">
           <label class="form-label">Maximum Distance</label>
-          <input type="range" min="1" max="20" value="10" style="width:100%;" />
-          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-tertiary);">
+          <input type="range" min="1" max="20" value="10" class="w-full" />
+          <div class="flex justify-between text-caption">
             <span>1 km</span><span>10 km</span><span>20 km</span>
           </div>
         </div>
         <div class="form-group">
           <label class="form-label">Features</label>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <div class="flex-wrap-gap">
             <div class="chip">Emergency 24/7</div>
             <div class="chip">Accepts ABHA</div>
             <div class="chip">Cashless Insurance</div>
@@ -338,39 +338,39 @@ function showBookingFlow() {
   const doctors = mockData.doctors.filter(d => selectedHospital.doctors.includes(d.id));
 
   showModal(`
-    <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:4px;">Select Doctor</h3>
-    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">${escapeHtml(selectedHospital.name)}</p>
-    <div style="display:flex;flex-direction:column;gap:12px;" id="doctor-list">
+    <h3 class="modal-title">Select Doctor</h3>
+    <p class="modal-subtitle">${escapeHtml(selectedHospital.name)}</p>
+    <div class="flex-col gap-3" id="doctor-list">
       ${doctors.length > 0 ? doctors.map(d => `
         <div class="doctor-card ${!d.available ? 'unavailable' : ''}" onclick="selectDoctor('${escapeHtml(d.id)}')" id="doc-sel-${escapeHtml(d.id)}">
           <div class="doc-avatar">${d.name.split(' ').slice(-1)[0].charAt(0)}</div>
-          <div style="flex:1;">
-            <div style="font-family:var(--font-display);font-size:15px;font-weight:700;">${escapeHtml(d.name)}</div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${escapeHtml(d.specialty)} • ${escapeHtml(d.experience)}yr exp</div>
-            <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
-              <span style="font-size:11px;font-weight:600;color:var(--warning);">⭐ ${escapeHtml(d.rating)}</span>
-              <span style="font-size:11px;color:var(--text-tertiary);">${escapeHtml(d.reviews)} reviews</span>
+          <div class="flex-1">
+            <div class="text-h4">${escapeHtml(d.name)}</div>
+            <div class="text-caption mt-1">${escapeHtml(d.specialty)} • ${escapeHtml(d.experience)}yr exp</div>
+            <div class="appt-meta-row">
+              <span class="text-warning bold" style="font-size:11px;">⭐ ${escapeHtml(d.rating)}</span>
+              <span class="text-caption">${escapeHtml(d.reviews)} reviews</span>
             </div>
           </div>
-          <div style="text-align:right;">
-            <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--primary);">₹${escapeHtml(d.fee)}</div>
-            <div class="badge ${d.available ? 'badge-success' : 'badge-warning'}" style="margin-top:4px;">${d.available ? 'Available' : 'Busy'}</div>
+          <div class="text-right">
+            <div class="text-h4 text-primary">₹${escapeHtml(d.fee)}</div>
+            <div class="badge ${d.available ? 'badge-success' : 'badge-warning'} mt-1">${d.available ? 'Available' : 'Busy'}</div>
           </div>
         </div>
       `).join('') : `
-        <div style="text-align:center;padding:30px;color:var(--text-secondary);">
-          <p style="font-size:14px;">Showing general doctors for this hospital</p>
+        <div class="text-center p-5 text-secondary">
+          <p class="text-body-sm">Showing general doctors for this hospital</p>
         </div>
         ${mockData.doctors.slice(0, 2).map(d => `
           <div class="doctor-card" onclick="selectDoctor('${escapeHtml(d.id)}')" id="doc-sel-${escapeHtml(d.id)}">
             <div class="doc-avatar">${d.name.split(' ').slice(-1)[0].charAt(0)}</div>
-            <div style="flex:1;">
-              <div style="font-family:var(--font-display);font-size:15px;font-weight:700;">${escapeHtml(d.name)}</div>
-              <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${escapeHtml(d.specialty)} • ${escapeHtml(d.experience)}yr exp</div>
+            <div class="flex-1">
+              <div class="text-h4">${escapeHtml(d.name)}</div>
+              <div class="text-caption mt-1">${escapeHtml(d.specialty)} • ${escapeHtml(d.experience)}yr exp</div>
             </div>
-            <div style="text-align:right;">
-              <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--primary);">₹${escapeHtml(d.fee)}</div>
-              <div class="badge badge-success" style="margin-top:4px;">Available</div>
+            <div class="text-right">
+              <div class="text-h4 text-primary">₹${escapeHtml(d.fee)}</div>
+              <div class="badge badge-success mt-1">Available</div>
             </div>
           </div>
         `).join('')}
@@ -424,9 +424,9 @@ function showDatePicker() {
   }
 
   showModal(`
-    <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:4px;">Select Date & Slot</h3>
-    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">${selectedDoctor?.name} • ${selectedHospital?.name}</p>
-    <div class="scroll-x" style="gap:8px;margin-bottom:20px;">
+    <h3 class="modal-title">Select Date & Slot</h3>
+    <p class="modal-subtitle">${escapeHtml(selectedDoctor?.name)} • ${escapeHtml(selectedHospital?.name)}</p>
+    <div class="scroll-x gap-2 mb-4">
       ${dates.map((d, i) => `
         <div class="date-chip ${i===0?'selected':''}" onclick="selectDate(this,'${d.value}')" id="date-${d.value}">
           <div class="date-label">${d.label}</div>
@@ -434,8 +434,8 @@ function showDatePicker() {
         </div>
       `).join('')}
     </div>
-    <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:12px;">Available Time Slots</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;" id="slot-grid">
+    <div class="text-body-sm semibold mb-2">Available Time Slots</div>
+    <div class="modal-slot-grid" id="slot-grid">
       ${mockData.timeSlots.map(s => `
         <div class="time-slot ${!s.available ? 'booked' : ''}" onclick="${s.available ? `selectSlot(this,'${s.time}')` : ''}" id="slot-${s.id}">
           ${s.time}
@@ -488,32 +488,32 @@ function showDatePicker() {
 function showPayment() {
   const fee = selectedDoctor?.fee || 800;
   showModal(`
-    <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:4px;">Payment</h3>
-    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">Secure checkout via HealthVerse Pay</p>
+    <h3 class="modal-title">Payment</h3>
+    <p class="modal-subtitle">Secure checkout via HealthVerse Pay</p>
 
     <!-- Booking Summary -->
-    <div style="background:var(--surface-dim);border-radius:14px;padding:16px;margin-bottom:16px;">
-      <div style="font-size:13px;font-weight:600;color:var(--text-tertiary);margin-bottom:10px;">BOOKING SUMMARY</div>
-      <div style="display:flex;flex-direction:column;gap:8px;font-size:14px;">
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">Doctor</span><span style="font-weight:600;">${selectedDoctor?.name}</span></div>
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">Hospital</span><span style="font-weight:600;">${selectedHospital?.name}</span></div>
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">Date & Time</span><span style="font-weight:600;">${selectedDate === new Date().toISOString().split('T')[0] ? 'Today' : 'Tomorrow'}, ${selectedSlot}</span></div>
-        <div class="divider" style="margin:4px 0;"></div>
+    <div class="modal-summary-box">
+      <div class="modal-section-label">BOOKING SUMMARY</div>
+      <div class="flex-col gap-2 text-body-sm">
+        <div class="flex justify-between"><span class="text-muted">Doctor</span><span class="semibold">${escapeHtml(selectedDoctor?.name)}</span></div>
+        <div class="flex justify-between"><span class="text-muted">Hospital</span><span class="semibold">${escapeHtml(selectedHospital?.name)}</span></div>
+        <div class="flex justify-between"><span class="text-muted">Date & Time</span><span class="semibold">${selectedDate === new Date().toISOString().split('T')[0] ? 'Today' : 'Tomorrow'}, ${escapeHtml(selectedSlot)}</span></div>
+        <div class="divider modal-divider"></div>
         <div class="flex justify-between"><span>Consultation Fee</span><span>₹${fee}</span></div>
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">Platform Fee</span><span>₹29</span></div>
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">GST (18%)</span><span>₹${Math.round(fee * 0.18)}</span></div>
-        <div class="divider" style="margin:4px 0;"></div>
-        <div class="flex justify-between"><span style="font-family:var(--font-display);font-weight:700;font-size:16px;">Total</span><span style="font-family:var(--font-display);font-weight:800;font-size:18px;color:var(--primary);">₹${fee + 29 + Math.round(fee * 0.18)}</span></div>
+        <div class="flex justify-between"><span class="text-muted">Platform Fee</span><span>₹29</span></div>
+        <div class="flex justify-between"><span class="text-muted">GST (18%)</span><span>₹${Math.round(fee * 0.18)}</span></div>
+        <div class="divider modal-divider"></div>
+        <div class="flex justify-between"><span class="text-h4 bold">Total</span><span class="text-h3 bold text-primary">₹${fee + 29 + Math.round(fee * 0.18)}</span></div>
       </div>
     </div>
 
     <!-- Payment Methods -->
-    <div style="font-size:13px;font-weight:600;color:var(--text-tertiary);margin-bottom:10px;">PAYMENT METHOD</div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+    <div class="modal-section-label">PAYMENT METHOD</div>
+    <div class="flex-col gap-2 mb-4">
       ${['UPI (GooglePay, PhonePe, Paytm)', 'Credit / Debit Card', 'Net Banking', 'EMI', 'ABHA Wallet'].map((m, i) => `
-        <label style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface-dim);border-radius:12px;cursor:pointer;border:1.5px solid ${i===0 ? 'var(--primary)' : 'transparent'};">
+        <label class="pay-method-option ${i===0 ? 'pay-method-option--active' : ''}">
           <input type="radio" name="pay-method" value="${m}" ${i===0?'checked':''} />
-          <span style="font-size:14px;font-weight:500;">${m}</span>
+          <span class="text-body-sm">${m}</span>
         </label>
       `).join('')}
     </div>
@@ -525,7 +525,7 @@ function showPayment() {
 
   window.completePayment = () => {
     const btn = document.querySelector('#modal-sheet .btn-primary');
-    if (btn) { btn.innerHTML = '<span class="animate-spin" style="display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;"></span> Processing...'; btn.disabled = true; }
+    if (btn) { btn.innerHTML = '<span class="spinner-inline animate-spin"></span> Processing...'; btn.disabled = true; }
 
     setTimeout(() => {
       closeModal();
@@ -554,25 +554,25 @@ function showBookingConfirmation() {
   createAppointment(apptData);
 
   showModal(`
-    <div style="text-align:center;padding:20px 0;">
-      <div style="width:80px;height:80px;background:var(--success-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;animation:scaleInSpring 0.5s var(--transition-spring);">
+    <div class="booking-confirm-box">
+      <div class="booking-success-icon">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
-      <h3 style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--text-primary);">Booked! 🎉</h3>
-      <p style="font-size:14px;color:var(--text-secondary);margin-top:8px;">Your appointment has been confirmed</p>
-      <div style="background:var(--surface-dim);border-radius:16px;padding:20px;margin:20px 0;text-align:left;">
-        <div style="display:flex;flex-direction:column;gap:8px;font-size:14px;">
-          <div class="flex justify-between"><span style="color:var(--text-secondary);">Doctor</span><span style="font-weight:600;">${selectedDoctor?.name || 'Dr. Priya K.'}</span></div>
-          <div class="flex justify-between"><span style="color:var(--text-secondary);">Hospital</span><span style="font-weight:600;">${selectedHospital?.name || 'Apollo'}</span></div>
-          <div class="flex justify-between"><span style="color:var(--text-secondary);">Slot</span><span style="font-weight:600;">${selectedSlot || '3:30 PM'}</span></div>
-          <div class="flex justify-between"><span style="color:var(--text-secondary);">Token</span><span style="font-weight:700;color:var(--primary);">${token}</span></div>
+      <h3 class="booking-confirm-title">Booked! 🎉</h3>
+      <p class="text-body-sm text-muted mt-2">Your appointment has been confirmed</p>
+      <div class="modal-summary-box mt-4" style="text-align:left;">
+        <div class="flex-col gap-2 text-body-sm">
+          <div class="flex justify-between"><span class="text-muted">Doctor</span><span class="semibold">${escapeHtml(selectedDoctor?.name || 'Dr. Priya K.')}</span></div>
+          <div class="flex justify-between"><span class="text-muted">Hospital</span><span class="semibold">${escapeHtml(selectedHospital?.name || 'Apollo')}</span></div>
+          <div class="flex justify-between"><span class="text-muted">Slot</span><span class="semibold">${escapeHtml(selectedSlot || '3:30 PM')}</span></div>
+          <div class="flex justify-between"><span class="text-muted">Token</span><span class="bold text-primary">${token}</span></div>
         </div>
       </div>
-      <div style="display:flex;justify-content:center;margin:16px 0;">
+      <div class="flex justify-center my-4">
         ${generateQRDisplay(`QR-${token}-HEALTHVERSE`)}
       </div>
-      <div style="display:flex;gap:10px;margin-top:20px;">
-        <button class="btn btn-primary" style="flex:1;" onclick="closeModal();navigate('live-queue')">View Queue</button>
+      <div class="flex gap-2 mt-4">
+        <button class="btn btn-primary flex-1" onclick="closeModal();navigate('live-queue')">View Queue</button>
         <button class="btn btn-ghost" onclick="closeModal()">Done</button>
       </div>
     </div>

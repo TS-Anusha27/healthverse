@@ -26,14 +26,14 @@ export function renderPatientHome() {
               <div class="home-name">${escapeHtml(firstName)}</div>
             </div>
             <div class="flex items-center gap-2">
-              <button class="btn btn-xs" style="background:rgba(255,255,255,0.18);color:white;border:1px solid rgba(255,255,255,0.25);border-radius:12px;padding:4px 8px;font-size:11px;" onclick="navigate('login')" title="Switch to Doctor or Ambulance Driver">
+              <button class="btn btn-xs switch-profile-btn" onclick="navigate('login')" title="Switch to Doctor or Ambulance Driver">
                 🔄 Switch Profile
               </button>
               <button class="header-icon-btn" onclick="navigate('notifications')" id="notif-btn" aria-label="Notifications">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                 <span class="notif-dot"></span>
               </button>
-              <div class="avatar" style="background:${avatarColor(displayName)};color:white;cursor:pointer;" onclick="navigate('settings')" id="profile-avatar">
+              <div class="avatar cursor-pointer" style="background:${avatarColor(displayName)};color:white;" onclick="navigate('settings')" id="profile-avatar">
                 ${getInitials(displayName)}
               </div>
             </div>
@@ -43,9 +43,9 @@ export function renderPatientHome() {
           <div class="health-score-card">
             <div class="health-score-left">
               <div class="score-label">Health Score</div>
-              <div class="score-value"><span data-countup="${patient.healthScore || 82}">${patient.healthScore || 82}</span><span style="font-size:18px;">/100</span></div>
+              <div class="score-value"><span data-countup="${patient.healthScore || 82}">${patient.healthScore || 82}</span><span class="score-unit">/100</span></div>
               <div class="score-status">
-                <div class="score-dot" style="background:var(--secondary);"></div>
+                <div class="score-dot score-dot--active"></div>
                 <span>Good — Keep it up!</span>
               </div>
             </div>
@@ -58,9 +58,9 @@ export function renderPatientHome() {
                   stroke-linecap="round" transform="rotate(-90 45 45)"
                   style="transition:stroke-dashoffset 1.2s ease;" />
               </svg>
-              <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">
-                <div style="font-size:20px;font-weight:800;color:white;" data-countup="${patient.healthScore || 82}">${patient.healthScore || 82}</div>
-                <div style="font-size:10px;color:rgba(255,255,255,0.7);">score</div>
+              <div class="score-ring-overlay">
+                <div class="score-ring-num" data-countup="${patient.healthScore || 82}">${patient.healthScore || 82}</div>
+                <div class="score-ring-caption">score</div>
               </div>
             </div>
           </div>
@@ -115,8 +115,8 @@ export function renderPatientHome() {
                 Token: ${mockData.appointments[0].token} • ${mockData.appointments[0].room}
               </div>
             </div>
-            <div style="margin-top:14px;display:flex;gap:10px;">
-              <button class="btn btn-primary btn-sm" style="flex:1;" onclick="event.stopPropagation();navigate('live-queue')">View Queue</button>
+            <div class="modal-cta-row">
+              <button class="btn btn-primary btn-sm flex-1" onclick="event.stopPropagation();navigate('live-queue')">View Queue</button>
               <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showQR()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h.01M14 17h.01M17 14h.01M21 14h.01M17 17h3v4M14 21h.01"/></svg>
                 QR Code
@@ -132,11 +132,11 @@ export function renderPatientHome() {
             <div class="section-title">Today's Medicines</div>
             <span class="section-link" onclick="navigate('medicines')">All Meds</span>
           </div>
-          <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="flex-col gap-2">
             ${mockData.medicines.slice(0, 3).map(med => `
               <div class="med-card" style="border-left:3px solid ${med.color};" onclick="navigate('medicines')">
                 <div class="med-dot" style="background:${med.color};"></div>
-                <div style="flex:1;">
+                <div class="flex-1">
                   <div class="med-name">${med.name} <span class="med-dosage">${med.dosage}</span></div>
                   <div class="med-time">${med.time} • ${med.meals}</div>
                 </div>
@@ -160,11 +160,11 @@ export function renderPatientHome() {
                 <div class="hospital-mini-avatar">${h.name.charAt(0)}</div>
                 <div class="hospital-mini-name">${h.name}</div>
                 <div class="hospital-mini-dist">${h.distance}</div>
-                <div class="flex items-center gap-1" style="margin-top:4px;">
+                <div class="flex items-center gap-1 hospital-mini-rating-row">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="#FFA502" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                  <span style="font-size:11px;font-weight:600;">${h.rating}</span>
+                  <span class="hospital-mini-rating-val">${h.rating}</span>
                 </div>
-                ${h.emergency ? '<div style="font-size:10px;color:var(--emergency);font-weight:600;margin-top:3px;">🚨 Emergency</div>' : ''}
+                ${h.emergency ? '<div class="hospital-mini-emerg">🚨 Emergency</div>' : ''}
               </div>
             `).join('')}
           </div>
@@ -172,14 +172,14 @@ export function renderPatientHome() {
 
         <!-- Blood Donation CTA -->
         <div class="section mt-5 mb-4">
-          <div class="card-gradient" style="padding:20px;cursor:pointer;" onclick="navigate('blood-donation')">
+          <div class="card-gradient blood-cta-card" onclick="navigate('blood-donation')">
             <div class="flex items-center justify-between">
               <div>
-                <div style="font-size:13px;opacity:0.8;margin-bottom:4px;">🩸 Save Lives</div>
-                <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:white;">Donate Blood</div>
-                <div style="font-size:13px;opacity:0.8;margin-top:4px;">3 nearby requests • B+ needed</div>
+                <div class="blood-cta-eyebrow">🩸 Save Lives</div>
+                <div class="blood-cta-title">Donate Blood</div>
+                <div class="blood-cta-sub">3 nearby requests • B+ needed</div>
               </div>
-              <div style="width:60px;height:60px;background:rgba(255,255,255,0.15);border-radius:var(--radius-full);display:flex;align-items:center;justify-content:center;">
+              <div class="blood-cta-icon">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg>
               </div>
             </div>
@@ -356,14 +356,14 @@ function initHomeHandlers() {
   window.showQR = () => {
     const { showModal, generateQRDisplay } = window._utils;
     showModal(`
-      <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;text-align:center;color:var(--text-primary);margin-bottom:6px;">Appointment QR Code</h3>
-      <p style="text-align:center;font-size:13px;color:var(--text-secondary);margin-bottom:24px;">Show this at the hospital reception</p>
-      <div style="display:flex;justify-content:center;">
+      <h3 class="modal-title text-center" style="margin-bottom:6px;">Appointment QR Code</h3>
+      <p class="modal-subtitle text-center">Show this at the hospital reception</p>
+      <div class="flex justify-center">
         ${generateQRDisplay('QR-A1-HEALTHVERSE')}
       </div>
-      <div style="background:var(--primary-light);border-radius:12px;padding:14px;margin-top:20px;text-align:center;">
-        <div style="font-size:13px;color:var(--primary);font-weight:600;">Token: TK-047 • Room 204, 2nd Floor</div>
-        <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Today, 3:30 PM • Dr. Priya Krishnamurthy</div>
+      <div class="qr-modal-info">
+        <div class="qr-modal-token">Token: TK-047 • Room 204, 2nd Floor</div>
+        <div class="qr-modal-meta">Today, 3:30 PM • Dr. Priya Krishnamurthy</div>
       </div>
     `);
   };
