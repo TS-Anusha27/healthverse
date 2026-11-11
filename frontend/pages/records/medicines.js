@@ -6,6 +6,7 @@ import { store } from '../../store/store.js';
 import { renderBottomNav } from '../patient/patient-home.js';
 import { uiIcon } from '../../utils/icons.js';
 import { renderPayPalButtons, convertInrToUsd } from '../../services/payments/paypalService.js';
+import { openSimpleExplainModal } from '../../services/ai/explainHelper.js';
 
 let currentMeds = [];
 
@@ -105,11 +106,14 @@ async function loadMedicinesData() {
               <div class="inline-icon-text">${uiIcon('utensils', { size: 14, color: 'var(--secondary)' })} Timing: <strong>${escapeHtml(med.meals || 'After meals')}</strong></div>
               <div class="inline-icon-text">${uiIcon('package', { size: 14, color: (med.refill_days || med.refillDays) <= 5 ? 'var(--emergency)' : 'var(--text-tertiary)' })} Refill: <span style="color:${(med.refill_days || med.refillDays) <= 5 ? 'var(--emergency)' : 'var(--text-secondary)'};font-weight:600;">${escapeHtml(med.refill_days || med.refillDays || 10)} days remaining</span></div>
             </div>
-            <div class="flex gap-2 mt-3">
+            <div class="flex flex-wrap gap-2 mt-3">
               <button class="btn ${med.taken ? 'btn-ghost' : 'btn-secondary'} btn-xs flex-1" onclick="toggleMedState('${escapeHtml(med.id)}', this)">
                 ${med.taken ? '✓ Taken Today' : 'Mark as Taken'}
               </button>
               <button class="btn btn-ghost btn-xs" onclick="orderRefillModal('${escapeHtml(med.name)}')">Refill</button>
+              <button type="button" class="btn btn-outline btn-xs" data-med-name="${escapeHtml(med.name)}" data-med-note="${escapeHtml(`${med.dosage || ''} ${med.time || ''} ${med.instruction || ''}`.trim())}" onclick="explainMedicineItem(this.dataset.medName, this.dataset.medNote)">
+                Explain in simple words
+              </button>
             </div>
           </div>
         `).join('')}
@@ -199,6 +203,10 @@ function initMedicineHandlers() {
       closeModal();
       renderMedicines();
     };
+  };
+
+  window.explainMedicineItem = (medName, note) => {
+    openSimpleExplainModal({ kind: 'medicine', name: medName, contextNote: note });
   };
 
   window.orderRefillModal = (medName) => {
