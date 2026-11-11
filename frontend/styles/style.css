@@ -189,6 +189,16 @@ body {
   box-shadow: var(--shadow-xl);
 }
 
+@media (min-width: 431px) and (max-width: 767px) {
+  #app {
+    max-width: 430px;
+    margin: 0 auto;
+    box-shadow: var(--shadow-xl);
+    background: var(--bg);
+    overflow: hidden;
+  }
+}
+
 @media (min-width: 500px) {
   body {
     background: linear-gradient(135deg, #E8F4FD 0%, #E8F9F3 50%, #F0EEFF 100%);
@@ -1993,6 +2003,250 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-primary);
   line-height: 1.6;
   margin-bottom: 16px;
+}
+
+/* Ambulance Controls Panel (extracted from inline) */
+.amb-controls-panel {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  background: var(--surface);
+  border-radius: 24px 24px 0 0;
+  padding: 18px 20px calc(18px + var(--safe-bottom));
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.2);
+  z-index: 20;
+}
+
+/* Desktop-only patient sidebar helpers (hidden on mobile/tablet) */
+.sidebar-brand,
+.sidebar-sos-label,
+.bottom-nav--desktop-only {
+  display: none;
+}
+
+.sidebar-brand-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-brand-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.sidebar-brand-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* --- Task B4: Responsive Tablet (>=768px) & Desktop (>=1024px) Layouts --- */
+@media (min-width: 768px) {
+  #app {
+    max-width: 760px;
+    width: calc(100% - 32px);
+    margin: 20px auto;
+    min-height: calc(100dvh - 40px);
+    border-radius: var(--radius-2xl);
+    overflow: clip;
+    box-shadow: var(--shadow-xl);
+    background: var(--bg);
+  }
+
+  .app-frame {
+    max-width: 760px;
+  }
+
+  .screen {
+    min-height: calc(100dvh - 40px);
+  }
+
+  .auth-main {
+    max-width: 580px;
+    padding: 28px 24px 48px;
+  }
+
+  .bottom-nav {
+    max-width: 760px;
+    border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+  }
+
+  .triage-input-dock,
+  .amb-controls-panel {
+    position: sticky;
+    bottom: 0;
+    left: auto;
+    transform: none;
+    max-width: none;
+    width: 100%;
+  }
+
+  .modal-sheet {
+    max-width: 540px;
+    bottom: 50%;
+    transform: translate(-50%, 50%);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-5) var(--space-6) var(--space-6);
+    max-height: 85dvh;
+    animation: scaleIn 0.25s ease;
+  }
+
+  .modal-handle {
+    display: none;
+  }
+
+  .map-container {
+    height: 320px;
+  }
+
+  #hospital-cards,
+  #meds-list-container > div,
+  #donors-list-container > div,
+  #doc-queue-container > div,
+  #video-doctors {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .empty-state,
+  .error-state {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1024px) {
+  #app {
+    max-width: 1120px;
+    width: calc(100% - 48px);
+    margin: 24px auto;
+    min-height: calc(100dvh - 48px);
+  }
+
+  .app-frame {
+    max-width: 1120px;
+  }
+
+  .screen {
+    min-height: calc(100dvh - 48px);
+  }
+
+  .auth-main {
+    max-width: 640px;
+  }
+
+  .grid-4 {
+    gap: var(--space-4);
+  }
+
+  /* Patient Sidebar Navigation (>= 1024px replaces fixed bottom nav) */
+  .screen:has(> .bottom-nav) {
+    display: grid;
+    grid-template-columns: 236px minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    align-items: stretch;
+  }
+
+  .screen:has(> .bottom-nav) > :not(.bottom-nav) {
+    grid-column: 2;
+    min-width: 0;
+  }
+
+  .screen:has(> .bottom-nav) > .screen-content {
+    padding-bottom: 40px !important;
+    max-width: none !important;
+  }
+
+  .screen:has(> .bottom-nav) > .bottom-nav,
+  .screen:has(> .bottom-nav) > .bottom-nav.bottom-nav--desktop-only {
+    display: flex;
+    position: sticky;
+    top: 24px;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    grid-column: 1;
+    grid-row: 1 / span 12;
+    width: 236px;
+    max-width: none;
+    height: calc(100dvh - 48px);
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 6px;
+    padding: 20px 14px;
+    border-top: none;
+    border-right: 1px solid var(--border-light);
+    border-radius: var(--radius-2xl) 0 0 var(--radius-2xl);
+    background: var(--surface);
+    box-shadow: none;
+    z-index: 5;
+  }
+
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 10px 16px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .bottom-nav .nav-item {
+    flex: 0 0 auto;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+  }
+
+  .bottom-nav .nav-item.active {
+    background: var(--primary-light);
+  }
+
+  .bottom-nav .nav-item.active .nav-dot {
+    width: 4px;
+    height: 22px;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .bottom-nav .nav-label {
+    font-size: 14px;
+  }
+
+  .bottom-nav .nav-center-btn {
+    order: 10;
+    margin-top: auto;
+    margin-bottom: 0;
+    width: 100%;
+    height: 48px;
+    border-radius: var(--radius-md);
+    gap: 10px;
+    padding: 0 16px;
+  }
+
+  .sidebar-sos-label {
+    display: inline;
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+  }
 }
 
 /* --- Task B2: Motion, Transitions, Stagger & Press Feedback --- */

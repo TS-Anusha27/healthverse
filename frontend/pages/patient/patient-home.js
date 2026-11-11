@@ -209,7 +209,8 @@ function quickAction(label, icon, color, bg, page) {
   `;
 }
 
-function renderBottomNav(active) {
+function renderBottomNav(active, options = {}) {
+  const { desktopOnly = false } = options;
   const items = [
     { id: 'home', icon: 'home', label: 'Home', page: 'patient-home' },
     { id: 'appointments', icon: 'calendar', label: 'Book', page: 'appointments' },
@@ -219,10 +220,23 @@ function renderBottomNav(active) {
   ];
 
   return `
-    <nav class="bottom-nav" id="bottom-nav">
+    <nav class="bottom-nav ${desktopOnly ? 'bottom-nav--desktop-only' : ''}" id="bottom-nav" aria-label="Patient navigation">
+      <div class="sidebar-brand" aria-hidden="true">
+        <div class="sidebar-brand-mark">
+          <svg width="20" height="20" viewBox="0 0 52 52" fill="none">
+            <path d="M26 8C26 8 14 14 14 26C14 32 17.5 37 23 40L26 42L29 40C34.5 37 38 32 38 26C38 14 26 8 26 8Z" fill="white" fill-opacity="0.95"/>
+            <path d="M22 26H30M26 22V30" stroke="#4A90D9" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="sidebar-brand-title">HealthVerse</div>
+          <div class="sidebar-brand-sub">Patient Portal</div>
+        </div>
+      </div>
       ${items.map(item => item.isCenter ? `
         <div class="nav-center-btn" onclick="navigate('sos')" id="nav-sos" aria-label="Emergency SOS">
           <i data-lucide="alert-triangle" style="width:24px;height:24px;color:white;"></i>
+          <span class="sidebar-sos-label">Emergency SOS</span>
         </div>
       ` : `
         <a class="nav-item ${item.id === active ? 'active' : ''}" onclick="navigate('${item.page}')" id="nav-${item.id}" aria-label="${item.label}">

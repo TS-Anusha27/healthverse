@@ -81,7 +81,7 @@ export function renderAmbulanceDriver() {
       <div id="amb-map" style="height:calc(100dvh - 290px);width:100%;position:relative;z-index:1;"></div>
 
       <!-- Driver Ride Controls Panel -->
-      <div id="amb-controls-panel" style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--surface);border-radius:24px 24px 0 0;padding:18px 20px calc(18px + var(--safe-bottom));box-shadow:0 -8px 30px rgba(0,0,0,0.2);z-index:20;">
+      <div id="amb-controls-panel" class="amb-controls-panel">
         ${renderSkeletonCards(1)}
       </div>
     </div>

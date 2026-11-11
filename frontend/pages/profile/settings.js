@@ -3,6 +3,7 @@ import { navigate, goBack } from '../../routes/router.js';
 import { store } from '../../store/store.js';
 import { authService } from '../../services/auth/authService.js';
 import { showToast, showModal, closeModal, getInitials, avatarColor, escapeHtml } from '../../utils/utils.js';
+import { renderBottomNav } from '../patient/patient-home.js';
 
 export function renderSettings() {
   const profile = authService.getCurrentProfile() || store.patient || store.doctor || store.driver || {};
@@ -97,6 +98,7 @@ export function renderSettings() {
           </div>
         </div>
       </div>
+      ${role === 'patient' ? renderBottomNav('settings', { desktopOnly: true }) : ''}
     </div>
   `;
 

@@ -4,6 +4,7 @@ import { mockData } from '../../services/data.js';
 import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState } from '../../utils/utils.js';
 import { getBloodDonors, getBloodBanks, registerBloodDonor, registerOrganDonor } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
+import { renderBottomNav } from '../patient/patient-home.js';
 
 export function renderBloodDonation() {
   const app = document.getElementById('app');
@@ -52,6 +53,7 @@ export function renderBloodDonation() {
           </button>
         </div>
       </div>
+      ${renderBottomNav('home', { desktopOnly: true })}
     </div>
   `;
 
@@ -140,6 +142,7 @@ export function renderOrganDonation() {
           </button>
         </div>
       </div>
+      ${renderBottomNav('home', { desktopOnly: true })}
     </div>
   `;
 

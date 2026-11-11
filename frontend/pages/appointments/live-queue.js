@@ -3,6 +3,7 @@ import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
 import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState } from '../../utils/utils.js';
 import { getAppointments, cancelAppointment, rescheduleAppointment } from '../../services/supabase/db.js';
+import { renderBottomNav } from '../patient/patient-home.js';
 
 let queueInterval = null;
 
@@ -25,6 +26,7 @@ export function renderLiveQueue() {
       <div class="screen-content" id="queue-content" style="padding:20px;padding-bottom:100px;">
         ${renderSkeletonCards(2, true)}
       </div>
+      ${renderBottomNav('appointments', { desktopOnly: true })}
     </div>
   `;
 

@@ -149,6 +149,7 @@ export function navigate(page, params = {}, addHistory = true) {
         screenEl.classList.add('page-enter');
       }
       applyCountUps(app);
+      if (typeof window.lucide !== 'undefined') window.lucide.createIcons();
     } catch (err) {
       console.error(`Error rendering route '${page}':`, err);
       app.innerHTML = `

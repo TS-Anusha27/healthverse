@@ -4,6 +4,7 @@ import { mockData } from '../../services/data.js';
 import { showToast, showModal, escapeHtml } from '../../utils/utils.js';
 import { getDoctors, createTelemedicineSession } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
+import { renderBottomNav } from '../patient/patient-home.js';
 
 let callTimer = null;
 let callSeconds = 0;
@@ -101,6 +102,7 @@ export function renderTelemedicine() {
           </div>
         </div>
       </div>
+      ${renderBottomNav('appointments', { desktopOnly: true })}
     </div>
   `;
 

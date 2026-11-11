@@ -4,6 +4,7 @@ import { mockData } from '../../services/data.js';
 import { showToast, showModal, closeModal, generateQRDisplay, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState } from '../../utils/utils.js';
 import { getHospitals, getDoctors, createAppointment } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
+import { renderBottomNav } from '../patient/patient-home.js';
 
 let map = null;
 let loadedHospitals = [...mockData.hospitals];
@@ -74,6 +75,7 @@ export function renderAppointments() {
           </div>
         </div>
       </div>
+      ${renderBottomNav('appointments', { desktopOnly: true })}
     </div>
   `;
 

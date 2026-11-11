@@ -4,6 +4,7 @@ import { mockData } from '../../services/data.js';
 import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, renderSkeletonStats, renderEmptyState, renderErrorState, applyCountUps } from '../../utils/utils.js';
 import { getHealthRecords, createHealthRecord } from '../../services/supabase/db.js';
 import { uploadFile } from '../../services/supabase/storage.js';
+import { renderBottomNav } from '../patient/patient-home.js';
 
 let currentRecords = [];
 
@@ -69,6 +70,7 @@ export function renderHealthRecords() {
           </div>
         </div>
       </div>
+      ${renderBottomNav('records', { desktopOnly: true })}
     </div>
   `;
 

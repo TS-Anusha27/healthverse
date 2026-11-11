@@ -3,6 +3,7 @@ import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
 import { showToast, renderSkeletonCards, renderEmptyState, renderErrorState, escapeHtml, applyCountUps } from '../../utils/utils.js';
 import { getAISummary } from '../../services/supabase/db.js';
+import { renderBottomNav } from '../patient/patient-home.js';
 
 let chartInstance = null;
 
@@ -24,6 +25,7 @@ export function renderHealthInsights() {
       <div class="screen-content" id="insights-content" style="padding:20px;padding-bottom:100px;">
         ${renderSkeletonCards(2, false)}
       </div>
+      ${renderBottomNav('home', { desktopOnly: true })}
     </div>
   `;
 

@@ -3,6 +3,7 @@ import { navigate, goBack } from '../../routes/router.js';
 import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState, applyCountUps } from '../../utils/utils.js';
 import { getMedicines, createMedicine, createMedicineOrder } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
+import { renderBottomNav } from '../patient/patient-home.js';
 
 let currentMeds = [];
 
@@ -33,6 +34,7 @@ export function renderMedicines() {
           ${renderSkeletonCards(3, false)}
         </div>
       </div>
+      ${renderBottomNav('records', { desktopOnly: true })}
     </div>
   `;
 

@@ -3,6 +3,7 @@ import { navigate, goBack } from '../../routes/router.js';
 import { showToast, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState } from '../../utils/utils.js';
 import { getNotifications } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
+import { renderBottomNav } from '../patient/patient-home.js';
 
 export function renderNotifications() {
   const app = document.getElementById('app');
@@ -19,6 +20,7 @@ export function renderNotifications() {
       <div class="screen-content" id="notif-list-container" style="padding:20px;padding-bottom:100px;">
         ${renderSkeletonCards(3)}
       </div>
+      ${renderBottomNav('home', { desktopOnly: true })}
     </div>
   `;
 
