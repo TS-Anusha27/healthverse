@@ -2,6 +2,7 @@
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
 import { showToast, showModal, closeModal, generateQRDisplay, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState } from '../../utils/utils.js';
+import { uiIcon } from '../../utils/icons.js';
 import { getHospitals, getDoctors, createAppointment } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 import { renderBottomNav } from '../patient/patient-home.js';
@@ -196,8 +197,8 @@ function initMap() {
         .bindPopup(`
           <div style="font-family:var(--font-display);min-width:160px;">
             <div style="font-weight:700;font-size:14px;color:var(--text-primary);">${escapeHtml(h.name)}</div>
-            <div style="color:var(--text-secondary);font-size:12px;margin-top:3px;">⭐ ${escapeHtml(h.rating)} • ${escapeHtml(h.distance)}</div>
-            <div style="color:var(--text-secondary);font-size:12px;margin-top:2px;">⏱️ Wait: ${escapeHtml(h.waitTime)}</div>
+            <div style="color:var(--text-secondary);font-size:12px;margin-top:3px;" class="inline-icon-text">${uiIcon('star', { size: 12, color: '#FFA502', fill: '#FFA502' })} ${escapeHtml(h.rating)} • ${escapeHtml(h.distance)}</div>
+            <div style="color:var(--text-secondary);font-size:12px;margin-top:2px;" class="inline-icon-text">${uiIcon('clock', { size: 12, color: 'var(--primary)' })} Wait: ${escapeHtml(h.waitTime)}</div>
             <button onclick="bookAtHospital('${escapeHtml(h.id)}')" style="margin-top:8px;width:100%;padding:6px;background:var(--primary-dark);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;">Book Now</button>
           </div>
         `);
@@ -210,7 +211,7 @@ function initMap() {
       iconSize: [14, 14],
       iconAnchor: [7, 7]
     });
-    L.marker([13.0570, 80.2290], { icon: userIcon }).addTo(map).bindPopup('<div style="font-size:12px;font-weight:600;">📍 Your Location</div>');
+    L.marker([13.0570, 80.2290], { icon: userIcon }).addTo(map).bindPopup(`<div style="font-size:12px;font-weight:600;" class="inline-icon-text">${uiIcon('mapPin', { size: 13, color: 'var(--primary)' })} Your Location</div>`);
 
     // Circles for nearby
     L.circle([13.0570, 80.2290], { radius: 5000, color: '#4A90D9', fillColor: '#4A90D9', fillOpacity: 0.04, weight: 1 }).addTo(map);
@@ -258,16 +259,16 @@ function initApptHandlers() {
     showModal(`
       <h3 class="modal-title-lg">${escapeHtml(h.name)}</h3>
       <div class="flex-wrap-gap mt-2">
-        <span class="badge badge-primary">⭐ ${escapeHtml(h.rating)}</span>
-        <span class="badge badge-secondary">📍 ${escapeHtml(h.distance)}</span>
-        ${h.emergency ? '<span class="badge badge-emergency">🚨 Emergency</span>' : ''}
+        <span class="badge badge-primary inline-icon-text">${uiIcon('star', { size: 12, color: '#FFA502', fill: '#FFA502' })} ${escapeHtml(h.rating)}</span>
+        <span class="badge badge-secondary inline-icon-text">${uiIcon('mapPin', { size: 12 })} ${escapeHtml(h.distance)}</span>
+        ${h.emergency ? `<span class="badge badge-emergency inline-icon-text">${uiIcon('siren', { size: 12 })} Emergency</span>` : ''}
       </div>
       <div class="flex-col gap-2 mt-4 text-body-sm text-secondary">
-        <div>📍 ${escapeHtml(h.address)}</div>
-        <div>📞 ${escapeHtml(h.phone)}</div>
-        <div>⏱️ Wait time: <strong class="text-primary">${escapeHtml(h.waitTime)}</strong></div>
-        <div>👥 Queue: <strong class="text-primary">${escapeHtml(h.queue)} patients</strong></div>
-        <div>🛏️ Available beds: <strong class="text-secondary">${escapeHtml(h.beds?.available ?? 0)} / ${escapeHtml(h.beds?.total ?? 0)}</strong></div>
+        <div class="inline-icon-text">${uiIcon('mapPin', { size: 14, color: 'var(--primary)' })} <span>${escapeHtml(h.address)}</span></div>
+        <div class="inline-icon-text">${uiIcon('phone', { size: 14, color: 'var(--primary)' })} <span>${escapeHtml(h.phone)}</span></div>
+        <div class="inline-icon-text">${uiIcon('clock', { size: 14, color: 'var(--primary)' })} <span>Wait time: <strong class="text-primary">${escapeHtml(h.waitTime)}</strong></span></div>
+        <div class="inline-icon-text">${uiIcon('users', { size: 14, color: 'var(--primary)' })} <span>Queue: <strong class="text-primary">${escapeHtml(h.queue)} patients</strong></span></div>
+        <div class="inline-icon-text">${uiIcon('bed', { size: 14, color: 'var(--secondary)' })} <span>Available beds: <strong class="text-secondary">${escapeHtml(h.beds?.available ?? 0)} / ${escapeHtml(h.beds?.total ?? 0)}</strong></span></div>
       </div>
       <div class="mt-4">
         <div class="modal-section-label">Specialties</div>
@@ -350,7 +351,7 @@ function showBookingFlow() {
             <div class="text-h4">${escapeHtml(d.name)}</div>
             <div class="text-caption mt-1">${escapeHtml(d.specialty)} • ${escapeHtml(d.experience)}yr exp</div>
             <div class="appt-meta-row">
-              <span class="text-warning bold" style="font-size:11px;">⭐ ${escapeHtml(d.rating)}</span>
+              <span class="text-warning bold inline-icon-text" style="font-size:11px;">${uiIcon('star', { size: 11, color: '#FFA502', fill: '#FFA502' })} ${escapeHtml(d.rating)}</span>
               <span class="text-caption">${escapeHtml(d.reviews)} reviews</span>
             </div>
           </div>

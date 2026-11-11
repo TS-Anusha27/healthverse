@@ -1,6 +1,7 @@
 // HealthVerse — Notifications Panel connected to Supabase DB
 import { navigate, goBack } from '../../routes/router.js';
 import { showToast, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState } from '../../utils/utils.js';
+import { uiIcon } from '../../utils/icons.js';
 import { getNotifications } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 import { renderBottomNav } from '../patient/patient-home.js';
@@ -58,7 +59,13 @@ async function loadNotificationsData() {
       time: n.created_at ? new Date(n.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : (n.time || 'Just now'),
       desc: n.message,
       type: n.type || 'info',
-      icon: n.type === 'appointment' ? '📅' : n.type === 'medicine' ? '💊' : n.type === 'blood' ? '🩸' : '📄'
+      icon: n.type === 'appointment'
+        ? uiIcon('calendar', { size: 20, color: 'var(--primary)' })
+        : n.type === 'medicine'
+          ? uiIcon('pill', { size: 20, color: 'var(--secondary)' })
+          : n.type === 'blood'
+            ? uiIcon('droplet', { size: 20, color: 'var(--emergency)' })
+            : uiIcon('fileText', { size: 20, color: 'var(--accent)' })
     }));
 
     container.innerHTML = `

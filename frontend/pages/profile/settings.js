@@ -3,6 +3,7 @@ import { navigate, goBack } from '../../routes/router.js';
 import { store } from '../../store/store.js';
 import { authService } from '../../services/auth/authService.js';
 import { showToast, showModal, closeModal, getInitials, avatarColor, escapeHtml, setFieldError, clearFormErrors, setButtonLoading } from '../../utils/utils.js';
+import { uiIcon } from '../../utils/icons.js';
 import { renderBottomNav } from '../patient/patient-home.js';
 
 export function renderSettings() {
@@ -89,11 +90,11 @@ export function renderSettings() {
         <div class="card mb-4" style="padding:18px;background:var(--surface);border:1px solid var(--border);border-radius:18px;">
           <div style="display:flex;flex-direction:column;gap:10px;">
             <button class="btn btn-ghost btn-full" onclick="navigate('user-type')" style="justify-content:flex-start;font-size:14px;">
-              🔄 Change Role / View Portals
+              ${uiIcon('repeat', { size: 16 })} Change Role / View Portals
             </button>
             <div style="height:1px;background:var(--border-light);margin:4px 0;"></div>
             <button class="btn btn-ghost btn-full" onclick="handleSettingsSignOut()" style="justify-content:flex-start;color:var(--emergency);font-size:14px;">
-              🚪 Log Out of HealthVerse
+              ${uiIcon('logout', { size: 16 })} Log Out of HealthVerse
             </button>
           </div>
         </div>

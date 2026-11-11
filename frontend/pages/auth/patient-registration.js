@@ -2,6 +2,7 @@
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
 import { showToast, escapeHtml, setFieldError, clearFormErrors } from '../../utils/utils.js';
+import { uiIcon } from '../../utils/icons.js';
 import { createPatientProfile } from '../../services/supabase/db.js';
 
 const STEPS = [
@@ -175,7 +176,7 @@ function getStepContent() {
       <h3 class="text-h4 mb-4">Emergency & Insurance</h3>
       <div style="display:flex;flex-direction:column;gap:16px;">
         <div style="background:var(--emergency-light);border-radius:14px;padding:16px;">
-          <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--emergency);margin-bottom:12px;">🚨 Emergency Contact</div>
+          <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--emergency);margin-bottom:12px;" class="inline-icon-text">${uiIcon('siren', { size: 15 })} Emergency Contact</div>
           <div style="display:flex;flex-direction:column;gap:12px;">
             <div class="form-group">
               <label class="form-label" for="f-emer-name">Contact Name</label>

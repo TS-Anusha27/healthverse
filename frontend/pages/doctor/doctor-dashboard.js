@@ -3,6 +3,7 @@ import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
 import { mockData } from '../../services/data.js';
 import { showToast, getInitials, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState, animateCountUp } from '../../utils/utils.js';
+import { uiIcon } from '../../utils/icons.js';
 import { getAppointments, getEmergencyRequests } from '../../services/supabase/db.js';
 
 export function renderDoctorDashboard() {
@@ -31,8 +32,8 @@ export function renderDoctorDashboard() {
           <div>
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
               <span style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:700;letter-spacing:0.5px;">DOCTOR WORKSPACE</span>
-              <span class="badge ${isPending ? 'badge-warning' : 'badge-success'}">
-                ${isPending ? '⏳ Pending Verification' : '✓ Verified'}
+              <span class="badge ${isPending ? 'badge-warning' : 'badge-success'} inline-icon-text">
+                ${isPending ? `${uiIcon('hourglass', { size: 12 })} Pending Verification` : `${uiIcon('check', { size: 12, strokeWidth: 2.5 })} Verified`}
               </span>
             </div>
             <div style="font-family:var(--font-display);font-size:22px;font-weight:800;margin-top:2px;">${escapeHtml(docName)}</div>
@@ -64,7 +65,7 @@ export function renderDoctorDashboard() {
         ${isPending ? `
         <div class="card p-3 mb-4 verification-banner">
           <div class="flex items-center gap-2">
-            <span style="font-size:18px;">📋</span>
+            <span style="display:inline-flex;color:var(--warning-dark, #B45309);">${uiIcon('clipboard', { size: 18 })}</span>
             <div>
               <div class="verification-banner-title">Verification Incomplete</div>
               <div class="verification-banner-sub">Upload medical license and hospital credentials</div>

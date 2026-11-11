@@ -553,6 +553,9 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-tertiary);
   pointer-events: none;
   z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .input-group .input-suffix {
@@ -2786,4 +2789,21 @@ textarea:focus-visible {
 [data-theme="dark"] .leaflet-popup-tip {
   background: var(--surface);
   color: var(--text-primary);
+}
+
+/* ---------- B10: Standardized Inline UI Icons ---------- */
+.ui-icon {
+  display: inline-block;
+  vertical-align: -0.15em;
+  flex-shrink: 0;
+}
+
+.inline-icon-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn .ui-icon {
+  vertical-align: middle;
 }

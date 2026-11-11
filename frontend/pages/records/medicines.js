@@ -4,6 +4,7 @@ import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, rend
 import { getMedicines, createMedicine, createMedicineOrder } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 import { renderBottomNav } from '../patient/patient-home.js';
+import { uiIcon } from '../../utils/icons.js';
 
 let currentMeds = [];
 
@@ -99,9 +100,9 @@ async function loadMedicinesData() {
               <span class="badge badge-primary">${escapeHtml(med.dosage || '5mg')}</span>
             </div>
             <div style="font-size:13px;color:var(--text-secondary);display:flex;flex-direction:column;gap:4px;">
-              <div>⏰ Schedule: <strong>${escapeHtml(med.time || '8:00 AM')}</strong> (${escapeHtml(med.frequency || 'Once daily')})</div>
-              <div>🍽️ Timing: <strong>${escapeHtml(med.meals || 'After meals')}</strong></div>
-              <div>📦 Refill: <span style="color:${(med.refill_days || med.refillDays) <= 5 ? 'var(--emergency)' : 'var(--text-secondary)'};font-weight:600;">${escapeHtml(med.refill_days || med.refillDays || 10)} days remaining</span></div>
+              <div class="inline-icon-text">${uiIcon('clock', { size: 14, color: 'var(--primary)' })} Schedule: <strong>${escapeHtml(med.time || '8:00 AM')}</strong> (${escapeHtml(med.frequency || 'Once daily')})</div>
+              <div class="inline-icon-text">${uiIcon('utensils', { size: 14, color: 'var(--secondary)' })} Timing: <strong>${escapeHtml(med.meals || 'After meals')}</strong></div>
+              <div class="inline-icon-text">${uiIcon('package', { size: 14, color: (med.refill_days || med.refillDays) <= 5 ? 'var(--emergency)' : 'var(--text-tertiary)' })} Refill: <span style="color:${(med.refill_days || med.refillDays) <= 5 ? 'var(--emergency)' : 'var(--text-secondary)'};font-weight:600;">${escapeHtml(med.refill_days || med.refillDays || 10)} days remaining</span></div>
             </div>
             <div class="flex gap-2 mt-3">
               <button class="btn ${med.taken ? 'btn-ghost' : 'btn-secondary'} btn-xs flex-1" onclick="toggleMedState('${escapeHtml(med.id)}', this)">

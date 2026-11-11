@@ -4,6 +4,7 @@ import { store } from '../../store/store.js';
 import { authService } from '../../services/auth/authService.js';
 import { showToast, showModal, closeModal, setFieldError, clearFieldError, clearFormErrors, evaluatePasswordStrength, escapeHtml } from '../../utils/utils.js';
 import { DEMO_ACCOUNTS, ensureDemoAccountsSeeded } from '../../utils/demoUsers.js';
+import { uiIcon } from '../../utils/icons.js';
 
 let activeRole = 'patient'; // 'patient' | 'doctor' | 'ambulance'
 let activeTab = 'login'; // 'login' | 'register'
@@ -254,7 +255,7 @@ function getRegistrationFormHtml(role) {
       <form onsubmit="event.preventDefault(); handleDoctorRegisterSubmit();" class="mt-4" id="doctor-reg-form" novalidate>
         <!-- Notice of pending verification -->
         <div class="verification-notice-banner mb-3">
-          <div class="notice-icon">📋</div>
+          <div class="notice-icon" style="display:inline-flex;color:var(--warning-dark, #B45309);">${uiIcon('clipboard', { size: 18 })}</div>
           <div class="notice-text">
             <strong>Professional Credential Verification:</strong> Doctor accounts require administrative licence verification before full platform access. Your account will be created in a <em>Pending Verification</em> state.
           </div>
@@ -321,7 +322,7 @@ function getRegistrationFormHtml(role) {
       <form onsubmit="event.preventDefault(); handleAmbulanceRegisterSubmit();" class="mt-4" id="ambulance-reg-form" novalidate>
         <!-- Notice of pending verification -->
         <div class="verification-notice-banner mb-3">
-          <div class="notice-icon">🚑</div>
+          <div class="notice-icon" style="display:inline-flex;color:var(--emergency);">${uiIcon('ambulance', { size: 18 })}</div>
           <div class="notice-text">
             <strong>Emergency Driver Verification:</strong> Ambulance driver accounts are verified against active vehicle and driving licences. Newly registered accounts start with <em>Pending Verification</em> status.
           </div>
@@ -1072,7 +1073,7 @@ function attachAuthHandlers() {
   window.openForgotNotice = () => {
     const content = `
       <div class="forgot-modal-box">
-        <div style="font-size:36px;margin-bottom:12px;">🔑</div>
+        <div style="margin-bottom:12px;display:flex;justify-content:center;color:var(--primary);">${uiIcon('key', { size: 36, strokeWidth: 1.8 })}</div>
         <h3 class="modal-title mb-2">Account Password Reset</h3>
         <p class="forgot-modal-desc">
           In development demo mode, your account credentials are encrypted and stored in local client storage. If you forgot your password, you can register a new test account with your email or contact support.

@@ -2,6 +2,7 @@
 import { navigate, goBack } from '../../routes/router.js';
 import { triageEngine } from '../../services/data.js';
 import { showToast, escapeHtml } from '../../utils/utils.js';
+import { uiIcon } from '../../utils/icons.js';
 
 let answers = [];
 let currentQ = 0;
@@ -240,7 +241,7 @@ function addChatMessage(text, sender, turnIndex = null) {
     div.setAttribute('data-turn', String(turnIndex));
   }
   div.innerHTML = sender === 'ai'
-    ? `<div class="ai-avatar">🤖</div><div class="chat-bubble ai">${text}</div>`
+    ? `<div class="ai-avatar">${uiIcon('bot', { size: 18, color: 'white' })}</div><div class="chat-bubble ai">${text}</div>`
     : `<div class="chat-bubble user">${escapeHtml(text)}</div>`;
 
   // Insert before options container
@@ -261,7 +262,7 @@ function addTypingIndicator() {
   div.className = 'chat-row ai-row triage-typing-row';
   div.setAttribute('aria-label', 'AI is typing');
   div.innerHTML = `
-    <div class="ai-avatar">🤖</div>
+    <div class="ai-avatar">${uiIcon('bot', { size: 18, color: 'white' })}</div>
     <div class="chat-bubble ai" style="padding:12px;">
       <div class="typing-indicator">
         <div class="typing-dot"></div>
@@ -300,8 +301,8 @@ function showTriageResult() {
     resultDiv.className = `triage-result triage-result-${result.level}`;
     resultDiv.innerHTML = `
       <div class="flex items-center gap-3 mb-4">
-        <div class="triage-result-icon" style="background:${result.color}20;">
-          ${result.level === 'red' ? '🚨' : result.level === 'orange' ? '⚠️' : result.level === 'yellow' ? '⏰' : '✅'}
+        <div class="triage-result-icon" style="background:${result.color}20;color:${result.color};">
+          ${result.level === 'red' ? uiIcon('siren', { size: 26, color: result.color }) : result.level === 'orange' ? uiIcon('alertTriangle', { size: 26, color: result.color }) : result.level === 'yellow' ? uiIcon('clock', { size: 26, color: result.color }) : uiIcon('checkCircle', { size: 26, color: result.color })}
         </div>
         <div>
           <div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:${result.color};">${result.label}</div>
@@ -312,19 +313,19 @@ function showTriageResult() {
       <div class="flex-col gap-2">
         ${result.level === 'red' ? `
           <button class="btn btn-emergency btn-full" onclick="navigate('sos')">
-            🚨 Call Emergency Services Now
+            ${uiIcon('siren', { size: 16 })} Call Emergency Services Now
           </button>
         ` : result.level === 'orange' ? `
           <button class="btn btn-primary btn-full" onclick="navigate('appointments')">
-            📅 Book Urgent Appointment
+            ${uiIcon('calendar', { size: 16 })} Book Urgent Appointment
           </button>
         ` : result.level === 'yellow' ? `
           <button class="btn btn-primary btn-full" onclick="navigate('appointments')">
-            📅 Schedule Appointment
+            ${uiIcon('calendar', { size: 16 })} Schedule Appointment
           </button>
         ` : `
           <button class="btn btn-secondary btn-full" onclick="showHomeCare()">
-            🏡 View Home Care Tips
+            ${uiIcon('home', { size: 16 })} View Home Care Tips
           </button>
         `}
         <button type="button" class="btn btn-outline btn-full" onclick="goToPreviousTriageQuestion()">

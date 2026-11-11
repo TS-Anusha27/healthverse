@@ -2,6 +2,7 @@
 import { navigate, goBack } from '../../routes/router.js';
 import { mockAISummary } from '../../services/data.js';
 import { showToast, showModal, escapeHtml } from '../../utils/utils.js';
+import { uiIcon } from '../../utils/icons.js';
 
 export function renderDoctorSummary() {
   const p = mockAISummary;
@@ -27,12 +28,12 @@ export function renderDoctorSummary() {
         <!-- High Risk & Allergy Alert Box -->
         <div class="card mb-4" style="background:var(--emergency-light);border:1.5px solid var(--emergency);padding:16px;">
           <div style="font-family:var(--font-display);font-size:14px;font-weight:800;color:var(--emergency);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-            🚨 HIGH RISK ALERTS & ALLERGIES
+            ${uiIcon('siren', { size: 16 })} HIGH RISK ALERTS & ALLERGIES
           </div>
           <div style="display:flex;flex-direction:column;gap:8px;">
             ${p.criticalAlerts.map(a => `
-              <div style="background:var(--surface);padding:10px 12px;border-radius:10px;font-size:12px;font-weight:700;color:var(--emergency);border-left:3px solid var(--emergency);">
-                ⚠️ ${escapeHtml(a.message)}
+              <div style="background:var(--surface);padding:10px 12px;border-radius:10px;font-size:12px;font-weight:700;color:var(--emergency);border-left:3px solid var(--emergency);display:flex;align-items:center;gap:6px;">
+                ${uiIcon('alertTriangle', { size: 14 })} <span>${escapeHtml(a.message)}</span>
               </div>
             `).join('')}
           </div>
@@ -74,7 +75,7 @@ export function renderDoctorSummary() {
 
         <!-- Action Button -->
         <button class="btn btn-primary btn-full btn-lg" onclick="navigate('doctor-prescription')">
-          ✍️ Create Digital Prescription
+          ${uiIcon('edit', { size: 17 })} Create Digital Prescription
         </button>
       </div>
     </div>
@@ -86,7 +87,7 @@ export function renderDoctorSummary() {
       <div style="display:flex;flex-direction:column;gap:10px;">
         ${['Blood_Report_CBC_Jul2026.pdf', 'ECG_Report_Fortis.pdf', 'Chest_XRay_MIOT.pdf'].map(f => `
           <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--surface-dim);border-radius:12px;">
-            <span style="font-size:13px;font-weight:600;">📄 ${escapeHtml(f)}</span>
+            <span style="font-size:13px;font-weight:600;" class="inline-icon-text">${uiIcon('fileText', { size: 15, color: 'var(--primary)' })} ${escapeHtml(f)}</span>
             <button class="btn btn-ghost btn-xs" onclick="showToast('Opening ${escapeHtml(f)}...','info')">View</button>
           </div>
         `).join('')}

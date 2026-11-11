@@ -5,6 +5,7 @@ import { showToast, showModal, escapeHtml } from '../../utils/utils.js';
 import { getDoctors, createTelemedicineSession } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 import { renderBottomNav } from '../patient/patient-home.js';
+import { uiIcon } from '../../utils/icons.js';
 
 let callTimer = null;
 let callSeconds = 0;
@@ -50,7 +51,7 @@ export function renderTelemedicine() {
                   <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${escapeHtml(doc.specialty)}</div>
                   <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">${escapeHtml(doc.qualification)}</div>
                   <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-                    <span style="font-size:11px;font-weight:600;color:var(--warning);">⭐ ${doc.rating}</span>
+                    <span style="font-size:11px;font-weight:600;color:var(--warning);" class="inline-icon-text">${uiIcon('star', { size: 11, color: '#FFA502', fill: '#FFA502' })} ${doc.rating}</span>
                     <span style="font-size:11px;color:var(--text-tertiary);">${doc.experience}yrs exp</span>
                     <div style="display:flex;align-items:center;gap:3px;">
                       <div style="width:6px;height:6px;background:var(--success);border-radius:50%;animation:pulse-ring 1.5s infinite;"></div>
@@ -183,7 +184,7 @@ function initTeleHandlers() {
       </div>
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
         <div class="flex justify-between"><span style="color:var(--text-secondary);">Experience</span><strong>${doc.experience} years</strong></div>
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">Rating</span><strong>⭐  ${doc.rating} (${doc.reviews} reviews)</strong></div>
+        <div class="flex justify-between"><span style="color:var(--text-secondary);">Rating</span><strong class="inline-icon-text">${uiIcon('star', { size: 13, color: '#FFA502', fill: '#FFA502' })} ${doc.rating} (${doc.reviews} reviews)</strong></div>
         <div class="flex justify-between"><span style="color:var(--text-secondary);">Consultation Fee</span><strong style="color:var(--primary);">₹${doc.fee}</strong></div>
         <div class="flex justify-between"><span style="color:var(--text-secondary);">Next Available</span><strong style="color:var(--success);">${doc.nextSlot}</strong></div>
       </div>
@@ -241,8 +242,8 @@ function startVideoCallUI(doc) {
   callScreen.innerHTML = `
     <!-- Simulated Video Background -->
     <div style="position:absolute;inset:0;background:linear-gradient(160deg,#1A2332 0%,#0D2840 100%);display:flex;align-items:center;justify-content:center;">
-      <div style="text-align:center;opacity:0.3;">
-        <div style="font-size:80px;margin-bottom:10px;">👨‍⚕️</div>
+      <div style="text-align:center;opacity:0.35;color:white;">
+        <div style="margin-bottom:10px;display:flex;justify-content:center;">${uiIcon('stethoscope', { size: 68, strokeWidth: 1.5, color: 'white' })}</div>
         <div style="color:white;font-size:14px;">Dr. ${doc.name}</div>
       </div>
     </div>
@@ -263,7 +264,7 @@ function startVideoCallUI(doc) {
 
     <!-- Local Video -->
     <div class="video-local">
-      <div style="width:100%;height:100%;background:linear-gradient(135deg,#1E3A5F,#0D4F3C);display:flex;align-items:center;justify-content:center;font-size:36px;">🧑</div>
+      <div style="width:100%;height:100%;background:linear-gradient(135deg,#1E3A5F,#0D4F3C);display:flex;align-items:center;justify-content:center;color:white;">${uiIcon('user', { size: 32, strokeWidth: 1.8, color: 'white' })}</div>
     </div>
 
     <!-- Floating Action: Share Report -->

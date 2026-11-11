@@ -1,6 +1,7 @@
 // HealthVerse — Ambulance Driver Dashboard connected to Supabase DB & High-Precision Leaflet GPS Maps
 import { navigate } from '../../routes/router.js';
 import { showToast, showModal, closeModal, getInitials, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState } from '../../utils/utils.js';
+import { uiIcon } from '../../utils/icons.js';
 import { getEmergencyRequests, updateEmergencyRequestStatus, updateDriverStatus } from '../../services/supabase/db.js';
 import { signOutUser } from '../../services/supabase/auth.js';
 import { store } from '../../store/store.js';
@@ -36,8 +37,8 @@ export function renderAmbulanceDriver() {
             <div>
               <div style="display:flex;align-items:center;">
                 <span style="font-family:var(--font-display);font-size:15px;font-weight:700;">${escapeHtml(driverName)}</span>
-                <span class="badge ${isPending ? 'badge-warning' : 'badge-success'}" style="margin-left:6px;">
-                  ${isPending ? '⏳ Pending' : '✓ Verified'}
+                <span class="badge ${isPending ? 'badge-warning' : 'badge-success'} inline-icon-text" style="margin-left:6px;">
+                  ${isPending ? `${uiIcon('hourglass', { size: 12 })} Pending` : `${uiIcon('check', { size: 12, strokeWidth: 2.5 })} Verified`}
                 </span>
               </div>
               <div style="font-size:11px;color:rgba(255,255,255,0.7);">${escapeHtml(driver.vehicle || driver.vehicleNumber || 'Emergency Fleet')}</div>
@@ -47,7 +48,7 @@ export function renderAmbulanceDriver() {
           <!-- Controls: Switch Role & Logout -->
           <div class="flex items-center gap-2">
             <button class="btn btn-xs" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.25);" onclick="navigate('user-type')" title="Switch Role">
-              🔄 Switch Role
+              ${uiIcon('repeat', { size: 13 })} Switch Role
             </button>
             <button class="btn btn-xs btn-ghost" style="color:#FF4757;padding:4px 8px;" onclick="handleDriverSignOut()" title="Sign Out">
               Sign Out
@@ -71,7 +72,7 @@ export function renderAmbulanceDriver() {
       ${isPending ? `
       <div class="verification-banner verification-banner--bar">
         <div style="display:flex;align-items:center;gap:6px;">
-          <span style="font-size:14px;">⚠️</span>
+          <span style="display:inline-flex;color:var(--warning-dark, #B45309);">${uiIcon('alertTriangle', { size: 15 })}</span>
           <span class="verification-banner-title" style="font-size:11px;">Vehicle verification pending</span>
         </div>
         <button class="btn btn-xs verification-banner-btn" onclick="navigate('ambulance-setup')">Complete verification &rarr;</button>
@@ -121,8 +122,8 @@ async function loadAmbulanceDispatchData() {
           <span style="font-size:15px;font-weight:800;color:var(--text-primary);">${escapeHtml(req.patient_name || req.patientName)}</span>
           <span class="badge badge-emergency">${escapeHtml(req.condition || 'SOS Emergency')}</span>
         </div>
-        <div style="font-size:13px;color:var(--text-primary);margin-top:4px;">📍 Pickup: <strong>${escapeHtml(req.address)}</strong> (${escapeHtml(req.distance || '1.2 km')})</div>
-        <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">🏥 Target: <strong>${escapeHtml(req.hospital || 'Apollo Hospitals')}</strong></div>
+        <div style="font-size:13px;color:var(--text-primary);margin-top:4px;" class="inline-icon-text">${uiIcon('mapPin', { size: 14, color: 'var(--emergency)' })} Pickup: <strong>${escapeHtml(req.address)}</strong> (${escapeHtml(req.distance || '1.2 km')})</div>
+        <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;" class="inline-icon-text">${uiIcon('hospital', { size: 14, color: 'var(--primary)' })} Target: <strong>${escapeHtml(req.hospital || 'Apollo Hospitals')}</strong></div>
       </div>
       <button class="btn btn-emergency btn-full btn-lg" onclick="acceptEmergencyRide('${escapeHtml(req.id)}')" style="font-weight:800;">
         ACCEPT EMERGENCY RIDE (ETA ${escapeHtml(req.eta || '4 min')})
@@ -137,7 +138,7 @@ async function loadAmbulanceDispatchData() {
         <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">Live Speed: 42 km/h • GPS Lock High Accuracy</div>
       </div>
       <button class="btn btn-primary btn-full btn-lg" onclick="completeEmergencyRide('${escapeHtml(req.id)}')" style="background:var(--secondary);border:none;font-weight:800;">
-        ✓ MARK MISSION COMPLETED
+        ${uiIcon('check', { size: 18, strokeWidth: 2.5 })} MARK MISSION COMPLETED
       </button>
     `;
 
@@ -183,7 +184,7 @@ function initDriverMap(req) {
 
   // Custom SVG Markers
   const ambulanceIcon = L.divIcon({
-    html: `<div style="background:#FF4757;color:white;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(255,71,87,0.5);border:2px solid white;">🚑</div>`,
+    html: `<div style="background:#FF4757;color:white;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,71,87,0.5);border:2px solid white;">${uiIcon('ambulance', { size: 20, color: 'white' })}</div>`,
     className: '',
     iconSize: [38, 38],
     iconAnchor: [19, 19]
@@ -195,14 +196,14 @@ function initDriverMap(req) {
   if (!req) return;
 
   const patientIcon = L.divIcon({
-    html: `<div style="background:#FFA502;color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(255,165,2,0.5);border:2px solid white;">📍</div>`,
+    html: `<div style="background:#FFA502;color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,165,2,0.5);border:2px solid white;">${uiIcon('mapPin', { size: 18, color: 'white' })}</div>`,
     className: '',
     iconSize: [34, 34],
     iconAnchor: [17, 17]
   });
 
   const hospitalIcon = L.divIcon({
-    html: `<div style="background:#4A90D9;color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(74,144,217,0.5);border:2px solid white;">🏥</div>`,
+    html: `<div style="background:#4A90D9;color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(74,144,217,0.5);border:2px solid white;">${uiIcon('hospital', { size: 18, color: 'white' })}</div>`,
     className: '',
     iconSize: [34, 34],
     iconAnchor: [17, 17]

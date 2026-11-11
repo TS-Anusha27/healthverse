@@ -4,6 +4,7 @@ import { store } from '../../store/store.js';
 import { mockData } from '../../services/data.js';
 import { authService } from '../../services/auth/authService.js';
 import { showToast, getInitials, avatarColor, escapeHtml } from '../../utils/utils.js';
+import { uiIcon } from '../../utils/icons.js';
 
 export function renderPatientHome() {
   const patient = store.patient || JSON.parse(localStorage.getItem('hv_patient_profile') || 'null') || (store.currentUser ? { name: store.currentUser.name, email: store.currentUser.email, bloodGroup: 'Not set', healthScore: 85 } : { name: 'Patient', bloodGroup: 'Not set', healthScore: 85 });
@@ -184,7 +185,7 @@ export function renderPatientHome() {
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="#FFA502" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                   <span class="hospital-mini-rating-val">${h.rating}</span>
                 </div>
-                ${h.emergency ? '<div class="hospital-mini-emerg">🚨 Emergency</div>' : ''}
+                ${h.emergency ? `<div class="hospital-mini-emerg inline-icon-text">${uiIcon('siren', { size: 11 })} Emergency</div>` : ''}
               </div>
             `).join('')}
           </div>
@@ -195,7 +196,7 @@ export function renderPatientHome() {
           <div class="card-gradient blood-cta-card" onclick="navigate('blood-donation')">
             <div class="flex items-center justify-between">
               <div>
-                <div class="blood-cta-eyebrow">🩸 Save Lives</div>
+                <div class="blood-cta-eyebrow inline-icon-text">${uiIcon('droplet', { size: 12, fill: 'currentColor' })} Save Lives</div>
                 <div class="blood-cta-title">Donate Blood</div>
                 <div class="blood-cta-sub">3 nearby requests • B+ needed</div>
               </div>

@@ -2,6 +2,7 @@
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
 import { showToast, renderSkeletonCards, renderEmptyState, renderErrorState, escapeHtml, applyCountUps } from '../../utils/utils.js';
+import { uiIcon } from '../../utils/icons.js';
 import { getAISummary } from '../../services/supabase/db.js';
 import { renderBottomNav } from '../patient/patient-home.js';
 
@@ -61,7 +62,7 @@ async function loadHealthInsightsData() {
       <!-- AI Risk Assessment Card -->
       <div class="card mb-4" style="padding:20px;">
         <div style="font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
-          <span>🤖 AI Risk Prediction</span>
+          <span class="inline-icon-text">${uiIcon('bot', { size: 18, color: 'var(--primary)' })} AI Risk Prediction</span>
           <span class="badge badge-success" style="margin-left:auto;">Score: <span data-countup="${escapeHtml(summary.healthScore || 82)}">${escapeHtml(summary.healthScore || 82)}</span></span>
         </div>
 
@@ -94,11 +95,11 @@ async function loadHealthInsightsData() {
 
       <!-- Recommendations -->
       <div class="card mb-4" style="padding:20px;">
-        <div style="font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:12px;">💡 Personal Recommendations</div>
+        <div style="font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:12px;" class="inline-icon-text">${uiIcon('lightbulb', { size: 18, color: 'var(--warning)' })} Personal Recommendations</div>
         <div style="display:flex;flex-direction:column;gap:8px;">
           ${recs.length > 0 ? recs.map(r => `
             <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-primary);background:var(--surface-dim);padding:10px 14px;border-radius:10px;">
-              <span style="color:var(--secondary);font-weight:700;">✓</span>
+              <span style="color:var(--secondary);display:inline-flex;">${uiIcon('check', { size: 15, strokeWidth: 2.5 })}</span>
               ${escapeHtml(r)}
             </div>
           `).join('') : '<div style="font-size:13px;color:var(--text-secondary);">No new recommendations at this time.</div>'}

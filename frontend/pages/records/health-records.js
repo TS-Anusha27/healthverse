@@ -5,6 +5,7 @@ import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, rend
 import { getHealthRecords, createHealthRecord } from '../../services/supabase/db.js';
 import { uploadFile } from '../../services/supabase/storage.js';
 import { renderBottomNav } from '../patient/patient-home.js';
+import { uiIcon } from '../../utils/icons.js';
 
 let currentRecords = [];
 
@@ -157,10 +158,10 @@ function renderRecordItems(records) {
           <div class="badge ${r.status === 'normal' ? 'badge-success' : r.status === 'active' ? 'badge-primary' : 'badge-secondary'}">${escapeHtml(r.status)}</div>
         </div>
         <div style="display:flex;align-items:center;gap:12px;margin-top:12px;font-size:12px;color:var(--text-tertiary);">
-          <span>📅 ${escapeHtml(r.date)}</span>
-          <span>🏥 ${escapeHtml(r.hospital || 'Apollo Hospitals')}</span>
+          <span class="inline-icon-text">${uiIcon('calendar', { size: 13 })} ${escapeHtml(r.date)}</span>
+          <span class="inline-icon-text">${uiIcon('hospital', { size: 13 })} ${escapeHtml(r.hospital || 'Apollo Hospitals')}</span>
         </div>
-        <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">👨‍⚕️ ${escapeHtml(r.doctor || 'Dr. Priya Krishnamurthy')}</div>
+        <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;" class="inline-icon-text">${uiIcon('stethoscope', { size: 12 })} ${escapeHtml(r.doctor || 'Dr. Priya Krishnamurthy')}</div>
       </div>
     </div>
   `).join('');
@@ -229,7 +230,7 @@ function initRecordHandlers() {
         <div class="flex justify-between"><span style="color:var(--text-secondary);">Doctor</span><strong>${escapeHtml(r.doctor || 'Dr. Priya Krishnamurthy')}</strong></div>
       </div>
       <div style="background:var(--surface-dim);border-radius:14px;padding:20px;margin-top:20px;text-align:center;">
-        <div style="font-size:48px;margin-bottom:8px;">📄</div>
+        <div style="margin-bottom:8px;display:flex;justify-content:center;color:var(--primary);">${uiIcon('fileText', { size: 44, strokeWidth: 1.6 })}</div>
         <div style="font-size:14px;font-weight:600;color:var(--text-primary);">${escapeHtml(r.title)}</div>
         <div style="font-size:12px;color:var(--text-tertiary);margin-top:4px;">${r.file_url ? 'Secure file attached' : 'Tap to view report'}</div>
       </div>

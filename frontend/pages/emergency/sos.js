@@ -1,6 +1,7 @@
 // HealthVerse — Emergency SOS Screen with Supabase Integration & High-Precision Leaflet Map
 import { navigate, goBack } from '../../routes/router.js';
 import { showToast } from '../../utils/utils.js';
+import { uiIcon } from '../../utils/icons.js';
 import { createEmergencyRequest } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 
@@ -98,7 +99,7 @@ async function dispatchEmergency() {
     <div class="screen sos-dispatch-screen">
       <div class="text-center mt-4 animate-slide-up">
         <div class="sos-dispatch-badge">
-          🚨
+          ${uiIcon('siren', { size: 32, color: 'white' })}
         </div>
         <h1 class="sos-dispatch-title" style="font-family:var(--font-display);font-size:24px;font-weight:800;color:white;">Ambulance Dispatched!</h1>
         <p class="sos-hero-sub">Emergency alert sent. Driver Ravi Kumar en route.</p>
@@ -115,9 +116,9 @@ async function dispatchEmergency() {
         </div>
         <div class="progress-bar mb-3 sos-progress-dark"><div class="progress-fill" style="width:75%;background:var(--secondary);"></div></div>
         <div class="flex-col gap-1 sos-dispatch-meta">
-          <div>🚑 Driver: <strong>Ravi Kumar (+91 98765 00001)</strong></div>
-          <div>🏥 Target Hospital: <strong>Apollo Hospitals, Greams Rd</strong></div>
-          <div>📍 Your Address: <strong>Velachery Main Rd, Chennai</strong></div>
+          <div class="inline-icon-text">${uiIcon('ambulance', { size: 14, color: 'var(--emergency)' })} Driver: <strong>Ravi Kumar (+91 98765 00001)</strong></div>
+          <div class="inline-icon-text">${uiIcon('hospital', { size: 14, color: 'var(--primary)' })} Target Hospital: <strong>Apollo Hospitals, Greams Rd</strong></div>
+          <div class="inline-icon-text">${uiIcon('mapPin', { size: 14, color: 'var(--warning)' })} Your Address: <strong>Velachery Main Rd, Chennai</strong></div>
         </div>
       </div>
 
@@ -151,14 +152,14 @@ function initSOSTrackingMap() {
   }).addTo(sosMap);
 
   const ambIcon = L.divIcon({
-    html: `<div style="background:#FF4757;color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(255,71,87,0.6);border:2px solid white;">🚑</div>`,
+    html: `<div style="background:#FF4757;color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,71,87,0.6);border:2px solid white;">${uiIcon('ambulance', { size: 18, color: 'white' })}</div>`,
     className: '',
     iconSize: [34, 34],
     iconAnchor: [17, 17]
   });
 
   const patientIcon = L.divIcon({
-    html: `<div style="background:#FFA502;color:white;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 4px 12px rgba(255,165,2,0.6);border:2px solid white;">📍</div>`,
+    html: `<div style="background:#FFA502;color:white;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,165,2,0.6);border:2px solid white;">${uiIcon('mapPin', { size: 16, color: 'white' })}</div>`,
     className: '',
     iconSize: [30, 30],
     iconAnchor: [15, 15]

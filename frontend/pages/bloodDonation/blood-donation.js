@@ -2,6 +2,7 @@
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
 import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState, setFieldError, clearFormErrors, setButtonLoading } from '../../utils/utils.js';
+import { uiIcon } from '../../utils/icons.js';
 import { getBloodDonors, getBloodBanks, registerBloodDonor, registerOrganDonor } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 import { renderBottomNav } from '../patient/patient-home.js';
@@ -17,7 +18,7 @@ export function renderBloodDonation() {
         </button>
         <div style="flex:1;">
           <div style="font-family:var(--font-display);font-size:17px;font-weight:700;color:white;">Blood Donation</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.7);">Save a life today 🩸</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.7);">Save a life today</div>
         </div>
       </div>
 
@@ -25,7 +26,7 @@ export function renderBloodDonation() {
         <!-- Hero -->
         <div class="section mt-3">
           <div style="background:var(--emergency-light);border:1px solid rgba(255,71,87,0.22);border-radius:18px;padding:20px;text-align:center;">
-            <div style="font-size:48px;margin-bottom:10px;">🩸</div>
+            <div style="margin-bottom:10px;display:flex;justify-content:center;color:var(--emergency);">${uiIcon('droplet', { size: 48, strokeWidth: 1.8, fill: 'rgba(255,71,87,0.18)' })}</div>
             <h2 style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--emergency);">Donate Blood, Save Lives</h2>
             <p style="font-size:13px;color:var(--text-secondary);margin-top:6px;line-height:1.5;">1 unit of blood can save up to 3 lives.<br>Your donation matters.</p>
             <button class="btn btn-emergency mt-4" onclick="registerDonorModal()">
@@ -134,7 +135,7 @@ export function renderOrganDonation() {
 
       <div class="screen-content" style="padding:20px;padding-bottom:100px;">
         <div style="background:var(--accent-light);border:1px solid rgba(123,104,238,0.25);border-radius:18px;padding:24px;text-align:center;">
-          <div style="font-size:48px;margin-bottom:10px;">🫀</div>
+          <div style="margin-bottom:10px;display:flex;justify-content:center;color:var(--accent);">${uiIcon('heartPulse', { size: 48, strokeWidth: 1.8 })}</div>
           <h2 style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--accent);">Become an Organ Donor</h2>
           <p style="font-size:13px;color:var(--text-secondary);margin-top:6px;line-height:1.5;">Pledge your organs and save up to 8 lives.<br>Secured by National Organ Registry.</p>
           <button class="btn btn-primary mt-4" style="background:var(--accent);" onclick="registerOrganDonorModal()">
