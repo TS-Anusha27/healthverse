@@ -105,6 +105,7 @@ export function renderPatientHome() {
             ${quickAction('Blood', 'droplets', '#E74C3C', 'var(--emergency-light)', 'blood-donation')}
             ${quickAction('Insights', 'trending-up', '#17A589', 'var(--secondary-light)', 'health-insights')}
             ${quickAction('Organ', 'heart', '#EC407A', 'var(--emergency-light)', 'organ-donation')}
+            ${quickAction('Payments', 'credit-card', '#4A90D9', 'var(--primary-light)', 'payments')}
           </div>
         </div>
 

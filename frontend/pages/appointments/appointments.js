@@ -4,6 +4,7 @@ import { mockData } from '../../services/data.js';
 import { showToast, showModal, closeModal, generateQRDisplay, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState } from '../../utils/utils.js';
 import { uiIcon } from '../../utils/icons.js';
 import { getHospitals, getDoctors, createAppointment } from '../../services/supabase/db.js';
+import { renderPayPalButtons, convertInrToUsd, INR_PER_USD } from '../../services/payments/paypalService.js';
 import { store } from '../../store/store.js';
 import { renderBottomNav } from '../patient/patient-home.js';
 
@@ -539,6 +540,8 @@ function showPayment() {
 
 function showBookingConfirmation() {
   const token = 'TK-' + Math.floor(100 + Math.random() * 900);
+  const feeINR = Number(selectedDoctor?.fee || 800);
+  const { usd, usdString } = convertInrToUsd(feeINR);
   const apptData = {
     patient_id: store.currentUser?.id || null,
     doctor_id: selectedDoctor?.id || 'dr1',
@@ -569,8 +572,27 @@ function showBookingConfirmation() {
           <div class="flex justify-between"><span class="text-muted">Hospital</span><span class="semibold">${escapeHtml(selectedHospital?.name || 'Apollo')}</span></div>
           <div class="flex justify-between"><span class="text-muted">Slot</span><span class="semibold">${escapeHtml(selectedSlot || '3:30 PM')}</span></div>
           <div class="flex justify-between"><span class="text-muted">Token</span><span class="bold text-primary">${token}</span></div>
+          <div class="flex justify-between items-center"><span class="text-muted">Fee Status</span><span id="appt-payment-badge" class="badge badge-warning">Pay at clinic</span></div>
         </div>
       </div>
+
+      <div id="appt-paypal-section" class="paypal-checkout-box mt-3">
+        <div class="flex items-center justify-between gap-2 mb-1">
+          <span class="text-body-sm semibold">Optional Consultation Fee</span>
+          <span class="text-body-sm"><strong>&#8377;${feeINR}</strong> &bull; $${usdString} USD</span>
+        </div>
+        <div class="text-caption mb-3">1 USD = &#8377;${INR_PER_USD} (demo conversion rate)</div>
+        <div class="flex gap-2 flex-wrap" id="appt-pay-choice-row">
+          <button type="button" class="btn btn-primary btn-sm flex-1" id="btn-appt-paypal" onclick="openAppointmentPayPal()">
+            Pay consultation fee with PayPal
+          </button>
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-appt-pay-later" onclick="choosePayAtClinic()">
+            Pay later at clinic
+          </button>
+        </div>
+        <div id="appt-paypal-container" class="hidden"></div>
+      </div>
+
       <div class="flex justify-center my-4">
         ${generateQRDisplay(`QR-${token}-HEALTHVERSE`)}
       </div>
@@ -580,6 +602,40 @@ function showBookingConfirmation() {
       </div>
     </div>
   `);
+
+  window.openAppointmentPayPal = () => {
+    const container = document.getElementById('appt-paypal-container');
+    if (!container) return;
+    container.classList.remove('hidden');
+    renderPayPalButtons(container, {
+      amountUSD: usd,
+      amountINR: feeINR,
+      description: `Consultation: ${apptData.doctor_name} (${apptData.hospital})`,
+      referenceType: 'appointment',
+      referenceId: token,
+      onSuccess: () => {
+        const badge = document.getElementById('appt-payment-badge');
+        if (badge) {
+          badge.className = 'badge badge-success';
+          badge.textContent = 'Paid';
+        }
+        const choices = document.getElementById('appt-pay-choice-row');
+        if (choices) choices.classList.add('hidden');
+        showToast('Consultation fee paid via PayPal Sandbox!', 'success');
+      }
+    });
+  };
+
+  window.choosePayAtClinic = () => {
+    const container = document.getElementById('appt-paypal-container');
+    if (container) container.classList.add('hidden');
+    const badge = document.getElementById('appt-payment-badge');
+    if (badge) {
+      badge.className = 'badge badge-secondary';
+      badge.textContent = 'Pay at clinic';
+    }
+    showToast('Confirmed — pay consultation fee later at the clinic.', 'info');
+  };
 
   showToast('Appointment booked successfully! 📧', 'success');
 }
