@@ -2,10 +2,10 @@
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
 import { mockData } from '../../services/data.js';
-import { showToast, getInitials, escapeHtml } from '../../utils/utils.js';
+import { showToast, getInitials, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState } from '../../utils/utils.js';
 import { getAppointments, getEmergencyRequests } from '../../services/supabase/db.js';
 
-export async function renderDoctorDashboard() {
+export function renderDoctorDashboard() {
   const doctor = store.doctor || (store.currentUser ? {
     name: store.currentUser.name?.startsWith('Dr.') ? store.currentUser.name : `Dr. ${store.currentUser.name}`,
     specialty: 'General Practitioner',
@@ -21,10 +21,6 @@ export async function renderDoctorDashboard() {
   const docSpecialty = doctor.specialisation || doctor.specialty || 'General Practitioner';
   const docHospital = doctor.hospital || 'Affiliated Hospital';
   const isPending = doctor.verificationStatus === 'pending_verification';
-
-  const appts = await getAppointments();
-  const emergencies = await getEmergencyRequests();
-  const activeEmergencies = emergencies.filter(e => e.status !== 'completed').length;
 
   const app = document.getElementById('app');
   app.innerHTML = `
@@ -48,17 +44,17 @@ export async function renderDoctorDashboard() {
         </div>
 
         <!-- Quick Stats Grid -->
-        <div class="grid-3 mt-4">
+        <div class="grid-3 mt-4" id="doc-stats-grid">
           <div style="background:rgba(255,255,255,0.12);border-radius:14px;padding:12px;text-align:center;">
-            <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:white;">${appts.length}</div>
+            <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:white;" id="doc-stat-appts">-</div>
             <div style="font-size:11px;color:rgba(255,255,255,0.7);">Today's Appts</div>
           </div>
           <div style="background:rgba(255,255,255,0.12);border-radius:14px;padding:12px;text-align:center;">
-            <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--emergency);">${activeEmergencies}</div>
+            <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--emergency);" id="doc-stat-emerg">-</div>
             <div style="font-size:11px;color:rgba(255,255,255,0.7);">Emergency</div>
           </div>
           <div style="background:rgba(255,255,255,0.12);border-radius:14px;padding:12px;text-align:center;">
-            <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--secondary);">4</div>
+            <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--secondary);" id="doc-stat-video">-</div>
             <div style="font-size:11px;color:rgba(255,255,255,0.7);">Video Consults</div>
           </div>
         </div>
@@ -83,28 +79,74 @@ export async function renderDoctorDashboard() {
           <span class="badge badge-primary">Sorted by AI Triage</span>
         </div>
 
-        <div style="display:flex;flex-direction:column;gap:12px;" class="mt-3">
-          ${mockData.doctorQueue.map(q => `
-            <div class="card" style="padding:16px;cursor:pointer;" onclick="openPatientSummary('${escapeHtml(q.id)}')">
-              <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-2">
-                  <div style="font-family:var(--font-display);font-weight:800;font-size:14px;color:var(--primary);">${escapeHtml(q.token)}</div>
-                  <div style="font-family:var(--font-display);font-size:16px;font-weight:700;">${escapeHtml(q.name)}</div>
-                  <span style="font-size:12px;color:var(--text-tertiary);">(${escapeHtml(q.age)}y)</span>
-                </div>
-                <span class="badge badge-triage-${escapeHtml(q.triage)}">${escapeHtml(q.triage.toUpperCase())}</span>
-              </div>
-              <div style="font-size:13px;color:var(--text-secondary);">Condition: <strong>${escapeHtml(q.condition)}</strong> • Wait: ${escapeHtml(q.wait)}</div>
-              <div class="flex gap-2 mt-3">
-                <button class="btn btn-primary btn-xs flex-1" onclick="event.stopPropagation();navigate('doctor-summary')">View AI Summary</button>
-                <button class="btn btn-outline btn-xs flex-1" onclick="event.stopPropagation();navigate('doctor-prescription')">Prescribe</button>
-              </div>
-            </div>
-          `).join('')}
+        <div id="doc-queue-container" class="mt-3">
+          ${renderSkeletonCards(3, false)}
         </div>
       </div>
     </div>
   `;
 
   window.openPatientSummary = () => navigate('doctor-summary');
+  window.retryDoctorDashboard = () => loadDoctorDashboardData();
+  loadDoctorDashboardData();
+}
+
+async function loadDoctorDashboardData() {
+  const queueEl = document.getElementById('doc-queue-container');
+  if (!queueEl) return;
+  queueEl.innerHTML = renderSkeletonCards(3, false);
+
+  try {
+    const [appts, emergencies] = await Promise.all([
+      getAppointments(),
+      getEmergencyRequests()
+    ]);
+    if (!document.getElementById('doc-queue-container')) return;
+
+    const activeEmergencies = (emergencies || []).filter(e => e.status !== 'completed').length;
+    const apptsEl = document.getElementById('doc-stat-appts');
+    const emergEl = document.getElementById('doc-stat-emerg');
+    const videoEl = document.getElementById('doc-stat-video');
+    if (apptsEl) apptsEl.textContent = String((appts || []).length);
+    if (emergEl) emergEl.textContent = String(activeEmergencies);
+    if (videoEl) videoEl.textContent = '4';
+
+    const queue = mockData.doctorQueue || [];
+    if (queue.length === 0) {
+      queueEl.innerHTML = renderEmptyState({
+        title: 'No patients waiting',
+        description: 'Your AI priority consultation queue is currently empty.'
+      });
+      return;
+    }
+
+    queueEl.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        ${queue.map(q => `
+          <div class="card" style="padding:16px;cursor:pointer;" onclick="openPatientSummary('${escapeHtml(q.id)}')">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <div style="font-family:var(--font-display);font-weight:800;font-size:14px;color:var(--primary);">${escapeHtml(q.token)}</div>
+                <div style="font-family:var(--font-display);font-size:16px;font-weight:700;">${escapeHtml(q.name)}</div>
+                <span style="font-size:12px;color:var(--text-tertiary);">(${escapeHtml(q.age)}y)</span>
+              </div>
+              <span class="badge badge-triage-${escapeHtml(q.triage)}">${escapeHtml(q.triage.toUpperCase())}</span>
+            </div>
+            <div style="font-size:13px;color:var(--text-secondary);">Condition: <strong>${escapeHtml(q.condition)}</strong> • Wait: ${escapeHtml(q.wait)}</div>
+            <div class="flex gap-2 mt-3">
+              <button class="btn btn-primary btn-xs flex-1" onclick="event.stopPropagation();navigate('doctor-summary')">View AI Summary</button>
+              <button class="btn btn-outline btn-xs flex-1" onclick="event.stopPropagation();navigate('doctor-prescription')">Prescribe</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch (err) {
+    if (!document.getElementById('doc-queue-container')) return;
+    queueEl.innerHTML = renderErrorState({
+      title: 'Unable to load patient queue',
+      description: err?.message || 'Could not retrieve today’s appointments and triage queue.',
+      retryOnclick: 'retryDoctorDashboard()'
+    });
+  }
 }

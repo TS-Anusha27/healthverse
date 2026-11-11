@@ -1,16 +1,13 @@
 // HealthVerse — Medicine Reminders & Pharmacy Orders connected to Supabase DB
 import { navigate, goBack } from '../../routes/router.js';
-import { showToast, showModal, closeModal, escapeHtml } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState } from '../../utils/utils.js';
 import { getMedicines, createMedicine, createMedicineOrder } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 
 let currentMeds = [];
 
-export async function renderMedicines() {
-  currentMeds = await getMedicines();
+export function renderMedicines() {
   const app = document.getElementById('app');
-  const takenCount = currentMeds.filter(m => m.taken).length;
-  const totalCount = currentMeds.length || 1;
 
   app.innerHTML = `
     <div class="screen" style="background:var(--bg);">
@@ -26,50 +23,102 @@ export async function renderMedicines() {
 
       <div class="screen-content" style="padding:20px;padding-bottom:100px;">
         <!-- Today's Adherence -->
-        <div class="card mb-4" style="background:linear-gradient(135deg,#FFF8EC,#FFF0D6);border:1px solid #FFE0B2;padding:18px;">
-          <div class="flex items-center justify-between">
-            <div>
-              <div style="font-size:12px;font-weight:700;color:var(--warning);text-transform:uppercase;letter-spacing:0.5px;">Today's Adherence</div>
-              <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:var(--text-primary);margin-top:2px;">${Math.round((takenCount/totalCount)*100)}% Completed</div>
-              <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${takenCount} of ${totalCount} medicines taken today</div>
-            </div>
-            <div style="width:50px;height:50px;border-radius:50%;background:var(--warning);color:white;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:16px;">
-              ${takenCount}/${totalCount}
-            </div>
-          </div>
+        <div id="meds-adherence" class="mb-4">
+          <div class="skeleton" style="height:92px;border-radius:var(--radius-lg);"></div>
         </div>
 
         <!-- Medicine List -->
         <div class="section-title mb-3">Your Active Medications</div>
-        <div style="display:flex;flex-direction:column;gap:12px;">
-          ${currentMeds.map(med => `
-            <div class="card" style="border-left:4px solid ${med.color || '#4A90D9'};padding:16px;">
-              <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-2">
-                  <div style="width:10px;height:10px;border-radius:50%;background:${med.color || '#4A90D9'};"></div>
-                  <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text-primary);">${escapeHtml(med.name)}</div>
-                </div>
-                <span class="badge badge-primary">${escapeHtml(med.dosage || '5mg')}</span>
-              </div>
-              <div style="font-size:13px;color:var(--text-secondary);display:flex;flex-direction:column;gap:4px;">
-                <div>⏰ Schedule: <strong>${escapeHtml(med.time || '8:00 AM')}</strong> (${escapeHtml(med.frequency || 'Once daily')})</div>
-                <div>🍽️ Timing: <strong>${escapeHtml(med.meals || 'After meals')}</strong></div>
-                <div>📦 Refill: <span style="color:${(med.refill_days || med.refillDays) <= 5 ? 'var(--emergency)' : 'var(--text-secondary)'};font-weight:600;">${escapeHtml(med.refill_days || med.refillDays || 10)} days remaining</span></div>
-              </div>
-              <div class="flex gap-2 mt-3">
-                <button class="btn ${med.taken ? 'btn-ghost' : 'btn-secondary'} btn-xs flex-1" onclick="toggleMedState('${escapeHtml(med.id)}', this)">
-                  ${med.taken ? '✓ Taken Today' : 'Mark as Taken'}
-                </button>
-                <button class="btn btn-ghost btn-xs" onclick="orderRefillModal('${escapeHtml(med.name)}')">Refill</button>
-              </div>
-            </div>
-          `).join('')}
+        <div id="meds-list-container">
+          ${renderSkeletonCards(3, false)}
         </div>
       </div>
     </div>
   `;
 
   initMedicineHandlers();
+  window.retryMedicines = () => loadMedicinesData();
+  loadMedicinesData();
+}
+
+async function loadMedicinesData() {
+  const adherenceEl = document.getElementById('meds-adherence');
+  const listEl = document.getElementById('meds-list-container');
+  if (!listEl) return;
+
+  if (adherenceEl) adherenceEl.innerHTML = '<div class="skeleton" style="height:92px;border-radius:var(--radius-lg);"></div>';
+  listEl.innerHTML = renderSkeletonCards(3, false);
+
+  try {
+    currentMeds = await getMedicines();
+    if (!document.getElementById('meds-list-container')) return;
+
+    const takenCount = currentMeds.filter(m => m.taken).length;
+    const totalCount = currentMeds.length;
+    const pct = totalCount > 0 ? Math.round((takenCount / totalCount) * 100) : 0;
+
+    if (adherenceEl) {
+      adherenceEl.innerHTML = `
+        <div class="card" style="background:linear-gradient(135deg,#FFF8EC,#FFF0D6);border:1px solid #FFE0B2;padding:18px;">
+          <div class="flex items-center justify-between">
+            <div>
+              <div style="font-size:12px;font-weight:700;color:var(--warning);text-transform:uppercase;letter-spacing:0.5px;">Today's Adherence</div>
+              <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:var(--text-primary);margin-top:2px;"><span id="med-adherence-pct">${pct}</span>% Completed</div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;" id="med-adherence-sub">${takenCount} of ${totalCount} medicines taken today</div>
+            </div>
+            <div style="width:50px;height:50px;border-radius:50%;background:var(--warning);color:white;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:16px;" id="med-adherence-ratio">
+              ${takenCount}/${totalCount}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (currentMeds.length === 0) {
+      listEl.innerHTML = renderEmptyState({
+        title: 'No active medications',
+        description: 'Add your daily prescriptions to track doses and get refill alerts.',
+        actionLabel: 'Add Medicine',
+        actionOnclick: 'addMedicineModal()'
+      });
+      return;
+    }
+
+    listEl.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        ${currentMeds.map(med => `
+          <div class="card" style="border-left:4px solid ${med.color || '#4A90D9'};padding:16px;">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <div style="width:10px;height:10px;border-radius:50%;background:${med.color || '#4A90D9'};"></div>
+                <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text-primary);">${escapeHtml(med.name)}</div>
+              </div>
+              <span class="badge badge-primary">${escapeHtml(med.dosage || '5mg')}</span>
+            </div>
+            <div style="font-size:13px;color:var(--text-secondary);display:flex;flex-direction:column;gap:4px;">
+              <div>⏰ Schedule: <strong>${escapeHtml(med.time || '8:00 AM')}</strong> (${escapeHtml(med.frequency || 'Once daily')})</div>
+              <div>🍽️ Timing: <strong>${escapeHtml(med.meals || 'After meals')}</strong></div>
+              <div>📦 Refill: <span style="color:${(med.refill_days || med.refillDays) <= 5 ? 'var(--emergency)' : 'var(--text-secondary)'};font-weight:600;">${escapeHtml(med.refill_days || med.refillDays || 10)} days remaining</span></div>
+            </div>
+            <div class="flex gap-2 mt-3">
+              <button class="btn ${med.taken ? 'btn-ghost' : 'btn-secondary'} btn-xs flex-1" onclick="toggleMedState('${escapeHtml(med.id)}', this)">
+                ${med.taken ? '✓ Taken Today' : 'Mark as Taken'}
+              </button>
+              <button class="btn btn-ghost btn-xs" onclick="orderRefillModal('${escapeHtml(med.name)}')">Refill</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch (err) {
+    if (!document.getElementById('meds-list-container')) return;
+    if (adherenceEl) adherenceEl.innerHTML = '';
+    listEl.innerHTML = renderErrorState({
+      title: 'Could not load medications',
+      description: err?.message || 'Unable to fetch your medicine schedule right now.',
+      retryOnclick: 'retryMedicines()'
+    });
+  }
 }
 
 function initMedicineHandlers() {

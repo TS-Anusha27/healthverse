@@ -1,17 +1,23 @@
 // HealthVerse — Appointments + Map Screen
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
-import { showToast, showModal, closeModal, generateQRDisplay, escapeHtml } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, generateQRDisplay, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState } from '../../utils/utils.js';
 import { getHospitals, getDoctors, createAppointment } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 
 let map = null;
+let loadedHospitals = [...mockData.hospitals];
 let selectedHospital = null;
 let selectedDoctor = null;
 let selectedDate = null;
 let selectedSlot = null;
 
 export function renderAppointments() {
+  if (map) {
+    try { map.remove(); } catch (e) {}
+    map = null;
+  }
+
   const app = document.getElementById('app');
   app.innerHTML = `
     <div class="screen" id="appt-screen">
@@ -62,36 +68,76 @@ export function renderAppointments() {
 
         <!-- Hospital List -->
         <div class="section mt-4 mb-4" id="hospital-list">
-          <div class="section-title mb-3">Available Hospitals (${mockData.hospitals.length})</div>
-          <div style="display:flex;flex-direction:column;gap:14px;">
-            ${mockData.hospitals.map(h => renderHospitalCard(h)).join('')}
+          <div class="section-title mb-3">Available Hospitals</div>
+          <div id="hospital-cards" style="display:flex;flex-direction:column;gap:14px;">
+            ${renderSkeletonCards(3)}
           </div>
         </div>
       </div>
     </div>
   `;
 
-  initMap();
   if (typeof lucide !== 'undefined') lucide.createIcons();
   initApptHandlers();
+  window.retryLoadHospitals = () => loadHospitalsData();
+  loadHospitalsData();
+}
+
+async function loadHospitalsData() {
+  const list = document.getElementById('hospital-list');
+  const cardsEl = document.getElementById('hospital-cards');
+  const titleEl = list?.querySelector('.section-title');
+  if (!cardsEl) return;
+
+  cardsEl.innerHTML = renderSkeletonCards(3);
+
+  try {
+    const hospitals = await getHospitals();
+    if (!document.getElementById('hospital-cards')) return;
+
+    loadedHospitals = Array.isArray(hospitals) ? hospitals : [];
+    if (titleEl) titleEl.textContent = `Available Hospitals (${loadedHospitals.length})`;
+
+    if (loadedHospitals.length === 0) {
+      cardsEl.innerHTML = renderEmptyState({
+        title: 'No hospitals found',
+        description: 'No clinics or hospitals are currently listed in this area.',
+        actionLabel: 'Refresh List',
+        actionOnclick: 'retryLoadHospitals()'
+      });
+    } else {
+      cardsEl.innerHTML = loadedHospitals.map(h => renderHospitalCard(h)).join('');
+    }
+    initMap();
+  } catch (err) {
+    if (!document.getElementById('hospital-cards')) return;
+    if (titleEl) titleEl.textContent = 'Available Hospitals';
+    cardsEl.innerHTML = renderErrorState({
+      title: 'Unable to load hospitals',
+      description: err?.message || 'Could not retrieve nearby hospitals. Please try again.',
+      retryOnclick: 'retryLoadHospitals()'
+    });
+  }
 }
 
 function renderHospitalCard(h) {
+  const specs = Array.isArray(h.specialties) ? h.specialties : [];
+  const name = h.name || 'Hospital';
   return `
-    <div class="hosp-card" id="hosp-${h.id}" onclick="openHospital('${h.id}')">
+    <div class="hosp-card" id="hosp-${escapeHtml(h.id)}" onclick="openHospital('${escapeHtml(h.id)}')">
       <div class="hosp-card-header">
-        <div class="hosp-avatar">${h.name.charAt(0)}</div>
+        <div class="hosp-avatar">${escapeHtml(name.charAt(0))}</div>
         <div style="flex:1;">
-          <div class="hosp-name">${h.name}</div>
-          <div class="hosp-spec">${h.specialty}</div>
+          <div class="hosp-name">${escapeHtml(name)}</div>
+          <div class="hosp-spec">${escapeHtml(h.specialty || 'Multi-Specialty')}</div>
           <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
             <div class="hosp-rating">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFA502" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              ${h.rating} <span style="color:var(--text-tertiary);">(${h.reviews.toLocaleString()})</span>
+              ${escapeHtml(h.rating || '4.8')} <span style="color:var(--text-tertiary);">(${Number(h.reviews || 0).toLocaleString()})</span>
             </div>
             <div class="hosp-distance">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              ${h.distance}
+              ${escapeHtml(h.distance || 'Nearby')}
             </div>
           </div>
         </div>
@@ -100,22 +146,22 @@ function renderHospitalCard(h) {
       <div class="hosp-card-body">
         <div class="hosp-stat">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Wait: <strong>${h.waitTime}</strong>
+          Wait: <strong>${escapeHtml(h.waitTime || '15 min')}</strong>
         </div>
         <div class="hosp-stat">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          Queue: <strong>${h.queue} patients</strong>
+          Queue: <strong>${escapeHtml(h.queue ?? 0)} patients</strong>
         </div>
         <div class="hosp-stat">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          Beds: <strong>${h.beds.available} free</strong>
+          Beds: <strong>${escapeHtml(h.beds?.available ?? 12)} free</strong>
         </div>
       </div>
       <div class="hosp-specialties">
-        ${h.specialties.slice(0,3).map(sp => `<span class="badge badge-primary" style="font-size:10px;">${sp}</span>`).join('')}
-        ${h.specialties.length > 3 ? `<span class="badge badge-primary" style="font-size:10px;">+${h.specialties.length-3}</span>` : ''}
+        ${specs.slice(0,3).map(sp => `<span class="badge badge-primary" style="font-size:10px;">${escapeHtml(sp)}</span>`).join('')}
+        ${specs.length > 3 ? `<span class="badge badge-primary" style="font-size:10px;">+${specs.length-3}</span>` : ''}
       </div>
-      <button class="btn btn-primary btn-sm btn-full mt-3" onclick="event.stopPropagation();bookAtHospital('${h.id}')">
+      <button class="btn btn-primary btn-sm btn-full mt-3" onclick="event.stopPropagation();bookAtHospital('${escapeHtml(h.id)}')">
         Book Appointment
       </button>
     </div>
@@ -126,6 +172,7 @@ function initMap() {
   setTimeout(() => {
     const mapEl = document.getElementById('map');
     if (!mapEl || map) return;
+    if (typeof L === 'undefined') return;
 
     map = L.map('map', { zoomControl: false, attributionControl: false }).setView([13.0570, 80.2290], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
@@ -140,15 +187,16 @@ function initMap() {
       iconAnchor: [18, 18]
     });
 
-    mockData.hospitals.forEach(h => {
+    loadedHospitals.forEach(h => {
+      if (h.lat == null || h.lng == null) return;
       L.marker([h.lat, h.lng], { icon: hospitalIcon })
         .addTo(map)
         .bindPopup(`
           <div style="font-family:var(--font-display);min-width:160px;">
-            <div style="font-weight:700;font-size:14px;color:#1A2332;">${h.name}</div>
-            <div style="color:#6B7A8D;font-size:12px;margin-top:3px;">⭐ ${h.rating} • ${h.distance}</div>
-            <div style="color:#6B7A8D;font-size:12px;margin-top:2px;">⏱️ Wait: ${h.waitTime}</div>
-            <button onclick="bookAtHospital('${h.id}')" style="margin-top:8px;width:100%;padding:6px;background:#4A90D9;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;">Book Now</button>
+            <div style="font-weight:700;font-size:14px;color:#1A2332;">${escapeHtml(h.name)}</div>
+            <div style="color:#6B7A8D;font-size:12px;margin-top:3px;">⭐ ${escapeHtml(h.rating)} • ${escapeHtml(h.distance)}</div>
+            <div style="color:#6B7A8D;font-size:12px;margin-top:2px;">⏱️ Wait: ${escapeHtml(h.waitTime)}</div>
+            <button onclick="bookAtHospital('${escapeHtml(h.id)}')" style="margin-top:8px;width:100%;padding:6px;background:#4A90D9;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;">Book Now</button>
           </div>
         `);
     });
@@ -171,21 +219,30 @@ function initMap() {
 
 function initApptHandlers() {
   window.filterHospitals = (query) => {
-    const q = query.toLowerCase();
+    const q = (query || '').toLowerCase();
     const list = document.getElementById('hospital-list');
-    const filtered = mockData.hospitals.filter(h =>
-      h.name.toLowerCase().includes(q) || h.specialty.toLowerCase().includes(q) ||
-      h.specialties.some(s => s.toLowerCase().includes(q))
+    const filtered = loadedHospitals.filter(h =>
+      (h.name || '').toLowerCase().includes(q) || (h.specialty || '').toLowerCase().includes(q) ||
+      (Array.isArray(h.specialties) && h.specialties.some(s => s.toLowerCase().includes(q)))
     );
     const titleEl = list?.querySelector('.section-title');
     if (titleEl) titleEl.textContent = `Available Hospitals (${filtered.length})`;
-    const cards = list?.querySelector('div[style]');
-    if (cards) cards.innerHTML = filtered.map(h => renderHospitalCard(h)).join('');
+    const cards = document.getElementById('hospital-cards') || list?.querySelector('div[style]');
+    if (cards) {
+      cards.innerHTML = filtered.length > 0
+        ? filtered.map(h => renderHospitalCard(h)).join('')
+        : renderEmptyState({
+            title: 'No hospitals match your filter',
+            description: 'Try another hospital name, specialty, or reset your filter.',
+            actionLabel: 'Show All',
+            actionOnclick: "document.getElementById('search-input').value='';filterCategory(document.querySelector('#appt-screen .chip'),'All')"
+          });
+    }
   };
 
   window.filterCategory = (el, cat) => {
     document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-    el.classList.add('active');
+    if (el) el.classList.add('active');
     if (cat === 'All') {
       window.filterHospitals('');
     } else {
@@ -194,7 +251,7 @@ function initApptHandlers() {
   };
 
   window.openHospital = (id) => {
-    const h = mockData.hospitals.find(h => h.id === id);
+    const h = loadedHospitals.find(h => h.id === id) || mockData.hospitals.find(h => h.id === id);
     if (!h) return;
     showModal(`
       <h3 style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text-primary);">${escapeHtml(h.name)}</h3>
@@ -208,17 +265,17 @@ function initApptHandlers() {
         <div>📞 ${escapeHtml(h.phone)}</div>
         <div>⏱️ Wait time: <strong style="color:var(--text-primary);">${escapeHtml(h.waitTime)}</strong></div>
         <div>👥 Queue: <strong style="color:var(--text-primary);">${escapeHtml(h.queue)} patients</strong></div>
-        <div>🛏️ Available beds: <strong style="color:var(--secondary);">${escapeHtml(h.beds.available)} / ${escapeHtml(h.beds.total)}</strong></div>
+        <div>🛏️ Available beds: <strong style="color:var(--secondary);">${escapeHtml(h.beds?.available ?? 0)} / ${escapeHtml(h.beds?.total ?? 0)}</strong></div>
       </div>
       <div style="margin-top:16px;">
         <div style="font-size:12px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Specialties</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;">
-          ${h.specialties.map(s => `<span class="chip active">${escapeHtml(s)}</span>`).join('')}
+          ${(h.specialties || []).map(s => `<span class="chip active">${escapeHtml(s)}</span>`).join('')}
         </div>
       </div>
       <div style="margin-top:16px;">
         <div style="font-size:12px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Insurance Accepted</div>
-        <div style="font-size:13px;color:var(--text-secondary);">${h.insurance.map(i => escapeHtml(i)).join(' • ')}</div>
+        <div style="font-size:13px;color:var(--text-secondary);">${(h.insurance || []).map(i => escapeHtml(i)).join(' • ')}</div>
       </div>
       <button class="btn btn-primary btn-full mt-4" onclick="bookAtHospital('${escapeHtml(h.id)}');closeModal()">
         Book Appointment at ${escapeHtml(h.name)}
@@ -227,7 +284,7 @@ function initApptHandlers() {
   };
 
   window.bookAtHospital = (hospitalId) => {
-    selectedHospital = mockData.hospitals.find(h => h.id === hospitalId);
+    selectedHospital = loadedHospitals.find(h => h.id === hospitalId) || mockData.hospitals.find(h => h.id === hospitalId);
     closeModal();
     showBookingFlow();
   };

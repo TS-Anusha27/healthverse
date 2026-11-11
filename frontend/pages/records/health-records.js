@@ -1,15 +1,14 @@
 // HealthVerse — Health Records Timeline with Supabase DB & Storage
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
-import { showToast, showModal, closeModal, escapeHtml } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, renderSkeletonStats, renderEmptyState, renderErrorState } from '../../utils/utils.js';
 import { getHealthRecords, createHealthRecord } from '../../services/supabase/db.js';
 import { uploadFile } from '../../services/supabase/storage.js';
 
 let currentRecords = [];
 
-export async function renderHealthRecords() {
+export function renderHealthRecords() {
   const app = document.getElementById('app');
-  currentRecords = await getHealthRecords();
 
   app.innerHTML = `
     <div class="screen" id="records-screen" style="background:var(--bg);">
@@ -58,26 +57,15 @@ export async function renderHealthRecords() {
         </div>
 
         <!-- Stats -->
-        <div class="section mt-4">
-          <div class="grid-3">
-            ${[
-              { n: currentRecords.length, label: 'Total', color: 'var(--primary)', bg: 'var(--primary-light)' },
-              { n: currentRecords.filter(r=>r.type==='Prescription').length, label: 'Scripts', color: 'var(--secondary)', bg: 'var(--secondary-light)' },
-              { n: currentRecords.filter(r=>r.type==='Blood Report').length, label: 'Lab Reports', color: 'var(--accent)', bg: 'var(--accent-light)' },
-            ].map(s => `
-              <div style="background:${s.bg};border-radius:14px;padding:14px;text-align:center;">
-                <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:${s.color};">${s.n}</div>
-                <div style="font-size:11px;font-weight:600;color:${s.color};margin-top:2px;">${s.label}</div>
-              </div>
-            `).join('')}
-          </div>
+        <div class="section mt-4" id="records-stats">
+          ${renderSkeletonStats(3)}
         </div>
 
         <!-- Timeline -->
         <div class="section mt-5" id="records-list">
           <div class="section-title mb-4">Timeline</div>
           <div class="timeline" id="timeline-container">
-            ${renderRecordItems(currentRecords)}
+            ${renderSkeletonCards(3)}
           </div>
         </div>
       </div>
@@ -86,9 +74,70 @@ export async function renderHealthRecords() {
 
   injectRecordStyles();
   initRecordHandlers();
+  window.retryHealthRecords = () => loadHealthRecordsData();
+  loadHealthRecordsData();
+}
+
+async function loadHealthRecordsData() {
+  const statsEl = document.getElementById('records-stats');
+  const container = document.getElementById('timeline-container');
+  if (!container) return;
+
+  if (statsEl) statsEl.innerHTML = renderSkeletonStats(3);
+  container.innerHTML = renderSkeletonCards(3);
+
+  try {
+    currentRecords = await getHealthRecords();
+    if (!document.getElementById('timeline-container')) return;
+
+    if (statsEl) {
+      statsEl.innerHTML = `
+        <div class="grid-3">
+          ${[
+            { n: currentRecords.length, label: 'Total', color: 'var(--primary)', bg: 'var(--primary-light)' },
+            { n: currentRecords.filter(r=>r.type==='Prescription').length, label: 'Scripts', color: 'var(--secondary)', bg: 'var(--secondary-light)' },
+            { n: currentRecords.filter(r=>r.type==='Blood Report').length, label: 'Lab Reports', color: 'var(--accent)', bg: 'var(--accent-light)' },
+          ].map(s => `
+            <div style="background:${s.bg};border-radius:14px;padding:14px;text-align:center;">
+              <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:${s.color};">${s.n}</div>
+              <div style="font-size:11px;font-weight:600;color:${s.color};margin-top:2px;">${s.label}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    if (currentRecords.length === 0) {
+      container.innerHTML = renderEmptyState({
+        title: 'No health records yet',
+        description: 'Upload lab reports, prescriptions, or scan files to build your medical timeline.',
+        actionLabel: 'Upload Record',
+        actionOnclick: 'uploadRecordModal()'
+      });
+      return;
+    }
+
+    container.innerHTML = renderRecordItems(currentRecords);
+  } catch (err) {
+    if (!document.getElementById('timeline-container')) return;
+    if (statsEl) statsEl.innerHTML = '';
+    container.innerHTML = renderErrorState({
+      title: 'Unable to load health records',
+      description: err?.message || 'Could not retrieve your medical timeline right now.',
+      retryOnclick: 'retryHealthRecords()'
+    });
+  }
 }
 
 function renderRecordItems(records) {
+  if (!records || records.length === 0) {
+    return renderEmptyState({
+      title: 'No matching records',
+      description: 'Try clearing your search or choosing a different record category.',
+      actionLabel: 'Show All Records',
+      actionOnclick: "document.getElementById('record-search').value='';filterRecordType(document.querySelector('#records-screen .chip'),'All')"
+    });
+  }
   return records.map((r, i) => `
     <div class="timeline-item" onclick="openRecord('${escapeHtml(r.id)}')" style="animation:slideUp 0.4s ease ${i * 0.08}s both;">
       <div class="timeline-line ${i === records.length - 1 ? 'last' : ''}"></div>

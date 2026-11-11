@@ -118,6 +118,87 @@ export function debounce(fn, delay) {
   };
 }
 
+export function renderSkeletonCards(count = 3, withAvatar = true) {
+  return `
+    <div class="skeleton-stack" aria-busy="true" aria-label="Loading content">
+      ${Array.from({ length: count }, () => `
+        <div class="skeleton-card">
+          <div class="skeleton-row">
+            ${withAvatar ? '<div class="skeleton skeleton-avatar"></div>' : ''}
+            <div style="flex:1;">
+              <div class="skeleton skeleton-line skeleton-line--title"></div>
+              <div class="skeleton skeleton-line skeleton-line--medium"></div>
+              <div class="skeleton skeleton-line skeleton-line--short"></div>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+export function renderSkeletonStats(count = 3) {
+  return `
+    <div class="grid-${count === 2 ? '2' : '3'}" aria-busy="true" aria-label="Loading stats">
+      ${Array.from({ length: count }, () => '<div class="skeleton skeleton-stat"></div>').join('')}
+    </div>
+  `;
+}
+
+export function renderEmptyState({
+  title = 'Nothing here yet',
+  description = 'There is no data to display right now.',
+  actionLabel = '',
+  actionOnclick = '',
+  icon = ''
+} = {}) {
+  const defaultIcon = `
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="9" y1="15" x2="15" y2="15"/>
+    </svg>
+  `;
+  return `
+    <div class="empty-state">
+      <div class="empty-state-illustration">${icon || defaultIcon}</div>
+      <div class="empty-state-title">${escapeHtml(title)}</div>
+      <div class="empty-state-desc">${escapeHtml(description)}</div>
+      ${actionLabel && actionOnclick ? `
+        <div class="empty-state-action">
+          <button class="btn btn-primary btn-sm" onclick="${actionOnclick}">${escapeHtml(actionLabel)}</button>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+export function renderErrorState({
+  title = 'Unable to load data',
+  description = 'Something went wrong while fetching this information. Please try again.',
+  retryOnclick = '',
+  retryLabel = 'Retry'
+} = {}) {
+  return `
+    <div class="error-state" role="alert">
+      <div class="error-state-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <div class="error-state-title">${escapeHtml(title)}</div>
+      <div class="error-state-desc">${escapeHtml(description)}</div>
+      ${retryOnclick ? `
+        <div class="error-state-action">
+          <button class="btn btn-primary btn-sm" onclick="${retryOnclick}">${escapeHtml(retryLabel)}</button>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
 // Generate QR-like pattern (visual placeholder)
 export function generateQRDisplay(code) {
   return `

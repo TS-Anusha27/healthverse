@@ -847,6 +847,130 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: var(--radius-sm);
 }
 
+.skeleton-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton-card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.skeleton-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.skeleton-line {
+  height: 12px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.skeleton-line:last-child {
+  margin-bottom: 0;
+}
+
+.skeleton-line--title {
+  height: 16px;
+  width: 58%;
+}
+
+.skeleton-line--medium {
+  width: 78%;
+}
+
+.skeleton-line--short {
+  width: 38%;
+}
+
+.skeleton-stat {
+  height: 72px;
+  border-radius: var(--radius-md);
+}
+
+/* --- Empty & Error States --- */
+.empty-state,
+.error-state {
+  text-align: center;
+  padding: 32px 20px;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+}
+
+.empty-state {
+  border: 1px dashed var(--border);
+}
+
+.error-state {
+  border: 1px solid rgba(255, 71, 87, 0.3);
+}
+
+.empty-state-illustration {
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 14px;
+  border-radius: 20px;
+  background: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-state-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  border-radius: var(--radius-full);
+  background: var(--emergency-light);
+  color: var(--emergency);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-state-title,
+.error-state-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.empty-state-desc,
+.error-state-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.empty-state-action,
+.error-state-action {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 /* --- Section --- */
 .section {
   padding: var(--space-5) var(--space-5) 0;

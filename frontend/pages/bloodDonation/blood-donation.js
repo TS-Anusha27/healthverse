@@ -1,13 +1,11 @@
 // HealthVerse — Blood & Organ Donation connected to Supabase DB
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
-import { showToast, showModal, closeModal, escapeHtml } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState } from '../../utils/utils.js';
 import { getBloodDonors, getBloodBanks, registerBloodDonor, registerOrganDonor } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 
-export async function renderBloodDonation() {
-  const donors = await getBloodDonors();
-  const banks = await getBloodBanks();
+export function renderBloodDonation() {
   const app = document.getElementById('app');
 
   app.innerHTML = `
@@ -36,29 +34,14 @@ export async function renderBloodDonation() {
         </div>
 
         <!-- Available Donors List -->
-        <div class="section mt-4">
+        <div class="section mt-4" id="donors-section">
           <div class="section-header">
-            <div class="section-title">Available Donors (${donors.length})</div>
+            <div class="section-title" id="donors-count-title">Available Donors</div>
             <span class="badge badge-success">Verified</span>
           </div>
 
-          <div style="display:flex;flex-direction:column;gap:10px;">
-            ${donors.map(d => `
-              <div class="card card-sm flex items-center justify-between" style="padding:14px;">
-                <div class="flex items-center gap-3">
-                  <div style="width:40px;height:40px;border-radius:50%;background:#FFF0F1;color:#E74C3C;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:var(--font-display);">
-                    ${escapeHtml(d.group_type || d.group || 'O+')}
-                  </div>
-                  <div>
-                    <div style="font-size:14px;font-weight:700;">${escapeHtml(d.name)}</div>
-                    <div style="font-size:12px;color:var(--text-secondary);">${escapeHtml(d.distance || '1.0 km')} • Last: ${escapeHtml(d.last_donated || d.lastDonated || 'Recent')}</div>
-                  </div>
-                </div>
-                <button class="btn btn-outline btn-xs" style="border-color:#E74C3C;color:#E74C3C;" onclick="showToast('Calling donor ${escapeHtml(d.phone || '')}...','info')">
-                  Call
-                </button>
-              </div>
-            `).join('')}
+          <div id="donors-list-container">
+            ${renderSkeletonCards(3)}
           </div>
         </div>
 
@@ -73,6 +56,64 @@ export async function renderBloodDonation() {
   `;
 
   initBloodHandlers();
+  window.retryBloodDonation = () => loadBloodDonationData();
+  loadBloodDonationData();
+}
+
+async function loadBloodDonationData() {
+  const container = document.getElementById('donors-list-container');
+  const titleEl = document.getElementById('donors-count-title');
+  if (!container) return;
+  container.innerHTML = renderSkeletonCards(3);
+
+  try {
+    const [donors] = await Promise.all([
+      getBloodDonors(),
+      getBloodBanks()
+    ]);
+    if (!document.getElementById('donors-list-container')) return;
+
+    const list = donors || [];
+    if (titleEl) titleEl.textContent = `Available Donors (${list.length})`;
+
+    if (list.length === 0) {
+      container.innerHTML = renderEmptyState({
+        title: 'No nearby donors listed',
+        description: 'Be the first in your area to register and help patients in emergencies.',
+        actionLabel: 'Register as Donor',
+        actionOnclick: 'registerDonorModal()'
+      });
+      return;
+    }
+
+    container.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        ${list.map(d => `
+          <div class="card card-sm flex items-center justify-between" style="padding:14px;">
+            <div class="flex items-center gap-3">
+              <div style="width:40px;height:40px;border-radius:50%;background:#FFF0F1;color:#E74C3C;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:var(--font-display);">
+                ${escapeHtml(d.group_type || d.group || 'O+')}
+              </div>
+              <div>
+                <div style="font-size:14px;font-weight:700;">${escapeHtml(d.name)}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">${escapeHtml(d.distance || '1.0 km')} • Last: ${escapeHtml(d.last_donated || d.lastDonated || 'Recent')}</div>
+              </div>
+            </div>
+            <button class="btn btn-outline btn-xs" style="border-color:#E74C3C;color:#E74C3C;" onclick="showToast('Calling donor ${escapeHtml(d.phone || '')}...','info')">
+              Call
+            </button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch (err) {
+    if (!document.getElementById('donors-list-container')) return;
+    container.innerHTML = renderErrorState({
+      title: 'Unable to load blood donors',
+      description: err?.message || 'Could not retrieve donor directory right now.',
+      retryOnclick: 'retryBloodDonation()'
+    });
+  }
 }
 
 export function renderOrganDonation() {
