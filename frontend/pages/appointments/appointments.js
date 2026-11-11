@@ -502,7 +502,7 @@ function showBookingConfirmation() {
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
       <h3 style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--text-primary);">Booked! 🎉</h3>
-      <p style="font-size:14px;color:var(--text-secondary);margin-top:8px;">Your appointment has been confirmed and saved to Supabase</p>
+      <p style="font-size:14px;color:var(--text-secondary);margin-top:8px;">Your appointment has been confirmed</p>
       <div style="background:var(--surface-dim);border-radius:16px;padding:20px;margin:20px 0;text-align:left;">
         <div style="display:flex;flex-direction:column;gap:8px;font-size:14px;">
           <div class="flex justify-between"><span style="color:var(--text-secondary);">Doctor</span><span style="font-weight:600;">${selectedDoctor?.name || 'Dr. Priya K.'}</span></div>
@@ -521,5 +521,5 @@ function showBookingConfirmation() {
     </div>
   `);
 
-  showToast('Appointment booked! Saved to Supabase database 📧', 'success');
+  showToast('Appointment booked successfully! 📧', 'success');
 }

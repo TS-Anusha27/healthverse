@@ -179,7 +179,7 @@ function initRecordHandlers() {
       <div style="background:var(--surface-dim);border-radius:14px;padding:20px;margin-top:20px;text-align:center;">
         <div style="font-size:48px;margin-bottom:8px;">📄</div>
         <div style="font-size:14px;font-weight:600;color:var(--text-primary);">${escapeHtml(r.title)}</div>
-        <div style="font-size:12px;color:var(--text-tertiary);margin-top:4px;">${r.file_url ? 'File stored on Supabase Storage' : 'Tap to view report'}</div>
+        <div style="font-size:12px;color:var(--text-tertiary);margin-top:4px;">${r.file_url ? 'Secure file attached' : 'Tap to view report'}</div>
       </div>
       <div style="display:flex;gap:10px;margin-top:20px;">
         <button class="btn btn-primary" style="flex:1;" onclick="window.open('${r.file_url || '#'}', '_blank');showToast('Opening report...','success');closeModal()">
@@ -198,7 +198,7 @@ function initRecordHandlers() {
     const content = `
       <div style="padding:16px;">
         <h3 class="text-h2 text-center" style="margin-bottom:8px;">Upload Health Record</h3>
-        <p class="text-caption text-center" style="margin-bottom:20px;">Files are stored securely in Supabase Storage</p>
+        <p class="text-caption text-center" style="margin-bottom:20px;">Files are encrypted and stored securely</p>
 
         <div class="form-group">
           <label class="form-label">Record Title</label>
@@ -223,7 +223,7 @@ function initRecordHandlers() {
         </div>
 
         <button class="btn btn-primary btn-full mt-4" onclick="handleFileUpload()">
-          Upload to Supabase Storage
+          Upload Record
         </button>
       </div>
     `;
@@ -240,7 +240,7 @@ function initRecordHandlers() {
       }
 
       const file = fileInput.files[0];
-      showToast('Uploading to Supabase Storage...', 'info');
+      showToast('Uploading record...', 'info');
 
       const path = `${Date.now()}_${file.name}`;
       const { publicUrl } = await uploadFile('health-records', path, file);
@@ -260,7 +260,7 @@ function initRecordHandlers() {
       await createHealthRecord(newRecord);
       currentRecords.unshift(newRecord);
 
-      showToast('Record uploaded successfully to Supabase! 🎉', 'success');
+      showToast('Record uploaded successfully! 🎉', 'success');
       closeModal();
       renderHealthRecords();
     };

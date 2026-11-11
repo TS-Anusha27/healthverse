@@ -39,7 +39,7 @@ export async function renderBloodDonation() {
         <div class="section mt-4">
           <div class="section-header">
             <div class="section-title">Available Donors (${donors.length})</div>
-            <span class="badge badge-success">Supabase Synced</span>
+            <span class="badge badge-success">Verified</span>
           </div>
 
           <div style="display:flex;flex-direction:column;gap:10px;">
@@ -93,7 +93,7 @@ export function renderOrganDonation() {
         <div style="background:linear-gradient(135deg,#F0EEFF,#E6E0FF);border-radius:18px;padding:24px;text-align:center;">
           <div style="font-size:48px;margin-bottom:10px;">🫀</div>
           <h2 style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--accent);">Become an Organ Donor</h2>
-          <p style="font-size:13px;color:var(--text-secondary);margin-top:6px;line-height:1.5;">Pledge your organs and save up to 8 lives.<br>Secured by National Organ Registry & Supabase.</p>
+          <p style="font-size:13px;color:var(--text-secondary);margin-top:6px;line-height:1.5;">Pledge your organs and save up to 8 lives.<br>Secured by National Organ Registry.</p>
           <button class="btn btn-primary mt-4" style="background:var(--accent);" onclick="registerOrganDonorModal()">
             Pledge Organs Now
           </button>
@@ -106,7 +106,7 @@ export function renderOrganDonation() {
     const content = `
       <div style="padding:16px;">
         <h3 class="text-h2 text-center" style="margin-bottom:8px;">Pledge Organ Donation</h3>
-        <p class="text-caption text-center" style="margin-bottom:20px;">Saved into Supabase organ_donors table</p>
+        <p class="text-caption text-center" style="margin-bottom:20px;">Official organ donor registry pledge</p>
         <div class="form-group">
           <label class="form-label">Full Name</label>
           <input type="text" id="organ-name" class="form-input" value="${escapeHtml(store.currentUser?.name || '')}" />
@@ -127,7 +127,7 @@ export function renderOrganDonation() {
           </div>
         </div>
         <button class="btn btn-primary btn-full mt-4" style="background:var(--accent);" onclick="handleOrganSubmit()">
-          Submit Pledge to Supabase
+          Submit Pledge
         </button>
       </div>
     `;
@@ -149,7 +149,7 @@ export function renderOrganDonation() {
         status: 'registered'
       });
 
-      showToast('🎉 Organ donor pledge saved to Supabase!', 'success', 5000);
+      showToast('🎉 Organ donor pledge submitted successfully!', 'success', 5000);
       closeModal();
     };
   };
@@ -160,7 +160,7 @@ function initBloodHandlers() {
     const content = `
       <div style="padding:16px;">
         <h3 class="text-h2 text-center" style="margin-bottom:8px;">Register as Blood Donor</h3>
-        <p class="text-caption text-center" style="margin-bottom:20px;">Information saved to Supabase blood_donors table</p>
+        <p class="text-caption text-center" style="margin-bottom:20px;">Join our community of life-saving donors</p>
         <div class="form-group">
           <label class="form-label">Full Name</label>
           <input type="text" id="donor-name" class="form-input" value="${escapeHtml(store.currentUser?.name || '')}" />
@@ -177,7 +177,7 @@ function initBloodHandlers() {
           <input type="tel" id="donor-phone" class="form-input" value="${escapeHtml(store.currentUser?.phone || '')}" />
         </div>
         <button class="btn btn-emergency btn-full mt-4" onclick="handleDonorSubmit()">
-          Save Donor Profile to Supabase
+          Register as Blood Donor
         </button>
       </div>
     `;
@@ -200,7 +200,7 @@ function initBloodHandlers() {
         eligible: true
       });
 
-      showToast('Blood donor registration saved to Supabase! 🩸', 'success', 5000);
+      showToast('Blood donor registration successful! 🩸', 'success', 5000);
       closeModal();
       renderBloodDonation();
     };

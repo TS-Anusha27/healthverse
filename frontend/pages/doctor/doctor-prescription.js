@@ -33,11 +33,11 @@ export function renderDoctorPrescription() {
 
           <div style="display:flex;flex-direction:column;gap:10px;">
             ${[
-              { name: 'Amoxicillin 500mg', type: 'Antibiotic (Penicillin class)', isAllergic: true },
-              { name: 'Telmisartan 40mg', type: 'Antihypertensive', isAllergic: false },
-              { name: 'Metformin 500mg', type: 'Antidiabetic', isAllergic: false },
-              { name: 'Ibuprofen 400mg', type: 'NSAID (Kidney/GI caution)', isWarning: true }
-            ].map(m => `
+      { name: 'Amoxicillin 500mg', type: 'Antibiotic (Penicillin class)', isAllergic: true },
+      { name: 'Telmisartan 40mg', type: 'Antihypertensive', isAllergic: false },
+      { name: 'Metformin 500mg', type: 'Antidiabetic', isAllergic: false },
+      { name: 'Ibuprofen 400mg', type: 'NSAID (Kidney/GI caution)', isWarning: true }
+    ].map(m => `
               <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--surface-dim);border-radius:12px;">
                 <div>
                   <div style="font-size:14px;font-weight:600;">${m.name}</div>
@@ -129,7 +129,7 @@ export function renderDoctorPrescription() {
       instructions: 'Take as directed with food'
     });
 
-    showToast('Prescription digitally signed & saved to Supabase!', 'success', 5000);
+    showToast('Prescription digitally signed & saved!', 'success', 5000);
     setTimeout(() => navigate('doctor-home'), 1500);
   };
 }

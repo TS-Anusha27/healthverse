@@ -321,7 +321,7 @@ function buildDefaultProfile() {
 async function completeRegistration() {
   const btn = document.getElementById('step-next-btn');
   if (btn) {
-    btn.innerHTML = '<span class="animate-spin" style="display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;"></span> Saving to Supabase...';
+    btn.innerHTML = '<span class="animate-spin" style="display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;"></span> Saving profile...';
     btn.disabled = true;
   }
 

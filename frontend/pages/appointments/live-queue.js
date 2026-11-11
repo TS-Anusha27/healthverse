@@ -73,7 +73,7 @@ function initQueueHandlers() {
     showModal(`
       <div style="text-align:center;padding:16px;">
         <h3 class="text-h2" style="color:var(--emergency);margin-bottom:8px;">Cancel Appointment?</h3>
-        <p class="text-caption" style="margin-bottom:20px;">Are you sure you want to cancel this booking? This action is saved to Supabase.</p>
+        <p class="text-caption" style="margin-bottom:20px;">Are you sure you want to cancel this booking?</p>
         <button class="btn btn-emergency btn-full" onclick="handleCancel('${id}')">Yes, Cancel Booking</button>
         <button class="btn btn-ghost btn-full mt-2" onclick="closeModal()">Keep Appointment</button>
       </div>
@@ -81,7 +81,7 @@ function initQueueHandlers() {
 
     window.handleCancel = async (apptId) => {
       await cancelAppointment(apptId);
-      showToast('Appointment cancelled in Supabase database', 'warning');
+      showToast('Appointment cancelled', 'warning');
       closeModal();
       navigate('patient-home');
     };
@@ -113,7 +113,7 @@ function initQueueHandlers() {
       const d = document.getElementById('resched-date').value;
       const s = document.getElementById('resched-slot').value;
       await rescheduleAppointment(apptId, d, s);
-      showToast('Appointment rescheduled in Supabase!', 'success');
+      showToast('Appointment rescheduled successfully!', 'success');
       closeModal();
       renderLiveQueue();
     };

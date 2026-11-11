@@ -40,7 +40,7 @@ export async function renderMedicines() {
         </div>
 
         <!-- Medicine List -->
-        <div class="section-title mb-3">Your Active Medications (Supabase Synced)</div>
+        <div class="section-title mb-3">Your Active Medications</div>
         <div style="display:flex;flex-direction:column;gap:12px;">
           ${currentMeds.map(med => `
             <div class="card" style="border-left:4px solid ${med.color || '#4A90D9'};padding:16px;">
@@ -87,7 +87,7 @@ function initMedicineHandlers() {
     const content = `
       <div style="padding:16px;">
         <h3 class="text-h2 text-center" style="margin-bottom:8px;">Add New Medicine</h3>
-        <p class="text-caption text-center" style="margin-bottom:20px;">Saves to Supabase medicines table</p>
+        <p class="text-caption text-center" style="margin-bottom:20px;">Keep your medications schedule organized</p>
         <div class="form-group">
           <label class="form-label">Medicine Name</label>
           <input type="text" id="med-name" class="form-input" placeholder="e.g. Paracetamol" />
@@ -107,7 +107,7 @@ function initMedicineHandlers() {
           <input type="text" id="med-freq" class="form-input" placeholder="Once daily" />
         </div>
         <button class="btn btn-primary btn-full mt-4" onclick="handleAddMedSubmit()">
-          Add Medicine to Supabase
+          Add Medicine
         </button>
       </div>
     `;
@@ -134,7 +134,7 @@ function initMedicineHandlers() {
       };
 
       await createMedicine(newMed);
-      showToast('Medicine added to Supabase database! 💊', 'success');
+      showToast('Medicine added to schedule! 💊', 'success');
       closeModal();
       renderMedicines();
     };
@@ -144,7 +144,7 @@ function initMedicineHandlers() {
     showModal(`
       <div style="padding:16px;">
         <h3 class="text-h2 text-center" style="margin-bottom:8px;">Order Pharmacy Refill</h3>
-        <p class="text-caption text-center" style="margin-bottom:20px;">Saved to Supabase medicine_orders table</p>
+        <p class="text-caption text-center" style="margin-bottom:20px;">Delivered directly to your address</p>
         <div class="card card-sm mb-3" style="background:var(--surface-dim);padding:12px;">
           <div style="font-size:14px;font-weight:700;">Refill: ${escapeHtml(medName)}</div>
           <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">30 days supply • ₹249</div>
@@ -169,7 +169,7 @@ function initMedicineHandlers() {
         status: 'processing'
       });
 
-      showToast('Refill order placed & saved to Supabase! 📦', 'success', 5000);
+      showToast('Refill order placed successfully! 📦', 'success', 5000);
       closeModal();
     };
   };

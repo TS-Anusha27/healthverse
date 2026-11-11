@@ -27,7 +27,7 @@ export async function renderHealthInsights() {
         <!-- AI Risk Assessment Card -->
         <div class="card mb-4" style="padding:20px;">
           <div style="font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
-            <span>🤖 AI Risk Prediction (Supabase Synced)</span>
+            <span>🤖 AI Risk Prediction</span>
             <span class="badge badge-success" style="margin-left:auto;">Score: ${summary.healthScore || 82}</span>
           </div>
 

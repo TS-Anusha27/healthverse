@@ -98,7 +98,7 @@ export async function renderAmbulanceDriver() {
         ${!inRide ? `
           <div style="font-family:var(--font-display);font-size:13px;font-weight:800;color:var(--emergency);letter-spacing:0.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
             <span style="width:8px;height:8px;background:var(--emergency);border-radius:50%;animation:pulse-ring 1.2s infinite;"></span>
-            INCOMING EMERGENCY REQUEST (SUPABASE SYNCED)
+            INCOMING EMERGENCY REQUEST
           </div>
           <div class="card card-sm mb-3" style="background:var(--surface-dim);padding:14px;border-left:4px solid var(--emergency);">
             <div class="flex justify-between items-center mb-1">
@@ -218,7 +218,7 @@ function initDriverHandlers() {
   window.acceptEmergencyRide = async (id) => {
     inRide = true;
     await updateEmergencyRequestStatus(id, 'accepted', 'amb1');
-    showToast('Emergency ride accepted in Supabase! Live GPS navigation active.', 'success', 5000);
+    showToast('Emergency ride accepted! Live GPS navigation active.', 'success', 5000);
     renderAmbulanceDriver();
   };
 

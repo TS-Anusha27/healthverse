@@ -166,7 +166,7 @@ function initTeleHandlers() {
     });
 
     closeModal();
-    showToast(`Video consultation confirmed with ${doc.name} for ${slot}! Saved to Supabase.`, 'success', 5000);
+    showToast(`Video consultation confirmed with ${doc.name} for ${slot}!`, 'success', 5000);
     setTimeout(() => startVideoCall(doc.name, doc.specialty), 800);
   };
 

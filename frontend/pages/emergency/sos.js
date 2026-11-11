@@ -101,7 +101,7 @@ async function dispatchEmergency() {
           🚨
         </div>
         <h1 style="font-family:var(--font-display);font-size:24px;font-weight:800;color:white;">Ambulance Dispatched!</h1>
-        <p style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">Saved to Supabase database. Driver Ravi Kumar en route.</p>
+        <p style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">Emergency alert sent. Driver Ravi Kumar en route.</p>
       </div>
 
       <!-- High Precision Leaflet SOS Tracking Map -->
@@ -128,7 +128,7 @@ async function dispatchEmergency() {
   `;
 
   setTimeout(initSOSTrackingMap, 200);
-  showToast('🚨 Emergency SOS recorded in Supabase! Driver en route.', 'error', 6000);
+  showToast('🚨 Emergency SOS alert sent! Driver en route.', 'error', 6000);
 }
 
 function initSOSTrackingMap() {
