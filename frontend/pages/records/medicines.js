@@ -5,6 +5,7 @@ import { getMedicines, createMedicine, createMedicineOrder } from '../../service
 import { store } from '../../store/store.js';
 import { renderBottomNav } from '../patient/patient-home.js';
 import { uiIcon } from '../../utils/icons.js';
+import { renderPayPalButtons, convertInrToUsd } from '../../services/payments/paypalService.js';
 
 let currentMeds = [];
 
@@ -201,38 +202,96 @@ function initMedicineHandlers() {
   };
 
   window.orderRefillModal = (medName) => {
+    const conv = convertInrToUsd(249);
+    const safeMedAttr = escapeHtml(medName);
+
     showModal(`
       <div style="padding:16px;">
         <h3 class="text-h2 text-center" style="margin-bottom:8px;">Order Pharmacy Refill</h3>
         <p class="text-caption text-center" style="margin-bottom:20px;">Delivered directly to your address</p>
         <div class="card card-sm mb-3" style="background:var(--surface-dim);padding:12px;">
-          <div style="font-size:14px;font-weight:700;">Refill: ${escapeHtml(medName)}</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">30 days supply • ₹249</div>
+          <div style="font-size:14px;font-weight:700;">Refill: ${safeMedAttr}</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">30 days supply • &#8377;249 (~$${escapeHtml(conv.usdString)} USD)</div>
         </div>
         <div class="form-group">
           <label class="form-label" for="refill-address">Delivery Address</label>
           <textarea id="refill-address" class="form-input" rows="2" autocomplete="street-address">45, Velachery Main Road, Chennai</textarea>
         </div>
-        <button type="button" class="btn btn-primary btn-full mt-4" id="btn-place-refill" onclick="handleRefillOrder('${escapeHtml(medName)}')">
-          Place Refill Order (₹249)
+        <button type="button" class="btn btn-primary btn-full mt-4" id="btn-place-refill" data-medicine="${safeMedAttr}" onclick="handleRefillOrder(this.dataset.medicine)">
+          Place Refill Order (&#8377;249)
         </button>
+        <button type="button" class="btn btn-secondary btn-full mt-2" id="btn-refill-paypal" data-medicine="${safeMedAttr}" onclick="openRefillPayPal(this.dataset.medicine)">
+          Pay Online with PayPal (&#8377;249 / $${escapeHtml(conv.usdString)})
+        </button>
+        <div id="refill-paypal-wrap" class="hidden mt-3">
+          <div id="refill-paypal-container"></div>
+          <button type="button" class="btn btn-ghost btn-full mt-2 hidden" id="btn-refill-done" onclick="closeModal()">
+            Done
+          </button>
+        </div>
       </div>
     `);
 
     window.handleRefillOrder = async (name) => {
-      const addr = document.getElementById('refill-address').value.trim();
+      const addr = (document.getElementById('refill-address')?.value || '').trim();
       setButtonLoading('btn-place-refill', true, 'Placing order...');
-      await createMedicineOrder({
-        patient_id: store.currentUser?.id || null,
-        items: [{ medicine: name, days: 30, price: 249 }],
-        total_amount: 249,
-        delivery_address: addr,
-        status: 'processing'
-      });
-      setButtonLoading('btn-place-refill', false);
+      try {
+        await createMedicineOrder({
+          patient_id: store.currentUser?.id || null,
+          items: [{ medicine: name, days: 30, price: 249 }],
+          total_amount: 249,
+          delivery_address: addr,
+          status: 'processing'
+        });
+      } finally {
+        setButtonLoading('btn-place-refill', false);
+      }
 
       showToast('Refill order placed successfully! 📦', 'success', 5000);
       closeModal();
+    };
+
+    window.openRefillPayPal = (name) => {
+      const wrap = document.getElementById('refill-paypal-wrap');
+      const container = document.getElementById('refill-paypal-container');
+      const paypalTrigger = document.getElementById('btn-refill-paypal');
+      const standardBtn = document.getElementById('btn-place-refill');
+      const doneBtn = document.getElementById('btn-refill-done');
+      if (!wrap || !container) return;
+
+      wrap.classList.remove('hidden');
+      if (paypalTrigger) paypalTrigger.classList.add('hidden');
+
+      renderPayPalButtons(container, {
+        amountUSD: conv.usd,
+        amountINR: 249,
+        description: `HealthVerse Pharmacy Refill - ${name}`,
+        referenceType: 'medicine',
+        referenceId: `med-${Date.now()}`,
+        onSuccess: async (receipt) => {
+          const addr = (document.getElementById('refill-address')?.value || '').trim();
+          if (standardBtn) standardBtn.classList.add('hidden');
+          if (doneBtn) doneBtn.classList.remove('hidden');
+          try {
+            await createMedicineOrder({
+              patient_id: store.currentUser?.id || null,
+              items: [{ medicine: name, days: 30, price: 249, transactionId: receipt?.transactionId || '' }],
+              total_amount: 249,
+              delivery_address: addr,
+              status: 'paid'
+            });
+          } catch {
+            // Best effort only; receipt is already captured and saved
+          }
+          showToast('Pharmacy refill paid & confirmed via PayPal!', 'success', 4500);
+        },
+        onCancel: () => {
+          if (paypalTrigger) paypalTrigger.classList.remove('hidden');
+        },
+        onError: () => {
+          if (paypalTrigger) paypalTrigger.classList.remove('hidden');
+        }
+      });
     };
   };
 }
