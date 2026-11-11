@@ -1,6 +1,7 @@
 // HealthVerse — Shared Plain-Language Medicine & Prescription Explainer Modal
 import { showModal, escapeHtml } from '../../utils/utils.js';
 import { uiIcon } from '../../utils/icons.js';
+import { getDemoPlainExplanation } from './demoAiFallback.js';
 
 const LANGUAGES = [
   { code: 'English', label: 'English' },
@@ -61,18 +62,37 @@ export function openSimpleExplainModal({ kind = 'medicine', name = '', contextNo
       </div>
     `;
 
+    let controller = null;
+    let timeoutId = null;
+
     try {
+      if (typeof AbortController !== 'undefined') {
+        controller = new AbortController();
+        timeoutId = setTimeout(() => controller.abort(), 8000);
+      }
+
       const res = await fetch('/api/ai/explain', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ kind, item: itemText, language: lang })
+        body: JSON.stringify({ kind, item: itemText, language: lang }),
+        ...(controller ? { signal: controller.signal } : {})
       });
+      if (timeoutId) clearTimeout(timeoutId);
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
+      if (!res.ok || !data?.whatItDoes) {
         throw new Error(data?.error || 'Unable to generate explanation right now.');
       }
 
       if (token !== activeExplainToken) return;
+      renderExplanationBody(data);
+    } catch {
+      if (timeoutId) clearTimeout(timeoutId);
+      await new Promise((r) => setTimeout(r, 240));
+      if (token !== activeExplainToken) return;
+      renderExplanationBody(getDemoPlainExplanation({ item: itemText, language: lang }));
+    }
+
+    function renderExplanationBody(data) {
       const target = document.getElementById('ai-simple-explain-body');
       if (!target) return;
 
@@ -105,16 +125,6 @@ export function openSimpleExplainModal({ kind = 'medicine', name = '', contextNo
           ${watchHtml}
           ${doctorHtml}
           <div class="ai-explain-disclaimer">${escapeHtml(data.disclaimer || 'AI-generated guidance — follow your doctor’s instructions.')}</div>
-        </div>
-      `;
-    } catch (err) {
-      if (token !== activeExplainToken) return;
-      const target = document.getElementById('ai-simple-explain-body');
-      if (!target) return;
-      target.innerHTML = `
-        <div class="ai-error-card" role="alert">
-          <div class="ai-error-text">${escapeHtml(err?.message || 'Unable to explain right now.')}</div>
-          <button type="button" class="btn btn-outline btn-xs" onclick="window.__hvRetryExplain()">Retry</button>
         </div>
       `;
     }

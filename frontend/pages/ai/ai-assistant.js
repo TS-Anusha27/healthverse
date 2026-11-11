@@ -3,6 +3,7 @@ import { goBack, navigate } from '../../routes/router.js';
 import { escapeHtml, showToast } from '../../utils/utils.js';
 import { uiIcon } from '../../utils/icons.js';
 import { renderBottomNav } from '../patient/patient-home.js';
+import { getDemoAssistantReply } from '../../services/ai/demoAiFallback.js';
 
 const QUICK_PROMPTS = [
   { label: 'I have a fever', prompt: 'I have a fever and feel fatigued. What should I monitor and when should I see a doctor?' },
@@ -245,18 +246,28 @@ async function sendAssistantRequest(payloadMessages) {
   setComposerBusy(true);
   renderConversation();
 
+  let controller = null;
+  let timeoutId = null;
+
   try {
+    if (typeof AbortController !== 'undefined') {
+      controller = new AbortController();
+      timeoutId = setTimeout(() => controller.abort(), 8000);
+    }
+
     const res = await fetch('/api/ai/assistant', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: payloadMessages })
+      body: JSON.stringify({ messages: payloadMessages }),
+      ...(controller ? { signal: controller.signal } : {})
     });
 
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data?.reply) {
-      throw new Error(data?.error || 'Unable to reach HealthVerse AI right now.');
+      throw new Error(data?.error || `HTTP ${res.status}`);
     }
 
+    if (timeoutId) clearTimeout(timeoutId);
     if (token !== sessionToken) return;
 
     lastFailedPayload = null;
@@ -269,10 +280,22 @@ async function sendAssistantRequest(payloadMessages) {
     isSending = false;
     setComposerBusy(false);
     renderConversation();
-  } catch (err) {
+  } catch {
+    if (timeoutId) clearTimeout(timeoutId);
+    // Graceful Demo Mode / Offline fallback so Ask AI always works without error prompts
+    await new Promise((r) => setTimeout(r, 320));
     if (token !== sessionToken) return;
+
+    const fallback = getDemoAssistantReply(payloadMessages);
+    lastFailedPayload = null;
+    chatMessages.push({
+      role: 'assistant',
+      content: fallback.reply,
+      intent: fallback.intent || null,
+      disclaimer: fallback.disclaimer
+    });
     isSending = false;
     setComposerBusy(false);
-    renderConversation(err?.message || 'Unable to reach HealthVerse AI right now. Please try again.');
+    renderConversation();
   }
 }

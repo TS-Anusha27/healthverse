@@ -1461,6 +1461,16 @@ h1, h2, h3, h4, h5, h6 {
   color: white;
 }
 
+.btn-glass {
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: white;
+}
+
+.btn-glass:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
 .header-spacer-sm { width: 38px; flex-shrink: 0; }
 .header-spacer-md { width: 70px; flex-shrink: 0; }
 
