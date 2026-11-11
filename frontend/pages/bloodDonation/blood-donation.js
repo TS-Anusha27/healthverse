@@ -1,7 +1,7 @@
 // HealthVerse — Blood & Organ Donation connected to Supabase DB
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
-import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState, setFieldError, clearFormErrors, setButtonLoading } from '../../utils/utils.js';
 import { getBloodDonors, getBloodBanks, registerBloodDonor, registerOrganDonor } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 import { renderBottomNav } from '../patient/patient-home.js';
@@ -152,12 +152,12 @@ export function renderOrganDonation() {
         <h3 class="text-h2 text-center" style="margin-bottom:8px;">Pledge Organ Donation</h3>
         <p class="text-caption text-center" style="margin-bottom:20px;">Official organ donor registry pledge</p>
         <div class="form-group">
-          <label class="form-label">Full Name</label>
-          <input type="text" id="organ-name" class="form-input" value="${escapeHtml(store.currentUser?.name || '')}" />
+          <label class="form-label" for="organ-name">Full Name</label>
+          <input type="text" id="organ-name" class="form-input" value="${escapeHtml(store.currentUser?.name || '')}" autocomplete="name" required />
         </div>
         <div class="form-group mt-3">
-          <label class="form-label">Phone Number</label>
-          <input type="tel" id="organ-phone" class="form-input" value="${escapeHtml(store.currentUser?.phone || '')}" />
+          <label class="form-label" for="organ-phone">Phone Number</label>
+          <input type="tel" id="organ-phone" class="form-input" value="${escapeHtml(store.currentUser?.phone || '')}" autocomplete="tel" inputmode="tel" required />
         </div>
         <div class="form-group mt-3">
           <label class="form-label">Organs to Pledge</label>
@@ -170,7 +170,7 @@ export function renderOrganDonation() {
             <label><input type="checkbox" value="Pancreas" checked /> Pancreas</label>
           </div>
         </div>
-        <button class="btn btn-primary btn-full mt-4" style="background:var(--accent);" onclick="handleOrganSubmit()">
+        <button type="button" class="btn btn-primary btn-full mt-4" id="btn-organ-submit" style="background:var(--accent);" onclick="handleOrganSubmit()">
           Submit Pledge
         </button>
       </div>
@@ -178,12 +178,17 @@ export function renderOrganDonation() {
     showModal(content);
 
     window.handleOrganSubmit = async () => {
+      clearFormErrors();
       const name = document.getElementById('organ-name').value.trim();
       const phone = document.getElementById('organ-phone').value.trim();
       const checkedBoxes = Array.from(document.querySelectorAll('#organ-checkboxes input:checked')).map(cb => cb.value);
 
-      if (!name || !phone) { showToast('Please complete name and phone', 'error'); return; }
+      let valid = true;
+      if (!name) { setFieldError('organ-name', 'Full name is required'); valid = false; }
+      if (!phone) { setFieldError('organ-phone', 'Phone number is required'); valid = false; }
+      if (!valid) { showToast('Please complete name and phone', 'error'); return; }
 
+      setButtonLoading('btn-organ-submit', true, 'Submitting...');
       await registerOrganDonor({
         user_id: store.currentUser?.id || null,
         name,
@@ -192,6 +197,7 @@ export function renderOrganDonation() {
         organs_pledged: checkedBoxes,
         status: 'registered'
       });
+      setButtonLoading('btn-organ-submit', false);
 
       showToast('🎉 Organ donor pledge submitted successfully!', 'success', 5000);
       closeModal();
@@ -206,21 +212,21 @@ function initBloodHandlers() {
         <h3 class="text-h2 text-center" style="margin-bottom:8px;">Register as Blood Donor</h3>
         <p class="text-caption text-center" style="margin-bottom:20px;">Join our community of life-saving donors</p>
         <div class="form-group">
-          <label class="form-label">Full Name</label>
-          <input type="text" id="donor-name" class="form-input" value="${escapeHtml(store.currentUser?.name || '')}" />
+          <label class="form-label" for="donor-name">Full Name</label>
+          <input type="text" id="donor-name" class="form-input" value="${escapeHtml(store.currentUser?.name || '')}" autocomplete="name" required />
         </div>
         <div class="form-group mt-3">
-          <label class="form-label">Blood Group</label>
+          <label class="form-label" for="donor-group">Blood Group</label>
           <select id="donor-group" class="form-input form-select">
             <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
             <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
           </select>
         </div>
         <div class="form-group mt-3">
-          <label class="form-label">Phone Number</label>
-          <input type="tel" id="donor-phone" class="form-input" value="${escapeHtml(store.currentUser?.phone || '')}" />
+          <label class="form-label" for="donor-phone">Phone Number</label>
+          <input type="tel" id="donor-phone" class="form-input" value="${escapeHtml(store.currentUser?.phone || '')}" autocomplete="tel" inputmode="tel" required />
         </div>
-        <button class="btn btn-emergency btn-full mt-4" onclick="handleDonorSubmit()">
+        <button type="button" class="btn btn-emergency btn-full mt-4" id="btn-blood-submit" onclick="handleDonorSubmit()">
           Register as Blood Donor
         </button>
       </div>
@@ -228,12 +234,17 @@ function initBloodHandlers() {
     showModal(content);
 
     window.handleDonorSubmit = async () => {
+      clearFormErrors();
       const name = document.getElementById('donor-name').value.trim();
       const group = document.getElementById('donor-group').value;
       const phone = document.getElementById('donor-phone').value.trim();
 
-      if (!name || !phone) { showToast('Please enter name and phone number', 'error'); return; }
+      let valid = true;
+      if (!name) { setFieldError('donor-name', 'Full name is required'); valid = false; }
+      if (!phone) { setFieldError('donor-phone', 'Phone number is required'); valid = false; }
+      if (!valid) { showToast('Please enter name and phone number', 'error'); return; }
 
+      setButtonLoading('btn-blood-submit', true, 'Registering...');
       await registerBloodDonor({
         user_id: store.currentUser?.id || null,
         name,
@@ -243,6 +254,7 @@ function initBloodHandlers() {
         last_donated: 'Never',
         eligible: true
       });
+      setButtonLoading('btn-blood-submit', false);
 
       showToast('Blood donor registration successful! 🩸', 'success', 5000);
       closeModal();

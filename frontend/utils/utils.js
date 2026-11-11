@@ -261,3 +261,90 @@ export function applyCountUps(root = document) {
     animateCountUp(el, raw, { prefix, suffix });
   });
 }
+
+export function setFieldError(inputId, message) {
+  const input = document.getElementById(inputId);
+  const errId = `err-${inputId}`;
+  let errEl = document.getElementById(errId);
+  if (!errEl && input) {
+    const group = input.closest('.form-group') || input.parentElement;
+    if (group) {
+      errEl = document.createElement('div');
+      errEl.id = errId;
+      errEl.className = 'form-error hidden';
+      errEl.setAttribute('role', 'alert');
+      group.appendChild(errEl);
+    }
+  }
+  if (message) {
+    if (input) {
+      input.classList.add('error');
+      input.setAttribute('aria-invalid', 'true');
+      input.setAttribute('aria-describedby', errId);
+    }
+    if (errEl) {
+      errEl.textContent = message;
+      errEl.classList.remove('hidden');
+    }
+    return false;
+  }
+  if (input) {
+    input.classList.remove('error');
+    input.removeAttribute('aria-invalid');
+  }
+  if (errEl) {
+    errEl.textContent = '';
+    errEl.classList.add('hidden');
+  }
+  return true;
+}
+
+export function clearFieldError(inputId) {
+  return setFieldError(inputId, '');
+}
+
+export function clearFormErrors(root = document) {
+  if (!root) return;
+  root.querySelectorAll('.form-input.error').forEach(el => {
+    el.classList.remove('error');
+    el.removeAttribute('aria-invalid');
+  });
+  root.querySelectorAll('.form-error').forEach(el => {
+    el.textContent = '';
+    el.classList.add('hidden');
+  });
+}
+
+export function evaluatePasswordStrength(password = '') {
+  if (!password) return { score: 0, label: '', tier: '' };
+  if (password.length < 6) {
+    return { score: 1, label: 'Weak — at least 6 characters required', tier: 'weak' };
+  }
+  let variety = 0;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) variety += 1;
+  if (/\d/.test(password)) variety += 1;
+  if (/[^A-Za-z0-9]/.test(password)) variety += 1;
+  if (password.length >= 10) variety += 1;
+
+  if (variety >= 3) return { score: 4, label: 'Strong password', tier: 'strong' };
+  if (variety === 2) return { score: 3, label: 'Good password', tier: 'good' };
+  return { score: 2, label: 'Fair — add numbers or symbols to strengthen', tier: 'fair' };
+}
+
+export function setButtonLoading(btnOrId, isLoading, loadingText = 'Submitting...') {
+  const btn = typeof btnOrId === 'string' ? document.getElementById(btnOrId) : btnOrId;
+  if (!btn) return;
+  if (isLoading) {
+    if (!btn.dataset.originalHtml) {
+      btn.dataset.originalHtml = btn.innerHTML;
+    }
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-inline animate-spin"></span> ${escapeHtml(loadingText)}`;
+  } else {
+    btn.disabled = false;
+    if (btn.dataset.originalHtml) {
+      btn.innerHTML = btn.dataset.originalHtml;
+      delete btn.dataset.originalHtml;
+    }
+  }
+}

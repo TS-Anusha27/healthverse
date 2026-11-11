@@ -1,7 +1,7 @@
 // HealthVerse — Ambulance Driver Onboarding & Vehicle Verification
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
-import { showToast, escapeHtml } from '../../utils/utils.js';
+import { showToast, escapeHtml, setFieldError, clearFormErrors } from '../../utils/utils.js';
 
 export function renderAmbulanceSetup() {
   const app = document.getElementById('app');
@@ -44,13 +44,13 @@ export function renderAmbulanceSetup() {
         </div>
 
         <!-- Setup Form -->
-        <form id="amb-setup-form" onsubmit="event.preventDefault(); handleAmbulanceVerificationSubmit();">
+        <form id="amb-setup-form" onsubmit="event.preventDefault(); handleAmbulanceVerificationSubmit();" novalidate>
           <!-- Driver Name -->
           <div class="form-group mb-3">
-            <label class="form-label">Driver Full Name *</label>
+            <label class="form-label" for="setup-amb-name">Driver Full Name *</label>
             <div class="input-group">
               <span class="input-icon">👤</span>
-              <input type="text" class="form-input" id="setup-amb-name" value="${escapeHtml(driver.name || user.name || 'Ravi Kumar')}" required placeholder="e.g. Ravi Kumar" />
+              <input type="text" class="form-input" id="setup-amb-name" value="${escapeHtml(driver.name || user.name || 'Ravi Kumar')}" autocomplete="name" required placeholder="e.g. Ravi Kumar" />
             </div>
           </div>
 
@@ -145,13 +145,19 @@ function initAmbulanceSetupHandlers() {
   };
 
   window.handleAmbulanceVerificationSubmit = () => {
+    clearFormErrors(document.getElementById('amb-setup-form'));
     const name = document.getElementById('setup-amb-name')?.value.trim();
     const vehicleName = document.getElementById('setup-amb-vehiclename')?.value.trim();
     const vehicleNumber = document.getElementById('setup-amb-vehiclenum')?.value.trim();
     const licenseNumber = document.getElementById('setup-amb-licensenum')?.value.trim();
     const licenseTitle = document.getElementById('license-title')?.innerText || 'Commercial_Driving_License.pdf';
 
-    if (!name || !vehicleName || !vehicleNumber || !licenseNumber) {
+    let valid = true;
+    if (!name) { setFieldError('setup-amb-name', 'Driver full name is required'); valid = false; }
+    if (!vehicleName) { setFieldError('setup-amb-vehiclename', 'Vehicle name/model is required'); valid = false; }
+    if (!vehicleNumber) { setFieldError('setup-amb-vehiclenum', 'Vehicle registration number is required'); valid = false; }
+    if (!licenseNumber) { setFieldError('setup-amb-licensenum', 'Driving license number is required'); valid = false; }
+    if (!valid) {
       showToast('Please fill in all ambulance and vehicle verification fields', 'error');
       return;
     }

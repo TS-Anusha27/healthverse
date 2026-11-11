@@ -1,7 +1,7 @@
 // HealthVerse — Doctor Onboarding & Credential Verification
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
-import { showToast, escapeHtml } from '../../utils/utils.js';
+import { showToast, escapeHtml, setFieldError, clearFormErrors } from '../../utils/utils.js';
 
 export function renderDoctorSetup() {
   const app = document.getElementById('app');
@@ -44,22 +44,22 @@ export function renderDoctorSetup() {
         </div>
 
         <!-- Setup Form -->
-        <form id="doc-setup-form" onsubmit="event.preventDefault(); handleDoctorVerificationSubmit();">
+        <form id="doc-setup-form" onsubmit="event.preventDefault(); handleDoctorVerificationSubmit();" novalidate>
           <!-- Doctor Name -->
           <div class="form-group mb-3">
-            <label class="form-label">Doctor Full Legal Name *</label>
+            <label class="form-label" for="setup-doc-name">Doctor Full Legal Name *</label>
             <div class="input-group">
               <span class="input-icon">👨‍⚕️</span>
-              <input type="text" class="form-input" id="setup-doc-name" value="${escapeHtml(doc.name || user.name || 'Dr. Priya Krishnamurthy')}" required placeholder="e.g. Dr. Jane Smith, MD" />
+              <input type="text" class="form-input" id="setup-doc-name" value="${escapeHtml(doc.name || user.name || 'Dr. Priya Krishnamurthy')}" autocomplete="name" required placeholder="e.g. Dr. Jane Smith, MD" />
             </div>
           </div>
 
           <!-- Hospital Name -->
           <div class="form-group mb-3">
-            <label class="form-label">Hospital / Clinic Affiliation *</label>
+            <label class="form-label" for="setup-doc-hospital">Hospital / Clinic Affiliation *</label>
             <div class="input-group">
               <span class="input-icon">🏥</span>
-              <input type="text" class="form-input" id="setup-doc-hospital" value="${escapeHtml(doc.hospital || 'Apollo Hospitals, Greams Road')}" required placeholder="e.g. Apollo Hospitals, Greams Rd" />
+              <input type="text" class="form-input" id="setup-doc-hospital" value="${escapeHtml(doc.hospital || 'Apollo Hospitals, Greams Road')}" autocomplete="organization" required placeholder="e.g. Apollo Hospitals, Greams Rd" />
             </div>
             <!-- Quick Suggestion Chips -->
             <div class="flex gap-2 flex-wrap mt-2">
@@ -152,13 +152,18 @@ function initDoctorSetupHandlers() {
   };
 
   window.handleDoctorVerificationSubmit = () => {
+    clearFormErrors(document.getElementById('doc-setup-form'));
     const name = document.getElementById('setup-doc-name')?.value.trim();
     const hospital = document.getElementById('setup-doc-hospital')?.value.trim();
     const specialty = document.getElementById('setup-doc-specialty')?.value;
     const regNumber = document.getElementById('setup-doc-regnum')?.value.trim();
     const certTitle = document.getElementById('cert-title')?.innerText || 'Doctor_Verification_Cert.pdf';
 
-    if (!name || !hospital || !regNumber) {
+    let valid = true;
+    if (!name) { setFieldError('setup-doc-name', 'Doctor legal name is required'); valid = false; }
+    if (!hospital) { setFieldError('setup-doc-hospital', 'Hospital affiliation is required'); valid = false; }
+    if (!regNumber) { setFieldError('setup-doc-regnum', 'Registration number is required'); valid = false; }
+    if (!valid) {
       showToast('Please fill in all doctor verification fields', 'error');
       return;
     }

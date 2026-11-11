@@ -2470,3 +2470,81 @@ h1, h2, h3, h4, h5, h6 {
 .account-menu-item--danger:hover {
   background: var(--emergency-light);
 }
+
+/* --- Task B6: Form Controls, Password Strength & Loading States --- */
+.btn:disabled,
+button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.password-field-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field-wrap .form-input {
+  padding-right: 46px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.password-toggle-btn:hover {
+  color: var(--text-primary);
+}
+
+.password-strength {
+  margin-top: 6px;
+}
+
+.password-strength-bars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}
+
+.password-strength-bar {
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--border);
+  transition: background-color 0.2s ease;
+}
+
+.password-strength-bar.active.weak { background: var(--emergency); }
+.password-strength-bar.active.fair { background: var(--warning); }
+.password-strength-bar.active.good { background: var(--primary); }
+.password-strength-bar.active.strong { background: var(--secondary); }
+
+.password-strength-label {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+  color: var(--text-tertiary);
+}
+
+.password-strength-label.weak { color: var(--emergency); }
+.password-strength-label.fair { color: var(--warning-dark); }
+.password-strength-label.good { color: var(--primary); }
+.password-strength-label.strong { color: var(--secondary-dark); }
+
+.form-error {
+  margin-top: 5px;
+  font-weight: 600;
+}

@@ -1,7 +1,7 @@
 // HealthVerse — Patient Registration connected to Supabase Database
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
-import { showToast } from '../../utils/utils.js';
+import { showToast, escapeHtml, setFieldError, clearFormErrors } from '../../utils/utils.js';
 import { createPatientProfile } from '../../services/supabase/db.js';
 
 const STEPS = [
@@ -75,13 +75,13 @@ function getStepContent() {
       <h3 class="text-h4 mb-4">Basic Information</h3>
       <div style="display:flex;flex-direction:column;gap:16px;">
         <div class="form-group">
-          <label class="form-label">Full Name *</label>
-          <input type="text" class="form-input" id="f-name" value="${store.currentUser?.name || ''}" placeholder="Your full name" />
+          <label class="form-label" for="f-name">Full Name *</label>
+          <input type="text" class="form-input" id="f-name" value="${escapeHtml(store.currentUser?.name || '')}" placeholder="Your full name" autocomplete="name" required />
         </div>
         <div class="grid-2">
           <div class="form-group">
-            <label class="form-label">Gender *</label>
-            <select class="form-input form-select" id="f-gender">
+            <label class="form-label" for="f-gender">Gender *</label>
+            <select class="form-input form-select" id="f-gender" autocomplete="sex" required>
               <option value="">Select</option>
               <option value="male">Male</option>
               <option value="female">Female</option>
@@ -90,8 +90,8 @@ function getStepContent() {
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Date of Birth *</label>
-            <input type="date" class="form-input" id="f-dob" max="${new Date().toISOString().split('T')[0]}" />
+            <label class="form-label" for="f-dob">Date of Birth *</label>
+            <input type="date" class="form-input" id="f-dob" max="${new Date().toISOString().split('T')[0]}" autocomplete="bday" required />
           </div>
         </div>
         <div class="form-group">
@@ -103,8 +103,8 @@ function getStepContent() {
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">ABHA ID (Optional)</label>
-          <input type="text" class="form-input" id="f-abha" placeholder="XX-XXXX-XXXX-XXXX" />
+          <label class="form-label" for="f-abha">ABHA ID (Optional)</label>
+          <input type="text" class="form-input" id="f-abha" placeholder="XX-XXXX-XXXX-XXXX" inputmode="numeric" />
         </div>
       </div>
     </div>
@@ -116,16 +116,16 @@ function getStepContent() {
       <div style="display:flex;flex-direction:column;gap:16px;">
         <div class="grid-2">
           <div class="form-group">
-            <label class="form-label">Height</label>
+            <label class="form-label" for="f-height">Height</label>
             <div class="input-group">
-              <input type="number" class="form-input" id="f-height" placeholder="170" style="padding-right:44px;" />
+              <input type="number" class="form-input" id="f-height" placeholder="170" inputmode="numeric" style="padding-right:44px;" />
               <span class="input-suffix" style="pointer-events:none;font-size:12px;font-weight:600;">cm</span>
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Weight</label>
+            <label class="form-label" for="f-weight">Weight</label>
             <div class="input-group">
-              <input type="number" class="form-input" id="f-weight" placeholder="70" style="padding-right:44px;" />
+              <input type="number" class="form-input" id="f-weight" placeholder="70" inputmode="numeric" style="padding-right:44px;" />
               <span class="input-suffix" style="pointer-events:none;font-size:12px;font-weight:600;">kg</span>
             </div>
           </div>
@@ -178,18 +178,18 @@ function getStepContent() {
           <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--emergency);margin-bottom:12px;">🚨 Emergency Contact</div>
           <div style="display:flex;flex-direction:column;gap:12px;">
             <div class="form-group">
-              <label class="form-label">Contact Name</label>
-              <input type="text" class="form-input" id="f-emer-name" placeholder="Full name" />
+              <label class="form-label" for="f-emer-name">Contact Name</label>
+              <input type="text" class="form-input" id="f-emer-name" placeholder="Full name" autocomplete="name" />
             </div>
             <div class="form-group">
-              <label class="form-label">Phone Number</label>
-              <input type="tel" class="form-input" id="f-emer-phone" placeholder="+91 9876543210" />
+              <label class="form-label" for="f-emer-phone">Phone Number</label>
+              <input type="tel" class="form-input" id="f-emer-phone" placeholder="+91 9876543210" autocomplete="tel" inputmode="tel" />
             </div>
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Address</label>
-          <textarea class="form-input" id="f-address" rows="2" placeholder="Your home address" style="resize:none;"></textarea>
+          <label class="form-label" for="f-address">Address</label>
+          <textarea class="form-input" id="f-address" rows="2" placeholder="Your home address" autocomplete="street-address" style="resize:none;"></textarea>
         </div>
       </div>
     </div>
@@ -265,13 +265,16 @@ function initStepHandlers() {
 }
 
 function validateStep() {
+  clearFormErrors();
   if (currentStep === 0) {
     const name = document.getElementById('f-name')?.value?.trim();
     const gender = document.getElementById('f-gender')?.value;
     const dob = document.getElementById('f-dob')?.value;
-    if (!name) { showToast('Please enter your full name', 'error'); return false; }
-    if (!gender) { showToast('Please select your gender', 'error'); return false; }
-    if (!dob) { showToast('Please enter your date of birth', 'error'); return false; }
+    let valid = true;
+    if (!name) { setFieldError('f-name', 'Please enter your full name'); valid = false; }
+    if (!gender) { setFieldError('f-gender', 'Please select your gender'); valid = false; }
+    if (!dob) { setFieldError('f-dob', 'Please enter your date of birth'); valid = false; }
+    if (!valid) { showToast('Please complete required fields', 'error'); return false; }
   }
   return true;
 }

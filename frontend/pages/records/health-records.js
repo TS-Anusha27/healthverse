@@ -1,7 +1,7 @@
 // HealthVerse — Health Records Timeline with Supabase DB & Storage
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
-import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, renderSkeletonStats, renderEmptyState, renderErrorState, applyCountUps } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, renderSkeletonStats, renderEmptyState, renderErrorState, applyCountUps, setFieldError, clearFormErrors, setButtonLoading } from '../../utils/utils.js';
 import { getHealthRecords, createHealthRecord } from '../../services/supabase/db.js';
 import { uploadFile } from '../../services/supabase/storage.js';
 import { renderBottomNav } from '../patient/patient-home.js';
@@ -253,12 +253,12 @@ function initRecordHandlers() {
         <p class="text-caption text-center" style="margin-bottom:20px;">Files are encrypted and stored securely</p>
 
         <div class="form-group">
-          <label class="form-label">Record Title</label>
-          <input type="text" id="upload-title" class="form-input" placeholder="e.g. Annual Blood Panel" />
+          <label class="form-label" for="upload-title">Record Title *</label>
+          <input type="text" id="upload-title" class="form-input" placeholder="e.g. Annual Blood Panel" required />
         </div>
 
         <div class="form-group mt-3">
-          <label class="form-label">Record Type</label>
+          <label class="form-label" for="upload-type">Record Type</label>
           <select id="upload-type" class="form-input form-select">
             <option>Blood Report</option>
             <option>Prescription</option>
@@ -270,11 +270,11 @@ function initRecordHandlers() {
         </div>
 
         <div class="form-group mt-3">
-          <label class="form-label">Select File (PDF, Image)</label>
-          <input type="file" id="upload-file" class="form-input" accept="image/*,.pdf" />
+          <label class="form-label" for="upload-file">Select File (PDF, Image) *</label>
+          <input type="file" id="upload-file" class="form-input" accept="image/*,.pdf" required />
         </div>
 
-        <button class="btn btn-primary btn-full mt-4" onclick="handleFileUpload()">
+        <button type="button" class="btn btn-primary btn-full mt-4" id="btn-upload-record" onclick="handleFileUpload()">
           Upload Record
         </button>
       </div>
@@ -282,16 +282,20 @@ function initRecordHandlers() {
     showModal(content);
 
     window.handleFileUpload = async () => {
+      clearFormErrors();
       const title = document.getElementById('upload-title').value.trim();
       const type = document.getElementById('upload-type').value;
       const fileInput = document.getElementById('upload-file');
 
-      if (!title) { showToast('Please enter record title', 'error'); return; }
+      let valid = true;
+      if (!title) { setFieldError('upload-title', 'Please enter record title'); valid = false; }
       if (!fileInput.files || fileInput.files.length === 0) {
-        showToast('Please select a file to upload', 'error'); return;
+        setFieldError('upload-file', 'Please select a file to upload'); valid = false;
       }
+      if (!valid) { showToast('Please complete the highlighted fields', 'error'); return; }
 
       const file = fileInput.files[0];
+      setButtonLoading('btn-upload-record', true, 'Uploading...');
       showToast('Uploading record...', 'info');
 
       const path = `${Date.now()}_${file.name}`;
@@ -310,6 +314,7 @@ function initRecordHandlers() {
       };
 
       await createHealthRecord(newRecord);
+      setButtonLoading('btn-upload-record', false);
       currentRecords.unshift(newRecord);
 
       showToast('Record uploaded successfully! 🎉', 'success');

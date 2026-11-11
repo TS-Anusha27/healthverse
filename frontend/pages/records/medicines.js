@@ -1,6 +1,6 @@
 // HealthVerse — Medicine Reminders & Pharmacy Orders connected to Supabase DB
 import { navigate, goBack } from '../../routes/router.js';
-import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState, applyCountUps } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState, applyCountUps, setFieldError, clearFormErrors, setButtonLoading } from '../../utils/utils.js';
 import { getMedicines, createMedicine, createMedicineOrder } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 import { renderBottomNav } from '../patient/patient-home.js';
@@ -141,24 +141,24 @@ function initMedicineHandlers() {
         <h3 class="text-h2 text-center" style="margin-bottom:8px;">Add New Medicine</h3>
         <p class="text-caption text-center" style="margin-bottom:20px;">Keep your medications schedule organized</p>
         <div class="form-group">
-          <label class="form-label">Medicine Name</label>
-          <input type="text" id="med-name" class="form-input" placeholder="e.g. Paracetamol" />
+          <label class="form-label" for="med-name">Medicine Name *</label>
+          <input type="text" id="med-name" class="form-input" placeholder="e.g. Paracetamol" required />
         </div>
         <div class="grid-2 mt-3">
           <div class="form-group">
-            <label class="form-label">Dosage</label>
+            <label class="form-label" for="med-dosage">Dosage</label>
             <input type="text" id="med-dosage" class="form-input" placeholder="500mg" />
           </div>
           <div class="form-group">
-            <label class="form-label">Time</label>
+            <label class="form-label" for="med-time">Time</label>
             <input type="text" id="med-time" class="form-input" placeholder="8:00 AM" />
           </div>
         </div>
         <div class="form-group mt-3">
-          <label class="form-label">Frequency</label>
+          <label class="form-label" for="med-freq">Frequency</label>
           <input type="text" id="med-freq" class="form-input" placeholder="Once daily" />
         </div>
-        <button class="btn btn-primary btn-full mt-4" onclick="handleAddMedSubmit()">
+        <button type="button" class="btn btn-primary btn-full mt-4" id="btn-add-med" onclick="handleAddMedSubmit()">
           Add Medicine
         </button>
       </div>
@@ -166,12 +166,17 @@ function initMedicineHandlers() {
     showModal(content);
 
     window.handleAddMedSubmit = async () => {
+      clearFormErrors();
       const name = document.getElementById('med-name').value.trim();
       const dosage = document.getElementById('med-dosage').value.trim();
       const time = document.getElementById('med-time').value.trim();
       const frequency = document.getElementById('med-freq').value.trim();
 
-      if (!name) { showToast('Please enter medicine name', 'error'); return; }
+      if (!name) {
+        setFieldError('med-name', 'Please enter medicine name');
+        showToast('Please enter medicine name', 'error');
+        return;
+      }
 
       const newMed = {
         patient_id: store.currentUser?.id || null,
@@ -185,7 +190,9 @@ function initMedicineHandlers() {
         color: '#4A90D9'
       };
 
+      setButtonLoading('btn-add-med', true, 'Saving...');
       await createMedicine(newMed);
+      setButtonLoading('btn-add-med', false);
       showToast('Medicine added to schedule! 💊', 'success');
       closeModal();
       renderMedicines();
@@ -202,10 +209,10 @@ function initMedicineHandlers() {
           <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">30 days supply • ₹249</div>
         </div>
         <div class="form-group">
-          <label class="form-label">Delivery Address</label>
-          <textarea id="refill-address" class="form-input" rows="2">45, Velachery Main Road, Chennai</textarea>
+          <label class="form-label" for="refill-address">Delivery Address</label>
+          <textarea id="refill-address" class="form-input" rows="2" autocomplete="street-address">45, Velachery Main Road, Chennai</textarea>
         </div>
-        <button class="btn btn-primary btn-full mt-4" onclick="handleRefillOrder('${escapeHtml(medName)}')">
+        <button type="button" class="btn btn-primary btn-full mt-4" id="btn-place-refill" onclick="handleRefillOrder('${escapeHtml(medName)}')">
           Place Refill Order (₹249)
         </button>
       </div>
@@ -213,6 +220,7 @@ function initMedicineHandlers() {
 
     window.handleRefillOrder = async (name) => {
       const addr = document.getElementById('refill-address').value.trim();
+      setButtonLoading('btn-place-refill', true, 'Placing order...');
       await createMedicineOrder({
         patient_id: store.currentUser?.id || null,
         items: [{ medicine: name, days: 30, price: 249 }],
@@ -220,6 +228,7 @@ function initMedicineHandlers() {
         delivery_address: addr,
         status: 'processing'
       });
+      setButtonLoading('btn-place-refill', false);
 
       showToast('Refill order placed successfully! 📦', 'success', 5000);
       closeModal();

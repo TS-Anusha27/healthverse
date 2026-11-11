@@ -2,7 +2,7 @@
 import { navigate, goBack } from '../../routes/router.js';
 import { store } from '../../store/store.js';
 import { authService } from '../../services/auth/authService.js';
-import { showToast, showModal, closeModal, getInitials, avatarColor, escapeHtml } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, getInitials, avatarColor, escapeHtml, setFieldError, clearFormErrors, setButtonLoading } from '../../utils/utils.js';
 import { renderBottomNav } from '../patient/patient-home.js';
 
 export function renderSettings() {
@@ -162,21 +162,21 @@ function attachSettingsHandlers(profile, role) {
           Edit Profile Information
         </h3>
 
-        <form id="edit-profile-form" onsubmit="event.preventDefault(); saveProfileChanges();">
+        <form id="edit-profile-form" onsubmit="event.preventDefault(); saveProfileChanges();" novalidate>
           <div class="form-group mb-3">
-            <label class="form-label">Full Name *</label>
-            <input type="text" class="form-input" id="edit-fullname" value="${escapeHtml(current.fullName || current.name || '')}" required />
+            <label class="form-label" for="edit-fullname">Full Name *</label>
+            <input type="text" class="form-input" id="edit-fullname" value="${escapeHtml(current.fullName || current.name || '')}" autocomplete="name" required />
           </div>
 
           <div class="form-group mb-3">
-            <label class="form-label">Contact Phone</label>
-            <input type="tel" class="form-input" id="edit-phone" value="${escapeHtml(current.phone || '')}" placeholder="+91 9876543210" />
+            <label class="form-label" for="edit-phone">Contact Phone</label>
+            <input type="tel" class="form-input" id="edit-phone" value="${escapeHtml(current.phone || '')}" placeholder="+91 9876543210" autocomplete="tel" inputmode="tel" />
           </div>
 
           ${isPatient ? `
             <div class="form-group mb-3">
-              <label class="form-label">Date of Birth</label>
-              <input type="date" class="form-input" id="edit-dob" value="${escapeHtml(current.dob || '')}" />
+              <label class="form-label" for="edit-dob">Date of Birth</label>
+              <input type="date" class="form-input" id="edit-dob" value="${escapeHtml(current.dob || '')}" autocomplete="bday" />
             </div>
             <div class="form-group mb-3">
               <label class="form-label">Blood Group</label>
@@ -230,10 +230,12 @@ function attachSettingsHandlers(profile, role) {
     showModal(content);
 
     window.saveProfileChanges = async () => {
+      clearFormErrors(document.getElementById('edit-profile-form'));
       const fullName = document.getElementById('edit-fullname')?.value?.trim();
       const phone = document.getElementById('edit-phone')?.value?.trim();
 
       if (!fullName) {
+        setFieldError('edit-fullname', 'Full name is required');
         showToast('Full name is required', 'error');
         return;
       }
@@ -261,7 +263,9 @@ function attachSettingsHandlers(profile, role) {
         if (serviceAffiliation) updates.serviceAffiliation = serviceAffiliation;
       }
 
+      setButtonLoading('btn-save-profile', true, 'Saving...');
       const res = await authService.updateProfile(updates);
+      setButtonLoading('btn-save-profile', false);
       if (res.success) {
         showToast('Profile updated successfully! ✨', 'success');
         closeModal();
