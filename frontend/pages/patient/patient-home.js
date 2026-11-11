@@ -2,6 +2,7 @@
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
 import { mockData } from '../../services/data.js';
+import { authService } from '../../services/auth/authService.js';
 import { showToast, getInitials, avatarColor, escapeHtml } from '../../utils/utils.js';
 
 export function renderPatientHome() {
@@ -26,15 +27,34 @@ export function renderPatientHome() {
               <div class="home-name">${escapeHtml(firstName)}</div>
             </div>
             <div class="flex items-center gap-2">
-              <button class="btn btn-xs switch-profile-btn" onclick="navigate('login')" title="Switch to Doctor or Ambulance Driver">
-                🔄 Switch Profile
-              </button>
               <button class="header-icon-btn" onclick="navigate('notifications')" id="notif-btn" aria-label="Notifications">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                 <span class="notif-dot"></span>
               </button>
-              <div class="avatar cursor-pointer" style="background:${avatarColor(displayName)};color:white;" onclick="navigate('settings')" id="profile-avatar">
-                ${getInitials(displayName)}
+              <div class="account-menu-wrap" id="account-menu-wrap">
+                <button type="button" class="avatar account-avatar-btn" style="background:${avatarColor(displayName)};color:white;" onclick="toggleAccountMenu(event)" id="profile-avatar" aria-label="Account menu" aria-haspopup="menu" aria-expanded="false">
+                  ${getInitials(displayName)}
+                </button>
+                <div class="account-menu hidden" id="patient-account-menu" role="menu" aria-labelledby="profile-avatar">
+                  <div class="account-menu-header">
+                    <div class="account-menu-name">${escapeHtml(displayName)}</div>
+                    <div class="account-menu-meta">${escapeHtml(store.currentUser?.email || patient.email || 'Patient Portal')}</div>
+                  </div>
+                  <div class="account-menu-divider" role="separator"></div>
+                  <button type="button" class="account-menu-item" role="menuitem" onclick="closeAccountMenu(); navigate('settings')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span>Profile and Settings</span>
+                  </button>
+                  <button type="button" class="account-menu-item" role="menuitem" onclick="closeAccountMenu(); navigate('login')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+                    <span>Switch role</span>
+                  </button>
+                  <div class="account-menu-divider" role="separator"></div>
+                  <button type="button" class="account-menu-item account-menu-item--danger" role="menuitem" onclick="handleHomeSignOut()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>Sign out</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -261,14 +281,14 @@ function injectHomeStyles() {
       position:relative;
       background:linear-gradient(135deg,#1E3A5F 0%,#1A4F6E 50%,#0D4F3C 100%);
       padding:calc(20px + var(--safe-top)) 20px 0;
-      overflow:hidden;
+      overflow:visible;
     }
     .home-header-bg {
-      position:absolute;inset:0;
+      position:absolute;inset:0;overflow:hidden;pointer-events:none;
       background:radial-gradient(circle at 80% 20%,rgba(74,144,217,0.3) 0%,transparent 60%),
                  radial-gradient(circle at 20% 80%,rgba(82,201,155,0.2) 0%,transparent 60%);
     }
-    .home-header-content { position:relative;z-index:1; }
+    .home-header-content { position:relative;z-index:3; }
     .home-greeting { font-size:13px;color:rgba(255,255,255,0.7);font-weight:500; }
     .home-name { font-family:var(--font-display);font-size:24px;font-weight:800;color:white;margin-top:2px; }
     .header-icon-btn {
@@ -358,6 +378,56 @@ function initHomeHandlers() {
     const { navigate: nav } = window._router;
     nav(page, params);
   };
+
+  window.toggleAccountMenu = (e) => {
+    if (e) e.stopPropagation();
+    const menu = document.getElementById('patient-account-menu');
+    const btn = document.getElementById('profile-avatar');
+    if (!menu || !btn) return;
+    const willOpen = menu.classList.contains('hidden');
+    menu.classList.toggle('hidden', !willOpen);
+    btn.setAttribute('aria-expanded', String(willOpen));
+  };
+
+  window.closeAccountMenu = () => {
+    const menu = document.getElementById('patient-account-menu');
+    const btn = document.getElementById('profile-avatar');
+    if (menu) menu.classList.add('hidden');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  };
+
+  window.handleHomeSignOut = () => {
+    window.closeAccountMenu();
+    authService.logout();
+    showToast('Signed out successfully. Returning to portal selection.', 'info');
+    navigate('user-type');
+  };
+
+  if (window._hvAccountDocClick) {
+    document.removeEventListener('click', window._hvAccountDocClick);
+  }
+  if (window._hvAccountDocKey) {
+    document.removeEventListener('keydown', window._hvAccountDocKey);
+  }
+
+  window._hvAccountDocClick = (e) => {
+    const wrap = document.getElementById('account-menu-wrap');
+    if (wrap && !wrap.contains(e.target)) {
+      window.closeAccountMenu();
+    }
+  };
+  window._hvAccountDocKey = (e) => {
+    if (e.key === 'Escape') {
+      const menu = document.getElementById('patient-account-menu');
+      if (menu && !menu.classList.contains('hidden')) {
+        window.closeAccountMenu();
+        document.getElementById('profile-avatar')?.focus();
+      }
+    }
+  };
+
+  document.addEventListener('click', window._hvAccountDocClick);
+  document.addEventListener('keydown', window._hvAccountDocKey);
 
   window.toggleMed = (el, id) => {
     const isTaken = el.classList.contains('taken');
