@@ -96,14 +96,14 @@ export function renderPatientHome() {
             <div class="section-title">Quick Actions</div>
           </div>
           <div class="grid-4">
-            ${quickAction('Appointment', 'calendar', '#4A90D9', '#E8F4FD', 'appointments')}
-            ${quickAction('Triage AI', 'stethoscope', '#7B68EE', '#F0EEFF', 'triage')}
-            ${quickAction('Records', 'folder', '#52C99B', '#E8F9F3', 'health-records')}
-            ${quickAction('Video Call', 'video', '#FF6B6B', '#FFF0F0', 'telemedicine')}
-            ${quickAction('Medicine', 'pill', '#FFA502', '#FFF8EC', 'medicines')}
-            ${quickAction('Blood', 'droplets', '#E74C3C', '#FFF0F0', 'blood-donation')}
-            ${quickAction('Insights', 'trending-up', '#17A589', '#E8F8F5', 'health-insights')}
-            ${quickAction('Organ', 'heart', '#EC407A', '#FCE4EC', 'organ-donation')}
+            ${quickAction('Appointment', 'calendar', '#4A90D9', 'var(--primary-light)', 'appointments')}
+            ${quickAction('Triage AI', 'stethoscope', '#7B68EE', 'var(--accent-light)', 'triage')}
+            ${quickAction('Records', 'folder', '#52C99B', 'var(--secondary-light)', 'health-records')}
+            ${quickAction('Video Call', 'video', '#FF6B6B', 'var(--emergency-light)', 'telemedicine')}
+            ${quickAction('Medicine', 'pill', '#FFA502', 'var(--warning-light)', 'medicines')}
+            ${quickAction('Blood', 'droplets', '#E74C3C', 'var(--emergency-light)', 'blood-donation')}
+            ${quickAction('Insights', 'trending-up', '#17A589', 'var(--secondary-light)', 'health-insights')}
+            ${quickAction('Organ', 'heart', '#EC407A', 'var(--emergency-light)', 'organ-donation')}
           </div>
         </div>
 

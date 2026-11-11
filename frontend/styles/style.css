@@ -2726,3 +2726,64 @@ textarea:focus-visible {
 [data-theme="dark"] .badge-emergency { color: #FF8A95; }
 [data-theme="dark"] .badge-warning { color: #FFC65C; }
 [data-theme="dark"] .badge-success { color: #70E8A3; }
+
+/* --- Task B9: Dark Mode Surface & Verification Banner Tokens --- */
+.verification-banner {
+  background: var(--warning-light);
+  border: 1px solid rgba(255, 165, 2, 0.35);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.verification-banner--bar {
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  padding: 8px 16px;
+  position: relative;
+  z-index: 10;
+}
+
+.verification-banner-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #92400E;
+}
+
+.verification-banner-sub {
+  font-size: 11px;
+  color: #B45309;
+}
+
+.verification-banner-btn {
+  background: #B45309;
+  color: white;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+[data-theme="dark"] .verification-banner-title {
+  color: #FDE68A;
+}
+
+[data-theme="dark"] .verification-banner-sub,
+[data-theme="dark"] .triage-disclaimer-text {
+  color: #FCD34D;
+}
+
+[data-theme="dark"] .password-strength-label.fair {
+  color: #FCD34D;
+}
+
+[data-theme="dark"] .password-strength-label.strong {
+  color: #7EE2BA;
+}
+
+[data-theme="dark"] .leaflet-popup-content-wrapper,
+[data-theme="dark"] .leaflet-popup-tip {
+  background: var(--surface);
+  color: var(--text-primary);
+}

@@ -195,10 +195,10 @@ function initMap() {
         .addTo(map)
         .bindPopup(`
           <div style="font-family:var(--font-display);min-width:160px;">
-            <div style="font-weight:700;font-size:14px;color:#1A2332;">${escapeHtml(h.name)}</div>
-            <div style="color:#6B7A8D;font-size:12px;margin-top:3px;">⭐ ${escapeHtml(h.rating)} • ${escapeHtml(h.distance)}</div>
-            <div style="color:#6B7A8D;font-size:12px;margin-top:2px;">⏱️ Wait: ${escapeHtml(h.waitTime)}</div>
-            <button onclick="bookAtHospital('${escapeHtml(h.id)}')" style="margin-top:8px;width:100%;padding:6px;background:#4A90D9;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;">Book Now</button>
+            <div style="font-weight:700;font-size:14px;color:var(--text-primary);">${escapeHtml(h.name)}</div>
+            <div style="color:var(--text-secondary);font-size:12px;margin-top:3px;">⭐ ${escapeHtml(h.rating)} • ${escapeHtml(h.distance)}</div>
+            <div style="color:var(--text-secondary);font-size:12px;margin-top:2px;">⏱️ Wait: ${escapeHtml(h.waitTime)}</div>
+            <button onclick="bookAtHospital('${escapeHtml(h.id)}')" style="margin-top:8px;width:100%;padding:6px;background:var(--primary-dark);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;">Book Now</button>
           </div>
         `);
     });

@@ -581,9 +581,9 @@ function injectAuthStyles() {
       justify-content: center;
       flex-shrink: 0;
     }
-    .patient-box { background: #E6FFFA; }
-    .doctor-box { background: #EBF8FF; }
-    .ambulance-box { background: #FFF5F5; }
+    .patient-box { background: var(--secondary-light); }
+    .doctor-box { background: var(--primary-light); }
+    .ambulance-box { background: var(--emergency-light); }
     .role-banner-title {
       font-family: var(--font-display);
       font-size: 15px;
@@ -665,13 +665,13 @@ function injectAuthStyles() {
     }
     .blood-pill:hover { border-color: var(--primary); }
     .blood-pill.selected {
-      background: #EBF8FF;
+      background: var(--primary-light);
       border-color: var(--primary);
       color: var(--primary);
     }
     .verification-notice-banner {
-      background: #FFFBEB;
-      border: 1px solid #FDE68A;
+      background: var(--warning-light);
+      border: 1px solid rgba(255, 165, 2, 0.35);
       border-radius: 10px;
       padding: 10px 12px;
       display: flex;
@@ -680,6 +680,7 @@ function injectAuthStyles() {
     }
     .notice-icon { font-size: 16px; flex-shrink: 0; }
     .notice-text { font-size: 12px; color: #92400E; line-height: 1.4; }
+    [data-theme="dark"] .notice-text { color: #FDE68A; }
     .calculated-age-hint {
       font-size: 12px;
       font-weight: 600;

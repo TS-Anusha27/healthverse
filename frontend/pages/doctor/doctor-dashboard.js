@@ -31,7 +31,7 @@ export function renderDoctorDashboard() {
           <div>
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
               <span style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:700;letter-spacing:0.5px;">DOCTOR WORKSPACE</span>
-              <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:${isPending ? '#FEF3C7' : '#D1FAE5'};color:${isPending ? '#92400E' : '#065F46'};">
+              <span class="badge ${isPending ? 'badge-warning' : 'badge-success'}">
                 ${isPending ? '⏳ Pending Verification' : '✓ Verified'}
               </span>
             </div>
@@ -62,15 +62,15 @@ export function renderDoctorDashboard() {
 
       <div class="screen-content" style="padding:20px;padding-bottom:100px;">
         ${isPending ? `
-        <div class="card p-3 mb-4" style="background:var(--warning-light, #FEF3C7);border:1px solid #FCD34D;border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <div class="card p-3 mb-4 verification-banner">
           <div class="flex items-center gap-2">
             <span style="font-size:18px;">📋</span>
             <div>
-              <div style="font-size:13px;font-weight:700;color:#92400E;">Verification Incomplete</div>
-              <div style="font-size:11px;color:#B45309;">Upload medical license and hospital credentials</div>
+              <div class="verification-banner-title">Verification Incomplete</div>
+              <div class="verification-banner-sub">Upload medical license and hospital credentials</div>
             </div>
           </div>
-          <button class="btn btn-xs" style="background:#D97706;color:white;font-weight:700;white-space:nowrap;" onclick="navigate('doctor-setup')">Complete verification &rarr;</button>
+          <button class="btn btn-xs verification-banner-btn" onclick="navigate('doctor-setup')">Complete verification &rarr;</button>
         </div>` : ''}
 
         <!-- AI Priority Queue -->

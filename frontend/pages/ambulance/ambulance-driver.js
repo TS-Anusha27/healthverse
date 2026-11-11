@@ -36,7 +36,7 @@ export function renderAmbulanceDriver() {
             <div>
               <div style="display:flex;align-items:center;">
                 <span style="font-family:var(--font-display);font-size:15px;font-weight:700;">${escapeHtml(driverName)}</span>
-                <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:${isPending ? '#FEF3C7' : '#D1FAE5'};color:${isPending ? '#92400E' : '#065F46'};margin-left:6px;">
+                <span class="badge ${isPending ? 'badge-warning' : 'badge-success'}" style="margin-left:6px;">
                   ${isPending ? '⏳ Pending' : '✓ Verified'}
                 </span>
               </div>
@@ -69,12 +69,12 @@ export function renderAmbulanceDriver() {
       </div>
 
       ${isPending ? `
-      <div style="background:#FEF3C7;border-top:1px solid #FCD34D;border-bottom:1px solid #FCD34D;padding:8px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;z-index:10;">
+      <div class="verification-banner verification-banner--bar">
         <div style="display:flex;align-items:center;gap:6px;">
           <span style="font-size:14px;">⚠️</span>
-          <span style="font-size:11px;font-weight:700;color:#92400E;">Vehicle verification pending</span>
+          <span class="verification-banner-title" style="font-size:11px;">Vehicle verification pending</span>
         </div>
-        <button class="btn btn-xs" style="background:#D97706;color:white;font-weight:700;padding:3px 8px;border-radius:4px;border:none;cursor:pointer;" onclick="navigate('ambulance-setup')">Complete verification &rarr;</button>
+        <button class="btn btn-xs verification-banner-btn" onclick="navigate('ambulance-setup')">Complete verification &rarr;</button>
       </div>` : ''}
 
       <!-- High-Precision Leaflet Map Container -->

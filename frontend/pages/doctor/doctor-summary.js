@@ -25,13 +25,13 @@ export function renderDoctorSummary() {
 
       <div class="screen-content" style="padding:20px;padding-bottom:100px;">
         <!-- High Risk & Allergy Alert Box -->
-        <div class="card mb-4" style="background:#FFF0F1;border:1.5px solid var(--emergency);padding:16px;">
+        <div class="card mb-4" style="background:var(--emergency-light);border:1.5px solid var(--emergency);padding:16px;">
           <div style="font-family:var(--font-display);font-size:14px;font-weight:800;color:var(--emergency);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
             🚨 HIGH RISK ALERTS & ALLERGIES
           </div>
           <div style="display:flex;flex-direction:column;gap:8px;">
             ${p.criticalAlerts.map(a => `
-              <div style="background:white;padding:10px 12px;border-radius:10px;font-size:12px;font-weight:700;color:var(--emergency);border-left:3px solid var(--emergency);">
+              <div style="background:var(--surface);padding:10px 12px;border-radius:10px;font-size:12px;font-weight:700;color:var(--emergency);border-left:3px solid var(--emergency);">
                 ⚠️ ${escapeHtml(a.message)}
               </div>
             `).join('')}

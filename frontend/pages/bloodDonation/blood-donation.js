@@ -24,9 +24,9 @@ export function renderBloodDonation() {
       <div class="screen-content" style="padding-bottom:100px;">
         <!-- Hero -->
         <div class="section mt-3">
-          <div style="background:linear-gradient(135deg,#FFF0F1,#FFE0E3);border-radius:18px;padding:20px;text-align:center;">
+          <div style="background:var(--emergency-light);border:1px solid rgba(255,71,87,0.22);border-radius:18px;padding:20px;text-align:center;">
             <div style="font-size:48px;margin-bottom:10px;">🩸</div>
-            <h2 style="font-family:var(--font-display);font-size:20px;font-weight:800;color:#E74C3C;">Donate Blood, Save Lives</h2>
+            <h2 style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--emergency);">Donate Blood, Save Lives</h2>
             <p style="font-size:13px;color:var(--text-secondary);margin-top:6px;line-height:1.5;">1 unit of blood can save up to 3 lives.<br>Your donation matters.</p>
             <button class="btn btn-emergency mt-4" onclick="registerDonorModal()">
               Register as Donor
@@ -93,7 +93,7 @@ async function loadBloodDonationData() {
         ${list.map(d => `
           <div class="card card-sm flex items-center justify-between" style="padding:14px;">
             <div class="flex items-center gap-3">
-              <div style="width:40px;height:40px;border-radius:50%;background:#FFF0F1;color:#E74C3C;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:var(--font-display);">
+              <div style="width:40px;height:40px;border-radius:50%;background:var(--emergency-light);color:var(--emergency);display:flex;align-items:center;justify-content:center;font-weight:800;font-family:var(--font-display);">
                 ${escapeHtml(d.group_type || d.group || 'O+')}
               </div>
               <div>
@@ -101,7 +101,7 @@ async function loadBloodDonationData() {
                 <div style="font-size:12px;color:var(--text-secondary);">${escapeHtml(d.distance || '1.0 km')} • Last: ${escapeHtml(d.last_donated || d.lastDonated || 'Recent')}</div>
               </div>
             </div>
-            <button class="btn btn-outline btn-xs" style="border-color:#E74C3C;color:#E74C3C;" onclick="showToast('Calling donor ${escapeHtml(d.phone || '')}...','info')">
+            <button class="btn btn-outline btn-xs" style="border-color:var(--emergency);color:var(--emergency);" onclick="showToast('Calling donor ${escapeHtml(d.phone || '')}...','info')">
               Call
             </button>
           </div>
@@ -133,7 +133,7 @@ export function renderOrganDonation() {
       </div>
 
       <div class="screen-content" style="padding:20px;padding-bottom:100px;">
-        <div style="background:linear-gradient(135deg,#F0EEFF,#E6E0FF);border-radius:18px;padding:24px;text-align:center;">
+        <div style="background:var(--accent-light);border:1px solid rgba(123,104,238,0.25);border-radius:18px;padding:24px;text-align:center;">
           <div style="font-size:48px;margin-bottom:10px;">🫀</div>
           <h2 style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--accent);">Become an Organ Donor</h2>
           <p style="font-size:13px;color:var(--text-secondary);margin-top:6px;line-height:1.5;">Pledge your organs and save up to 8 lives.<br>Secured by National Organ Registry.</p>

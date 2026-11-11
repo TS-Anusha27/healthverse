@@ -59,7 +59,7 @@ export function renderDoctorPrescription() {
           </div>
 
           <!-- AI Warning Box -->
-          <div id="ai-rx-warning" style="display:none;margin-top:16px;padding:14px;background:#FFF0F1;border:1.5px solid var(--emergency);border-radius:12px;"></div>
+          <div id="ai-rx-warning" style="display:none;margin-top:16px;padding:14px;background:var(--emergency-light);border:1.5px solid var(--emergency);border-radius:12px;"></div>
         </div>
 
         <button class="btn btn-primary btn-full btn-lg" onclick="signAndSendRx()">

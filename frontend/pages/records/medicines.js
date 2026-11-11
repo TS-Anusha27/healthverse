@@ -61,7 +61,7 @@ async function loadMedicinesData() {
 
     if (adherenceEl) {
       adherenceEl.innerHTML = `
-        <div class="card" style="background:linear-gradient(135deg,#FFF8EC,#FFF0D6);border:1px solid #FFE0B2;padding:18px;">
+        <div class="card" style="background:var(--warning-light);border:1px solid rgba(255,165,2,0.28);padding:18px;">
           <div class="flex items-center justify-between">
             <div>
               <div style="font-size:12px;font-weight:700;color:var(--warning);text-transform:uppercase;letter-spacing:0.5px;">Today's Adherence</div>

@@ -41,8 +41,8 @@ export function renderSettings() {
                 <div style="display:flex;gap:6px;align-items:center;margin-top:6px;">
                   <span class="badge badge-primary">${roleName.toUpperCase()}</span>
                   ${profile.verificationStatus === 'pending_verification'
-                    ? '<span class="badge" style="background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;">Pending Verification</span>'
-                    : '<span class="badge" style="background:#D1FAE5;color:#065F46;">Verified</span>'}
+                    ? '<span class="badge badge-warning">Pending Verification</span>'
+                    : '<span class="badge badge-success">Verified</span>'}
                 </div>
               </div>
             </div>

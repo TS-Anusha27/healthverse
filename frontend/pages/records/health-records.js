@@ -45,7 +45,7 @@ export function renderHealthRecords() {
 
         <!-- ABHA Integration Banner -->
         <div class="section mt-4">
-          <div style="background:linear-gradient(135deg,var(--primary-light),#DBEEFF);border-radius:16px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;" onclick="showToast('Syncing with ABHA records...','info')">
+          <div style="background:var(--primary-light);border:1px solid rgba(74,144,217,0.25);border-radius:16px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;" onclick="showToast('Syncing with ABHA records...','info')">
             <div style="width:44px;height:44px;background:var(--primary);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>
