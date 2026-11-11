@@ -1,6 +1,6 @@
 // HealthVerse — Client-Side Router with Hash Routing, Browser Back/Forward & Protected Route Middleware
 import { store } from '../store/store.js';
-import { applyCountUps } from '../utils/utils.js';
+import { applyCountUps, enhanceAccessibility } from '../utils/utils.js';
 import { showToast } from '../utils/utils.js';
 
 const routes = {};
@@ -149,6 +149,7 @@ export function navigate(page, params = {}, addHistory = true) {
         screenEl.classList.add('page-enter');
       }
       applyCountUps(app);
+      enhanceAccessibility(app);
       if (typeof window.lucide !== 'undefined') window.lucide.createIcons();
     } catch (err) {
       console.error(`Error rendering route '${page}':`, err);

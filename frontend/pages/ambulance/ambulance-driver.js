@@ -32,7 +32,7 @@ export function renderAmbulanceDriver() {
       <div style="background:#111827;color:white;padding:calc(14px + var(--safe-top)) 16px 14px;position:relative;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="avatar" style="background:var(--emergency);color:white;font-weight:800;" onclick="navigate('settings')">${getInitials(driverName)}</div>
+            <div class="avatar" role="button" tabindex="0" aria-label="Profile and settings" style="background:var(--emergency);color:white;font-weight:800;cursor:pointer;" onclick="navigate('settings')">${getInitials(driverName)}</div>
             <div>
               <div style="display:flex;align-items:center;">
                 <span style="font-family:var(--font-display);font-size:15px;font-weight:700;">${escapeHtml(driverName)}</span>

@@ -220,7 +220,7 @@ export function renderPatientHome() {
 
 function quickAction(label, icon, color, bg, page) {
   return `
-    <div class="quick-action" onclick="navigate('${page}')" id="qa-${page}">
+    <div class="quick-action" role="button" tabindex="0" onclick="navigate('${page}')" id="qa-${page}" aria-label="${label}">
       <div class="quick-action-icon" style="background:${bg};">
         <i data-lucide="${icon}" style="width:22px;height:22px;color:${color};stroke-width:2;"></i>
       </div>
@@ -254,12 +254,12 @@ function renderBottomNav(active, options = {}) {
         </div>
       </div>
       ${items.map(item => item.isCenter ? `
-        <div class="nav-center-btn" onclick="navigate('sos')" id="nav-sos" aria-label="Emergency SOS">
+        <div class="nav-center-btn" role="button" tabindex="0" onclick="navigate('sos')" id="nav-sos" aria-label="Emergency SOS">
           <i data-lucide="alert-triangle" style="width:24px;height:24px;color:white;"></i>
           <span class="sidebar-sos-label">Emergency SOS</span>
         </div>
       ` : `
-        <a class="nav-item ${item.id === active ? 'active' : ''}" onclick="navigate('${item.page}')" id="nav-${item.id}" aria-label="${item.label}">
+        <a class="nav-item ${item.id === active ? 'active' : ''}" role="button" tabindex="0" onclick="navigate('${item.page}')" id="nav-${item.id}" aria-label="${item.label}">
           ${item.id === active ? '<div class="nav-dot"></div>' : ''}
           <i data-lucide="${item.icon}" style="width:22px;height:22px;stroke-width:${item.id === active ? '2.5' : '2'};"></i>
           <span class="nav-label">${item.label}</span>
@@ -292,7 +292,7 @@ function injectHomeStyles() {
     .home-greeting { font-size:13px;color:rgba(255,255,255,0.7);font-weight:500; }
     .home-name { font-family:var(--font-display);font-size:24px;font-weight:800;color:white;margin-top:2px; }
     .header-icon-btn {
-      width:40px;height:40px;border-radius:12px;
+      width:44px;height:44px;min-width:44px;min-height:44px;border-radius:12px;
       background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);
       display:flex;align-items:center;justify-content:center;cursor:pointer;
       color:white;position:relative;

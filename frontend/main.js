@@ -68,6 +68,28 @@ register('notifications', renderNotifications);
 // Initialize router popstate/hashchange event listeners
 initRouter();
 
+// Global keyboard activation for clickable non-button controls (role="button")
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const target = e.target;
+  if (!(target instanceof HTMLElement)) return;
+  if (target.matches('button, input, select, textarea, a[href]')) return;
+  const roleBtn = target.closest('[role="button"]');
+  if (roleBtn instanceof HTMLElement) {
+    e.preventDefault();
+    roleBtn.click();
+  }
+});
+
+// Keep dynamically loaded lists/cards accessible when async views populate
+const appRoot = document.getElementById('app');
+if (appRoot && typeof MutationObserver !== 'undefined') {
+  const observer = new MutationObserver(() => {
+    utils.enhanceAccessibility(appRoot);
+  });
+  observer.observe(appRoot, { childList: true, subtree: true });
+}
+
 // Startup bootstrap: restore session & navigate to targeted route
 async function bootstrap() {
   await ensureDemoAccountsSeeded();

@@ -56,7 +56,7 @@ export function renderUserType() {
 
         <div class="flex-col gap-4">
           <!-- Role 1: Patient / User -->
-          <div class="portal-card" id="card-patient" onclick="openRoleAuth('patient')">
+          <div class="portal-card" role="button" tabindex="0" id="card-patient" onclick="openRoleAuth('patient')">
             <div class="portal-icon portal-icon--patient">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
@@ -79,7 +79,7 @@ export function renderUserType() {
           </div>
 
           <!-- Role 2: Doctor -->
-          <div class="portal-card" id="card-doctor" onclick="openRoleAuth('doctor')">
+          <div class="portal-card" role="button" tabindex="0" id="card-doctor" onclick="openRoleAuth('doctor')">
             <div class="portal-icon portal-icon--doctor">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#319795" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
@@ -102,7 +102,7 @@ export function renderUserType() {
           </div>
 
           <!-- Role 3: Ambulance Driver -->
-          <div class="portal-card" id="card-ambulance" onclick="openRoleAuth('ambulance')">
+          <div class="portal-card" role="button" tabindex="0" id="card-ambulance" onclick="openRoleAuth('ambulance')">
             <div class="portal-icon portal-icon--ambulance">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E53E3E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>

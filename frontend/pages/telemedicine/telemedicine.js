@@ -14,7 +14,7 @@ export function renderTelemedicine() {
   app.innerHTML = `
     <div class="screen" id="tele-screen" style="background:var(--bg);">
       <div class="page-header">
-        <button class="back-btn" onclick="goBack()">
+        <button class="back-btn" onclick="goBack()" aria-label="Go back">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <div class="page-title">Telemedicine</div>
@@ -268,23 +268,23 @@ function startVideoCallUI(doc) {
 
     <!-- Floating Action: Share Report -->
     <div style="position:absolute;right:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;">
-      <button class="call-btn" style="background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);" onclick="showToast('Report shared with doctor','success')" title="Share Report">
+      <button class="call-btn" style="background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);" onclick="showToast('Report shared with doctor','success')" title="Share Report" aria-label="Share Report">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
       </button>
-      <button class="call-btn" style="background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);" onclick="showToast('Chat opened','info')" title="Chat">
+      <button class="call-btn" style="background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);" onclick="showToast('Chat opened','info')" title="Chat" aria-label="Open Chat">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       </button>
     </div>
 
     <!-- Call Controls -->
     <div class="call-controls">
-      <button class="call-btn" id="btn-mic" style="background:rgba(255,255,255,0.15);" onclick="toggleMic(this)">
+      <button class="call-btn" id="btn-mic" style="background:rgba(255,255,255,0.15);" onclick="toggleMic(this)" aria-label="Toggle microphone">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
       </button>
-      <button class="call-btn call-btn-end" onclick="endCall()">
+      <button class="call-btn call-btn-end" onclick="endCall()" aria-label="End call">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.42 19.42 0 0 1 4.43 9.44 19.79 19.79 0 0 1 1.36 .82"/><line x1="23" y1="1" x2="1" y2="23"/></svg>
       </button>
-      <button class="call-btn" id="btn-cam" style="background:rgba(255,255,255,0.15);" onclick="toggleCam(this)">
+      <button class="call-btn" id="btn-cam" style="background:rgba(255,255,255,0.15);" onclick="toggleCam(this)" aria-label="Toggle camera">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
       </button>
     </div>

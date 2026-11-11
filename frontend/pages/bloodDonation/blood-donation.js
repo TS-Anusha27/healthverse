@@ -12,7 +12,7 @@ export function renderBloodDonation() {
   app.innerHTML = `
     <div class="screen" style="background:var(--bg);">
       <div class="page-header" style="background:linear-gradient(135deg,#E74C3C,#C62828);border-bottom:none;">
-        <button class="back-btn" onclick="goBack()" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.2);">
+        <button class="back-btn" onclick="goBack()" aria-label="Go back" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.2);">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <div style="flex:1;">
@@ -123,7 +123,7 @@ export function renderOrganDonation() {
   app.innerHTML = `
     <div class="screen" style="background:var(--bg);">
       <div class="page-header" style="background:linear-gradient(135deg,#7B68EE,#5A48D8);border-bottom:none;">
-        <button class="back-btn" onclick="renderBloodDonation()" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.2);">
+        <button class="back-btn" onclick="renderBloodDonation()" aria-label="Back to Blood Donation" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.2);">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <div style="flex:1;">

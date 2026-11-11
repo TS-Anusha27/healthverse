@@ -14,7 +14,7 @@
   --primary-glow: rgba(74, 144, 217, 0.25);
 
   --secondary: #52C99B;
-  --secondary-dark: #3BAA80;
+  --secondary-dark: #1E7E5B;
   --secondary-light: #E8F9F3;
   --secondary-glow: rgba(82, 201, 155, 0.25);
 
@@ -47,8 +47,8 @@
   --bg-secondary: #E8EEF4;
 
   --text-primary: #1A2332;
-  --text-secondary: #6B7A8D;
-  --text-tertiary: #9BAABB;
+  --text-secondary: #4B5B6E;
+  --text-tertiary: #566578;
   --text-inverse: #FFFFFF;
 
   --border: #E2E8F0;
@@ -124,7 +124,7 @@
 
   --text-primary: #F0F5FA;
   --text-secondary: #94A3B8;
-  --text-tertiary: #64748B;
+  --text-tertiary: #8FA0B5;
 
   --border: #2D3748;
   --border-light: #1E2535;
@@ -298,8 +298,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .back-btn {
-  width: 38px;
-  height: 38px;
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-sm);
   background: var(--surface-dim);
   border: 1px solid var(--border);
@@ -399,7 +401,7 @@ h1, h2, h3, h4, h5, h6 {
 .btn:active::after { opacity: 0.15; }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  background: linear-gradient(135deg, #2E74C0 0%, #235EA0 100%);
   color: white;
   box-shadow: var(--shadow-primary);
 }
@@ -407,21 +409,21 @@ h1, h2, h3, h4, h5, h6 {
 .btn-primary:hover { box-shadow: 0 10px 32px rgba(74, 144, 217, 0.40); }
 
 .btn-secondary {
-  background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
+  background: linear-gradient(135deg, #1E7E5B 0%, #166548 100%);
   color: white;
   box-shadow: var(--shadow-secondary);
 }
 
 .btn-emergency {
-  background: linear-gradient(135deg, var(--emergency) 0%, #C62828 100%);
+  background: linear-gradient(135deg, #D92B3A 0%, #B81D2B 100%);
   color: white;
   box-shadow: var(--shadow-emergency);
 }
 
 .btn-outline {
   background: transparent;
-  border: 1.5px solid var(--primary);
-  color: var(--primary);
+  border: 1.5px solid #2B6CB0;
+  color: #2B6CB0;
 }
 
 .btn-outline:hover { background: var(--primary-light); }
@@ -463,8 +465,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-icon-sm {
-  width: 36px;
-  height: 36px;
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border-radius: var(--radius-sm);
 }
@@ -570,12 +574,12 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: 0.4px;
 }
 
-.badge-primary { background: var(--primary-light); color: var(--primary); }
-.badge-secondary { background: var(--secondary-light); color: var(--secondary-dark); }
-.badge-accent { background: var(--accent-light); color: var(--accent); }
-.badge-emergency { background: var(--emergency-light); color: var(--emergency); }
-.badge-warning { background: var(--warning-light); color: var(--warning); }
-.badge-success { background: var(--success-light); color: #1E9950; }
+.badge-primary { background: var(--primary-light); color: #225AA8; }
+.badge-secondary { background: var(--secondary-light); color: #186A4D; }
+.badge-accent { background: var(--accent-light); color: #5643C7; }
+.badge-emergency { background: var(--emergency-light); color: #C21F2E; }
+.badge-warning { background: var(--warning-light); color: #9A5500; }
+.badge-success { background: var(--success-light); color: #166534; }
 .badge-triage-green { background: rgba(39,174,96,0.12); color: var(--triage-green); }
 .badge-triage-yellow { background: rgba(243,156,18,0.12); color: var(--triage-yellow); }
 .badge-triage-orange { background: rgba(230,126,34,0.12); color: var(--triage-orange); }
@@ -2672,3 +2676,53 @@ button:disabled {
 .triage-back-btn:hover {
   color: var(--primary);
 }
+
+/* --- Task B8: Focus Visible, Touch Targets (>=44px) & Dark Badge Contrast --- */
+:focus-visible {
+  outline: 2.5px solid var(--primary);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2.5px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.btn,
+.btn-sm,
+.btn-xs,
+.chip,
+.blood-pill,
+.role-chip,
+.auth-tab,
+.option-btn,
+.date-chip,
+.time-slot,
+.nav-item,
+.header-icon-btn,
+.input-suffix-btn,
+.triage-back-btn {
+  min-height: 44px;
+}
+
+.header-icon-btn,
+.input-suffix-btn {
+  min-width: 44px;
+}
+
+[data-theme="dark"] .btn-outline {
+  border-color: #6EA8E5;
+  color: #8FC0F3;
+}
+
+[data-theme="dark"] .badge-primary { color: #90C2F9; }
+[data-theme="dark"] .badge-secondary { color: #7EE2BA; }
+[data-theme="dark"] .badge-accent { color: #B4A8FF; }
+[data-theme="dark"] .badge-emergency { color: #FF8A95; }
+[data-theme="dark"] .badge-warning { color: #FFC65C; }
+[data-theme="dark"] .badge-success { color: #70E8A3; }

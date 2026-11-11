@@ -123,7 +123,7 @@ async function loadDoctorDashboardData() {
     queueEl.innerHTML = `
       <div style="display:flex;flex-direction:column;gap:12px;">
         ${queue.map(q => `
-          <div class="card" style="padding:16px;cursor:pointer;" onclick="openPatientSummary('${escapeHtml(q.id)}')">
+          <div class="card" role="button" tabindex="0" style="padding:16px;cursor:pointer;" onclick="openPatientSummary('${escapeHtml(q.id)}')">
             <div class="flex items-center justify-between mb-2">
               <div class="flex items-center gap-2">
                 <div style="font-family:var(--font-display);font-weight:800;font-size:14px;color:var(--primary);">${escapeHtml(q.token)}</div>

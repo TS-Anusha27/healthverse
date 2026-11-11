@@ -40,27 +40,102 @@ export function showToast(message, type = 'info', duration = 3500) {
 
 // Modal System
 let activeModal = null;
+let lastFocusedBeforeModal = null;
+let modalKeydownHandler = null;
+
+const FOCUSABLE_SELECTOR = 'a[href], area[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]), [role="button"]';
+
+export function enhanceAccessibility(root = document) {
+  if (!root || !root.querySelectorAll) return;
+
+  root.querySelectorAll('[onclick]').forEach(el => {
+    const tag = el.tagName;
+    if (tag === 'BUTTON' || tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+    if (tag === 'A' && el.hasAttribute('href')) return;
+    if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
+    if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+  });
+
+  root.querySelectorAll('button').forEach(btn => {
+    if (btn.hasAttribute('aria-label')) return;
+    const text = (btn.textContent || '').replace(/\s+/g, ' ').trim();
+    if (!text) {
+      const title = btn.getAttribute('title');
+      btn.setAttribute('aria-label', title || (btn.classList.contains('back-btn') ? 'Go back' : 'Action'));
+    }
+  });
+}
 
 export function showModal(content, options = {}) {
   const container = document.getElementById('modal-container');
   if (!container) return;
 
-  closeModal();
+  if (!activeModal && document.activeElement instanceof HTMLElement) {
+    lastFocusedBeforeModal = document.activeElement;
+  }
 
+  closeModal({ restoreFocus: false });
+
+  const dialogLabel = escapeHtml(options.ariaLabel || 'Dialog');
   container.style.pointerEvents = 'all';
   container.innerHTML = `
     <div class="modal-overlay" id="modal-overlay"></div>
-    <div class="modal-sheet" id="modal-sheet">
+    <div class="modal-sheet" id="modal-sheet" role="dialog" aria-modal="true" aria-label="${dialogLabel}" tabindex="-1">
       <div class="modal-handle"></div>
       ${content}
     </div>
   `;
 
   activeModal = container;
+  const sheet = document.getElementById('modal-sheet');
+  enhanceAccessibility(sheet);
 
-  document.getElementById('modal-overlay').addEventListener('click', closeModal);
+  document.getElementById('modal-overlay')?.addEventListener('click', () => closeModal());
+
+  modalKeydownHandler = (e) => {
+    if (!activeModal || !sheet) return;
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeModal();
+      return;
+    }
+    if (e.key === 'Tab') {
+      const focusable = Array.from(sheet.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
+        el => el.offsetParent !== null || el === document.activeElement
+      );
+      if (focusable.length === 0) {
+        e.preventDefault();
+        sheet.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first || document.activeElement === sheet || !sheet.contains(document.activeElement)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last || !sheet.contains(document.activeElement)) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+  };
+  document.addEventListener('keydown', modalKeydownHandler);
 
   if (options.onOpen) options.onOpen();
+
+  setTimeout(() => {
+    if (!sheet || !document.body.contains(sheet)) return;
+    const firstFocusable = sheet.querySelector(FOCUSABLE_SELECTOR);
+    if (firstFocusable instanceof HTMLElement) {
+      firstFocusable.focus();
+    } else {
+      sheet.focus();
+    }
+  }, 20);
 
   return {
     close: closeModal,
@@ -68,13 +143,28 @@ export function showModal(content, options = {}) {
   };
 }
 
-export function closeModal() {
+export function closeModal({ restoreFocus = true } = {}) {
   const container = document.getElementById('modal-container');
-  if (!container || !container.innerHTML.trim()) return;
+  if (modalKeydownHandler) {
+    document.removeEventListener('keydown', modalKeydownHandler);
+    modalKeydownHandler = null;
+  }
+  if (!container || !container.innerHTML.trim()) {
+    activeModal = null;
+    return;
+  }
 
   container.style.pointerEvents = 'none';
   container.innerHTML = '';
   activeModal = null;
+
+  if (restoreFocus && lastFocusedBeforeModal && document.body.contains(lastFocusedBeforeModal)) {
+    const target = lastFocusedBeforeModal;
+    lastFocusedBeforeModal = null;
+    try { target.focus(); } catch { /* noop */ }
+  } else if (restoreFocus) {
+    lastFocusedBeforeModal = null;
+  }
 }
 
 // Format utilities
