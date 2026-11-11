@@ -2807,3 +2807,154 @@ textarea:focus-visible {
 .btn .ui-icon {
   vertical-align: middle;
 }
+
+/* ---------- PayPal Sandbox Checkout & Receipts (T2 / T3) ---------- */
+.paypal-checkout-box {
+  background: var(--surface-dim);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-top: 12px;
+  text-align: left;
+}
+
+.paypal-rate-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.paypal-rate-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-tertiary);
+}
+
+.paypal-rate-amounts {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--text-primary);
+  margin-top: 2px;
+}
+
+.paypal-rate-note {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.paypal-status-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.paypal-status-notice--error {
+  background: var(--emergency-light);
+  border: 1px solid rgba(255, 71, 87, 0.3);
+  color: var(--emergency);
+}
+
+.paypal-status-notice--warning {
+  background: var(--warning-light);
+  border: 1px solid rgba(255, 165, 2, 0.35);
+  color: var(--text-primary);
+}
+
+.paypal-status-notice--info {
+  background: var(--primary-light);
+  border: 1px solid rgba(74, 144, 217, 0.3);
+  color: var(--primary-dark);
+}
+
+.paypal-status-title {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.paypal-status-msg {
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.paypal-success-card {
+  background: var(--secondary-light);
+  border: 1.5px solid rgba(82, 201, 155, 0.45);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-top: 10px;
+  text-align: left;
+}
+
+.paypal-success-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.paypal-success-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.paypal-success-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.paypal-success-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.paypal-receipt-meta {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(82, 201, 155, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.paypal-receipt-meta > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.paypal-receipt-meta span {
+  color: var(--text-secondary);
+}
+
+.paypal-receipt-meta strong {
+  color: var(--text-primary);
+  text-align: right;
+  word-break: break-all;
+}
+
+[data-theme="dark"] .paypal-status-notice--info {
+  color: #93C5FD;
+}
