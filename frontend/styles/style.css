@@ -2548,3 +2548,93 @@ button:disabled {
   margin-top: 5px;
   font-weight: 600;
 }
+
+/* --- Demo Quick Access Panel on Login --- */
+.demo-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 12px;
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+}
+
+.demo-divider::before,
+.demo-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-light);
+}
+
+.demo-login-box {
+  background: var(--surface-dim);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.demo-creds-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.demo-creds-title {
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.demo-creds-meta {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.demo-creds-meta code {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 5px;
+  padding: 1px 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.demo-fill-btn {
+  min-height: 44px;
+  min-width: 52px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.demo-fill-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.demo-continue-btn {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--surface);
+  font-weight: 700;
+}
+
+.demo-continue-btn:hover {
+  background: var(--primary-light);
+}

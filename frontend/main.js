@@ -5,6 +5,7 @@ import { store } from './store/store.js';
 import * as utils from './utils/utils.js';
 import * as routerModule from './routes/router.js';
 import { authService } from './services/auth/authService.js';
+import { ensureDemoAccountsSeeded } from './utils/demoUsers.js';
 
 // Expose routing and utilities globally for inline onclick handlers across templates
 window.navigate = navigate;
@@ -69,6 +70,7 @@ initRouter();
 
 // Startup bootstrap: restore session & navigate to targeted route
 async function bootstrap() {
+  await ensureDemoAccountsSeeded();
   await store.loadSavedUser();
 
   const currentHash = window.location.hash.trim();

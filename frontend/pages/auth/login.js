@@ -2,7 +2,8 @@
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
 import { authService } from '../../services/auth/authService.js';
-import { showToast, showModal, closeModal, setFieldError, clearFieldError, clearFormErrors, evaluatePasswordStrength } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, setFieldError, clearFieldError, clearFormErrors, evaluatePasswordStrength, escapeHtml } from '../../utils/utils.js';
+import { DEMO_ACCOUNTS, ensureDemoAccountsSeeded } from '../../utils/demoUsers.js';
 
 let activeRole = 'patient'; // 'patient' | 'doctor' | 'ambulance'
 let activeTab = 'login'; // 'login' | 'register'
@@ -117,6 +118,12 @@ export function renderLogin(params = {}) {
                 <span id="btn-login-text">Sign In as ${getRoleTitle(activeRole)}</span>
               </button>
             </form>
+
+            <div class="demo-divider"><span>OR QUICK DEMO ACCESS</span></div>
+
+            <div class="demo-login-box" id="demo-login-box">
+              ${renderDemoBoxContent(activeRole)}
+            </div>
           </div>
 
           <!-- TAB 2: Dynamic Role-Specific Registration Form -->
@@ -141,6 +148,25 @@ function getRoleTitle(role) {
   if (role === 'doctor') return 'Doctor';
   if (role === 'ambulance') return 'Ambulance Driver';
   return 'Patient';
+}
+
+function renderDemoBoxContent(role) {
+  const demo = DEMO_ACCOUNTS[role] || DEMO_ACCOUNTS.patient;
+  return `
+    <div class="demo-creds-row">
+      <div class="demo-creds-text">
+        <div class="demo-creds-title">${escapeHtml(demo.title)}</div>
+        <div class="demo-creds-meta">
+          Email: <code>${escapeHtml(demo.email)}</code> &bull; Password: <code>${escapeHtml(demo.password)}</code>
+        </div>
+      </div>
+      <button type="button" class="demo-fill-btn" onclick="fillDemoCredentials()">Fill</button>
+    </div>
+    <button type="button" class="btn btn-outline btn-full mt-3 demo-continue-btn" id="btn-demo-continue" onclick="handleDemoContinue()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <span>Continue with Demo User</span>
+    </button>
+  `;
 }
 
 function getRoleBannerContent(role) {
@@ -679,6 +705,10 @@ function attachAuthHandlers() {
     const btnText = document.getElementById('btn-login-text');
     if (btnText) btnText.textContent = `Sign In as ${getRoleTitle(role)}`;
 
+    // Update demo quick access card for selected role
+    const demoBox = document.getElementById('demo-login-box');
+    if (demoBox) demoBox.innerHTML = renderDemoBoxContent(role);
+
     // Update registration fields
     const regContainer = document.getElementById('registration-form-content');
     if (regContainer) regContainer.innerHTML = getRegistrationFormHtml(role);
@@ -762,6 +792,53 @@ function attachAuthHandlers() {
     } else {
       hint.style.display = 'none';
     }
+  };
+
+  window.fillDemoCredentials = () => {
+    const demo = DEMO_ACCOUNTS[activeRole] || DEMO_ACCOUNTS.patient;
+    const emailEl = document.getElementById('login-email');
+    const pwdEl = document.getElementById('login-password');
+    if (emailEl) {
+      emailEl.value = demo.email;
+      clearFieldError('login-email');
+    }
+    if (pwdEl) {
+      pwdEl.value = demo.password;
+      clearFieldError('login-password');
+    }
+    showToast(`Filled ${getRoleTitle(activeRole)} demo credentials.`, 'info');
+  };
+
+  window.handleDemoContinue = async () => {
+    const demo = DEMO_ACCOUNTS[activeRole] || DEMO_ACCOUNTS.patient;
+    const btn = document.getElementById('btn-demo-continue');
+    const originalHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-inline animate-spin"></span> Entering Demo Account...';
+    }
+
+    await ensureDemoAccountsSeeded();
+    const res = await authService.login({
+      email: demo.email,
+      password: demo.password,
+      role: activeRole
+    });
+
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+    }
+
+    if (!res.success) {
+      showToast(res.error || 'Unable to enter demo account.', 'error');
+      return;
+    }
+
+    showToast(`Entered ${demo.title} (${res.profile?.fullName || demo.email})`, 'success');
+    if (activeRole === 'doctor') navigate('doctor-home');
+    else if (activeRole === 'ambulance') navigate('ambulance-home');
+    else navigate('patient-home');
   };
 
   window.handleSignInSubmit = async () => {
