@@ -2638,3 +2638,37 @@ button:disabled {
 .demo-continue-btn:hover {
   background: var(--primary-light);
 }
+
+/* --- Task B7: Triage Progress & Undo Previous Answer --- */
+.triage-progress-wrap {
+  background: var(--surface);
+  padding: 10px 16px 12px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.triage-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.triage-back-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 8px;
+}
+
+.triage-back-btn {
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.triage-back-btn:hover {
+  color: var(--primary);
+}
