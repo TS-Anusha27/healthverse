@@ -234,6 +234,10 @@ function quickAction(label, icon, color, bg, page) {
 
 function renderBottomNav(active, options = {}) {
   const { desktopOnly = false } = options;
+  const userRole = store.userType || 'patient';
+  const homeRoute = userRole === 'doctor' ? 'doctor-home' : userRole === 'ambulance' ? 'ambulance-home' : 'patient-home';
+  const portalLabel = userRole === 'doctor' ? 'Doctor Portal' : userRole === 'ambulance' ? 'Ambulance Portal' : 'Patient Portal';
+
   const items = [
     { id: 'home', icon: 'home', label: 'Home', page: 'patient-home' },
     { id: 'appointments', icon: 'calendar', label: 'Book', page: 'appointments' },
@@ -244,8 +248,8 @@ function renderBottomNav(active, options = {}) {
 
   return `
     <nav class="bottom-nav ${desktopOnly ? 'bottom-nav--desktop-only' : ''}" id="bottom-nav" aria-label="Patient navigation">
-      <div class="sidebar-brand" aria-hidden="true">
-        <div class="sidebar-brand-mark">
+      <button type="button" class="sidebar-brand" id="sidebar-brand-home" onclick="navigate('${homeRoute}')" aria-label="Go to HealthVerse Home Dashboard" title="Go to Home Dashboard">
+        <div class="sidebar-brand-mark" aria-hidden="true">
           <svg width="20" height="20" viewBox="0 0 52 52" fill="none">
             <path d="M26 8C26 8 14 14 14 26C14 32 17.5 37 23 40L26 42L29 40C34.5 37 38 32 38 26C38 14 26 8 26 8Z" fill="white" fill-opacity="0.95"/>
             <path d="M22 26H30M26 22V30" stroke="#4A90D9" stroke-width="3" stroke-linecap="round"/>
@@ -253,9 +257,9 @@ function renderBottomNav(active, options = {}) {
         </div>
         <div>
           <div class="sidebar-brand-title">HealthVerse</div>
-          <div class="sidebar-brand-sub">Patient Portal</div>
+          <div class="sidebar-brand-sub">${portalLabel}</div>
         </div>
-      </div>
+      </button>
       ${items.map(item => item.isCenter ? `
         <div class="nav-center-btn" role="button" tabindex="0" onclick="navigate('sos')" id="nav-sos" aria-label="Emergency SOS">
           <i data-lucide="alert-triangle" style="width:24px;height:24px;color:white;"></i>
