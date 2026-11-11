@@ -1,9 +1,11 @@
-// HealthVerse â€” Telemedicine / Video Call UI
+// HealthVerse — Telemedicine / Video Call UI
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
-import { showToast, showModal } from '../../utils/utils.js';
+import { showToast, showModal, escapeHtml } from '../../utils/utils.js';
 import { getDoctors, createTelemedicineSession } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
+import { renderBottomNav } from '../patient/patient-home.js';
+import { uiIcon } from '../../utils/icons.js';
 
 let callTimer = null;
 let callSeconds = 0;
@@ -13,7 +15,7 @@ export function renderTelemedicine() {
   app.innerHTML = `
     <div class="screen" id="tele-screen" style="background:var(--bg);">
       <div class="page-header">
-        <button class="back-btn" onclick="goBack()">
+        <button class="back-btn" onclick="goBack()" aria-label="Go back">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <div class="page-title">Telemedicine</div>
@@ -25,13 +27,13 @@ export function renderTelemedicine() {
       <div class="screen-content" style="padding-bottom:100px;">
         <!-- Available Doctors for Video -->
         <div class="section mt-3">
-          <div style="background:linear-gradient(135deg,#E8F4FD,#DBEEFF);border-radius:16px;padding:16px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
+          <div style="background:var(--primary-light);border:1px solid rgba(74,144,217,0.22);border-radius:16px;padding:16px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
             <div style="width:44px;height:44px;background:var(--primary);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
             </div>
             <div>
               <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--primary);">Video Consultations</div>
-              <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">Consult top doctors from home â€¢ No travel needed</div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">Consult top doctors from home • No travel needed</div>
             </div>
           </div>
 
@@ -45,11 +47,11 @@ export function renderTelemedicine() {
               <div class="tele-doctor-card" onclick="openBookingModal('${doc.id}')">
                 <div class="tele-doc-avatar">${doc.name.split(' ').pop().charAt(0)}</div>
                 <div style="flex:1;">
-                  <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);">${doc.name}</div>
-                  <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${doc.specialty}</div>
-                  <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">${doc.qualification}</div>
+                  <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);">${escapeHtml(doc.name)}</div>
+                  <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${escapeHtml(doc.specialty)}</div>
+                  <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">${escapeHtml(doc.qualification)}</div>
                   <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-                    <span style="font-size:11px;font-weight:600;color:var(--warning);">â­ ${doc.rating}</span>
+                    <span style="font-size:11px;font-weight:600;color:var(--warning);" class="inline-icon-text">${uiIcon('star', { size: 11, color: '#FFA502', fill: '#FFA502' })} ${doc.rating}</span>
                     <span style="font-size:11px;color:var(--text-tertiary);">${doc.experience}yrs exp</span>
                     <div style="display:flex;align-items:center;gap:3px;">
                       <div style="width:6px;height:6px;background:var(--success);border-radius:50%;animation:pulse-ring 1.5s infinite;"></div>
@@ -61,7 +63,7 @@ export function renderTelemedicine() {
                   </div>
                 </div>
                 <div style="text-align:right;flex-shrink:0;">
-                  <div style="font-family:var(--font-display);font-size:17px;font-weight:800;color:var(--primary);">â‚¹${doc.fee}</div>
+                  <div style="font-family:var(--font-display);font-size:17px;font-weight:800;color:var(--primary);">₹${doc.fee}</div>
                   <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Next: ${doc.nextSlot}</div>
                   <button class="btn btn-primary btn-xs mt-2" onclick="event.stopPropagation();startCall('${doc.id}')">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
@@ -88,11 +90,11 @@ export function renderTelemedicine() {
                   </div>
                   <div style="flex:1;">
                     <div style="font-size:14px;font-weight:600;color:var(--text-primary);">${c.doctor}</div>
-                    <div style="font-size:12px;color:var(--text-secondary);">${c.specialty} â€¢ ${c.date}</div>
+                    <div style="font-size:12px;color:var(--text-secondary);">${c.specialty} • ${c.date}</div>
                     <div style="font-size:11px;color:var(--text-tertiary);">Duration: ${c.duration}</div>
                   </div>
                   <div style="text-align:right;">
-                    <div style="font-size:13px;font-weight:700;color:var(--text-primary);">â‚¹${c.fee}</div>
+                    <div style="font-size:13px;font-weight:700;color:var(--text-primary);">₹${c.fee}</div>
                     <div class="badge badge-success" style="margin-top:4px;">Completed</div>
                   </div>
                 </div>
@@ -101,6 +103,7 @@ export function renderTelemedicine() {
           </div>
         </div>
       </div>
+      ${renderBottomNav('appointments', { desktopOnly: true })}
     </div>
   `;
 
@@ -166,7 +169,7 @@ function initTeleHandlers() {
     });
 
     closeModal();
-    showToast(`Video consultation confirmed with ${doc.name} for ${slot}! Saved to Supabase.`, 'success', 5000);
+    showToast(`Video consultation confirmed with ${doc.name} for ${slot}!`, 'success', 5000);
     setTimeout(() => startVideoCall(doc.name, doc.specialty), 800);
   };
 
@@ -174,15 +177,15 @@ function initTeleHandlers() {
     const doc = mockData.doctors.find(d => d.id === docId);
     if (!doc) return;
     showModal(`
-      <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:4px;">${doc.name}</h3>
-      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">${doc.specialty} â€¢ ${doc.hospital}</div>
+      <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:4px;">${escapeHtml(doc.name)}</h3>
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">${escapeHtml(doc.specialty)} • ${escapeHtml(doc.hospital)}</div>
       <div style="background:var(--surface-dim);border-radius:14px;padding:14px;margin-bottom:16px;font-size:14px;">
-        <p style="color:var(--text-secondary);line-height:1.6;">${doc.about}</p>
+        <p style="color:var(--text-secondary);line-height:1.6;">${escapeHtml(doc.about)}</p>
       </div>
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
         <div class="flex justify-between"><span style="color:var(--text-secondary);">Experience</span><strong>${doc.experience} years</strong></div>
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">Rating</span><strong>â­  ${doc.rating} (${doc.reviews} reviews)</strong></div>
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">Consultation Fee</span><strong style="color:var(--primary);">â‚¹${doc.fee}</strong></div>
+        <div class="flex justify-between"><span style="color:var(--text-secondary);">Rating</span><strong class="inline-icon-text">${uiIcon('star', { size: 13, color: '#FFA502', fill: '#FFA502' })} ${doc.rating} (${doc.reviews} reviews)</strong></div>
+        <div class="flex justify-between"><span style="color:var(--text-secondary);">Consultation Fee</span><strong style="color:var(--primary);">₹${doc.fee}</strong></div>
         <div class="flex justify-between"><span style="color:var(--text-secondary);">Next Available</span><strong style="color:var(--success);">${doc.nextSlot}</strong></div>
       </div>
       <div style="display:flex;gap:10px;">
@@ -239,8 +242,8 @@ function startVideoCallUI(doc) {
   callScreen.innerHTML = `
     <!-- Simulated Video Background -->
     <div style="position:absolute;inset:0;background:linear-gradient(160deg,#1A2332 0%,#0D2840 100%);display:flex;align-items:center;justify-content:center;">
-      <div style="text-align:center;opacity:0.3;">
-        <div style="font-size:80px;margin-bottom:10px;">ðŸ‘¨â€âš•ï¸</div>
+      <div style="text-align:center;opacity:0.35;color:white;">
+        <div style="margin-bottom:10px;display:flex;justify-content:center;">${uiIcon('stethoscope', { size: 68, strokeWidth: 1.5, color: 'white' })}</div>
         <div style="color:white;font-size:14px;">Dr. ${doc.name}</div>
       </div>
     </div>
@@ -261,28 +264,28 @@ function startVideoCallUI(doc) {
 
     <!-- Local Video -->
     <div class="video-local">
-      <div style="width:100%;height:100%;background:linear-gradient(135deg,#1E3A5F,#0D4F3C);display:flex;align-items:center;justify-content:center;font-size:36px;">ðŸ§‘</div>
+      <div style="width:100%;height:100%;background:linear-gradient(135deg,#1E3A5F,#0D4F3C);display:flex;align-items:center;justify-content:center;color:white;">${uiIcon('user', { size: 32, strokeWidth: 1.8, color: 'white' })}</div>
     </div>
 
     <!-- Floating Action: Share Report -->
     <div style="position:absolute;right:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;">
-      <button class="call-btn" style="background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);" onclick="showToast('Report shared with doctor','success')" title="Share Report">
+      <button class="call-btn" style="background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);" onclick="showToast('Report shared with doctor','success')" title="Share Report" aria-label="Share Report">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
       </button>
-      <button class="call-btn" style="background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);" onclick="showToast('Chat opened','info')" title="Chat">
+      <button class="call-btn" style="background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);" onclick="showToast('Chat opened','info')" title="Chat" aria-label="Open Chat">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       </button>
     </div>
 
     <!-- Call Controls -->
     <div class="call-controls">
-      <button class="call-btn" id="btn-mic" style="background:rgba(255,255,255,0.15);" onclick="toggleMic(this)">
+      <button class="call-btn" id="btn-mic" style="background:rgba(255,255,255,0.15);" onclick="toggleMic(this)" aria-label="Toggle microphone">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
       </button>
-      <button class="call-btn call-btn-end" onclick="endCall()">
+      <button class="call-btn call-btn-end" onclick="endCall()" aria-label="End call">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.42 19.42 0 0 1 4.43 9.44 19.79 19.79 0 0 1 1.36 .82"/><line x1="23" y1="1" x2="1" y2="23"/></svg>
       </button>
-      <button class="call-btn" id="btn-cam" style="background:rgba(255,255,255,0.15);" onclick="toggleCam(this)">
+      <button class="call-btn" id="btn-cam" style="background:rgba(255,255,255,0.15);" onclick="toggleCam(this)" aria-label="Toggle camera">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
       </button>
     </div>
@@ -302,7 +305,7 @@ function startVideoCallUI(doc) {
     clearInterval(callTimer);
     callScreen.remove();
     const duration = `${Math.floor(callSeconds / 60)}:${String(callSeconds % 60).padStart(2, '0')}`;
-    showToast(`Call ended â€¢ Duration: ${duration} â€¢ Prescription will be sent shortly`, 'success', 5000);
+    showToast(`Call ended • Duration: ${duration} • Prescription will be sent shortly`, 'success', 5000);
   };
 
   window.toggleMic = (btn) => {

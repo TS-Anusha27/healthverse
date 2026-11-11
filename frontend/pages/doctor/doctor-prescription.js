@@ -1,6 +1,7 @@
 import { navigate, goBack } from '../../routes/router.js';
 import { mockAISummary } from '../../services/data.js';
-import { showToast } from '../../utils/utils.js';
+import { showToast, escapeHtml } from '../../utils/utils.js';
+import { uiIcon } from '../../utils/icons.js';
 import { createPrescription } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 
@@ -13,7 +14,7 @@ export function renderDoctorPrescription() {
   app.innerHTML = `
     <div class="screen" style="background:var(--bg);">
       <div class="page-header">
-        <button class="back-btn" onclick="goBack()">
+        <button class="back-btn" onclick="goBack()" aria-label="Go back">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <div class="page-title">Digital Prescription</div>
@@ -24,7 +25,7 @@ export function renderDoctorPrescription() {
         <div class="card mb-4" style="background:var(--primary-light);border-color:var(--primary);padding:14px;">
           <div style="font-size:12px;font-weight:700;color:var(--primary);letter-spacing:0.5px;">PATIENT</div>
           <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text-primary);margin-top:2px;">Aarav Patel (28y, M)</div>
-          <div style="font-size:12px;color:var(--emergency);font-weight:600;margin-top:4px;">⚠️ Known Allergy: Penicillin, Sulfa drugs</div>
+          <div style="font-size:12px;color:var(--emergency);font-weight:600;margin-top:4px;" class="inline-icon-text">${uiIcon('alertTriangle', { size: 14 })} Known Allergy: Penicillin, Sulfa drugs</div>
         </div>
 
         <!-- Add Medicines -->
@@ -33,11 +34,11 @@ export function renderDoctorPrescription() {
 
           <div style="display:flex;flex-direction:column;gap:10px;">
             ${[
-              { name: 'Amoxicillin 500mg', type: 'Antibiotic (Penicillin class)', isAllergic: true },
-              { name: 'Telmisartan 40mg', type: 'Antihypertensive', isAllergic: false },
-              { name: 'Metformin 500mg', type: 'Antidiabetic', isAllergic: false },
-              { name: 'Ibuprofen 400mg', type: 'NSAID (Kidney/GI caution)', isWarning: true }
-            ].map(m => `
+      { name: 'Amoxicillin 500mg', type: 'Antibiotic (Penicillin class)', isAllergic: true },
+      { name: 'Telmisartan 40mg', type: 'Antihypertensive', isAllergic: false },
+      { name: 'Metformin 500mg', type: 'Antidiabetic', isAllergic: false },
+      { name: 'Ibuprofen 400mg', type: 'NSAID (Kidney/GI caution)', isWarning: true }
+    ].map(m => `
               <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--surface-dim);border-radius:12px;">
                 <div>
                   <div style="font-size:14px;font-weight:600;">${m.name}</div>
@@ -59,7 +60,7 @@ export function renderDoctorPrescription() {
           </div>
 
           <!-- AI Warning Box -->
-          <div id="ai-rx-warning" style="display:none;margin-top:16px;padding:14px;background:#FFF0F1;border:1.5px solid var(--emergency);border-radius:12px;"></div>
+          <div id="ai-rx-warning" style="display:none;margin-top:16px;padding:14px;background:var(--emergency-light);border:1.5px solid var(--emergency);border-radius:12px;"></div>
         </div>
 
         <button class="btn btn-primary btn-full btn-lg" onclick="signAndSendRx()">
@@ -82,8 +83,8 @@ export function renderDoctorPrescription() {
 
     listEl.innerHTML = selectedMeds.map((m, i) => `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--surface-dim);border-radius:10px;font-size:13px;">
-        <span style="font-weight:600;">${m.name}</span>
-        <button style="border:none;background:none;color:var(--emergency);cursor:pointer;font-weight:700;" onclick="removeMed(${i})">✖</button>
+        <span style="font-weight:600;">${escapeHtml(m.name)}</span>
+        <button style="border:none;background:none;color:var(--emergency);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;" aria-label="Remove medicine" onclick="removeMed(${i})">${uiIcon('x', { size: 15, strokeWidth: 2.5 })}</button>
       </div>
     `).join('');
 
@@ -92,14 +93,14 @@ export function renderDoctorPrescription() {
     if (hasAllergy && warnEl) {
       warnEl.style.display = 'block';
       warnEl.innerHTML = `
-        <div style="font-family:var(--font-display);font-size:13px;font-weight:800;color:var(--emergency);">
-          🤖 AI SAFETY WARNING DETECTED!
+        <div style="font-family:var(--font-display);font-size:13px;font-weight:800;color:var(--emergency);" class="inline-icon-text">
+          ${uiIcon('bot', { size: 16 })} AI SAFETY WARNING DETECTED!
         </div>
         <div style="font-size:12px;color:var(--text-primary);margin-top:4px;">
           Patient has documented <strong>PENICILLIN ALLERGY</strong>. Amoxicillin is contraindicated and may cause anaphylaxis.
         </div>
       `;
-      showToast('⚠️ AI Warning: Allergy conflict detected!', 'error', 5000);
+      showToast('AI Warning: Allergy conflict detected!', 'error', 5000);
     } else if (warnEl) {
       warnEl.style.display = 'none';
     }
@@ -129,7 +130,7 @@ export function renderDoctorPrescription() {
       instructions: 'Take as directed with food'
     });
 
-    showToast('Prescription digitally signed & saved to Supabase!', 'success', 5000);
+    showToast('Prescription digitally signed & saved!', 'success', 5000);
     setTimeout(() => navigate('doctor-home'), 1500);
   };
 }

@@ -2,7 +2,7 @@
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
 import { authService } from '../../services/auth/authService.js';
-import { showToast } from '../../utils/utils.js';
+import { showToast, escapeHtml } from '../../utils/utils.js';
 
 export function renderUserType() {
   const app = document.getElementById('app');
@@ -11,37 +11,33 @@ export function renderUserType() {
   const currentName = store.currentUser?.name || 'User';
 
   app.innerHTML = `
-    <div class="screen landing-screen" id="landing-screen" style="min-height:100dvh;background:var(--bg);display:flex;flex-direction:column;">
+    <div class="screen screen-shell landing-screen" id="landing-screen">
       <!-- Top Brand Bar -->
-      <header class="landing-header" style="padding:28px 24px 20px;text-align:center;background:var(--surface);border-bottom:1px solid var(--border-light);box-shadow:var(--shadow-xs);">
-        <div style="display:inline-flex;align-items:center;gap:12px;margin-bottom:8px;">
-          <div class="brand-logo-mark" style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--primary) 0%,var(--secondary) 100%);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);flex-shrink:0;">
+      <header class="landing-header">
+        <div class="landing-brand-row">
+          <div class="brand-logo-mark">
             <svg width="28" height="28" viewBox="0 0 52 52" fill="none">
               <path d="M26 8C26 8 14 14 14 26C14 32 17.5 37 23 40L26 42L29 40C34.5 37 38 32 38 26C38 14 26 8 26 8Z" fill="white" fill-opacity="0.95"/>
               <path d="M22 26H30M26 22V30" stroke="#4A90D9" stroke-width="2.5" stroke-linecap="round"/>
             </svg>
           </div>
           <div style="text-align:left;">
-            <h1 style="font-family:var(--font-display);font-size:24px;font-weight:800;color:var(--text-primary);letter-spacing:-0.5px;line-height:1.2;">
-              HealthVerse
-            </h1>
-            <p style="font-size:12px;font-weight:600;color:var(--text-secondary);letter-spacing:0.4px;">
-              A Complete Healthcare Universe
-            </p>
+            <h1 class="landing-title">HealthVerse</h1>
+            <p class="landing-subtitle">A Complete Healthcare Universe</p>
           </div>
         </div>
 
-        <p style="font-size:14px;color:var(--text-secondary);max-width:380px;margin:10px auto 0;line-height:1.5;">
+        <p class="landing-lead">
           A unified, AI-assisted healthcare ecosystem connecting patients, verified doctors, and emergency response services.
         </p>
 
         ${isLoggedIn ? `
-          <div class="active-session-banner mt-3" style="background:var(--primary-light);border:1px solid rgba(74,144,217,0.3);border-radius:12px;padding:12px 16px;max-width:400px;margin:14px auto 0;display:flex;align-items:center;justify-content:space-between;text-align:left;">
+          <div class="active-session-banner mt-3">
             <div>
-              <div style="font-size:12px;color:var(--primary);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Active Session</div>
-              <div style="font-size:14px;font-weight:700;color:var(--text-primary);">${currentName} <span style="font-weight:500;color:var(--text-secondary);">(${currentRole})</span></div>
+              <div class="active-session-label">Active Session</div>
+              <div class="active-session-name">${escapeHtml(currentName)} <span class="active-session-role">(${escapeHtml(currentRole)})</span></div>
             </div>
-            <div style="display:flex;gap:8px;">
+            <div class="flex gap-2">
               <button class="btn btn-primary btn-xs" onclick="goToCurrentDashboard()">Dashboard</button>
               <button class="btn btn-outline btn-xs" onclick="handleLandingSignOut()">Sign Out</button>
             </div>
@@ -50,20 +46,18 @@ export function renderUserType() {
       </header>
 
       <!-- Role Selection Section -->
-      <main class="screen-content" style="padding:28px 20px 48px;max-width:480px;margin:0 auto;width:100%;flex:1;">
-        <div style="text-align:center;margin-bottom:24px;">
-          <h2 style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text-primary);">
-            Choose Your Portal
-          </h2>
-          <p style="font-size:13px;color:var(--text-secondary);margin-top:4px;">
+      <main class="screen-content auth-main">
+        <div class="landing-heading-block">
+          <h2 class="landing-heading">Choose Your Portal</h2>
+          <p class="landing-subheading">
             Select your account category to continue to dedicated sign in or registration
           </p>
         </div>
 
-        <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="flex-col gap-4">
           <!-- Role 1: Patient / User -->
-          <div class="portal-card" id="card-patient" onclick="openRoleAuth('patient')">
-            <div class="portal-icon" style="background:#EBF5FF;color:#2B6CB0;">
+          <div class="portal-card" role="button" tabindex="0" id="card-patient" onclick="openRoleAuth('patient')">
+            <div class="portal-icon portal-icon--patient">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
               </svg>
@@ -71,13 +65,13 @@ export function renderUserType() {
             <div class="portal-body">
               <div class="flex items-center justify-between">
                 <h3 class="portal-title">Patient / User</h3>
-                <span class="portal-pill" style="background:#EBF5FF;color:#2B6CB0;">Patient Portal</span>
+                <span class="portal-pill portal-pill--patient">Patient Portal</span>
               </div>
               <p class="portal-desc">
                 Access healthcare services, manage your medical profile, and book appointments.
               </p>
               <div class="portal-action-row">
-                <span class="portal-cta" style="color:#2B6CB0;">
+                <span class="portal-cta portal-cta--patient">
                   Continue to Patient Portal &rarr;
                 </span>
               </div>
@@ -85,8 +79,8 @@ export function renderUserType() {
           </div>
 
           <!-- Role 2: Doctor -->
-          <div class="portal-card" id="card-doctor" onclick="openRoleAuth('doctor')">
-            <div class="portal-icon" style="background:#E6FFFA;color:#234E52;">
+          <div class="portal-card" role="button" tabindex="0" id="card-doctor" onclick="openRoleAuth('doctor')">
+            <div class="portal-icon portal-icon--doctor">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#319795" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
               </svg>
@@ -94,13 +88,13 @@ export function renderUserType() {
             <div class="portal-body">
               <div class="flex items-center justify-between">
                 <h3 class="portal-title">Doctor</h3>
-                <span class="portal-pill" style="background:#E6FFFA;color:#234E52;">Medical Staff</span>
+                <span class="portal-pill portal-pill--doctor">Medical Staff</span>
               </div>
               <p class="portal-desc">
                 Access your professional workspace and manage patient care.
               </p>
               <div class="portal-action-row">
-                <span class="portal-cta" style="color:#319795;">
+                <span class="portal-cta portal-cta--doctor">
                   Continue to Doctor Workspace &rarr;
                 </span>
               </div>
@@ -108,8 +102,8 @@ export function renderUserType() {
           </div>
 
           <!-- Role 3: Ambulance Driver -->
-          <div class="portal-card" id="card-ambulance" onclick="openRoleAuth('ambulance')">
-            <div class="portal-icon" style="background:#FFF5F5;color:#9B2C2C;">
+          <div class="portal-card" role="button" tabindex="0" id="card-ambulance" onclick="openRoleAuth('ambulance')">
+            <div class="portal-icon portal-icon--ambulance">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E53E3E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
               </svg>
@@ -117,13 +111,13 @@ export function renderUserType() {
             <div class="portal-body">
               <div class="flex items-center justify-between">
                 <h3 class="portal-title">Ambulance Driver</h3>
-                <span class="portal-pill" style="background:#FFF5F5;color:#9B2C2C;">Emergency Response</span>
+                <span class="portal-pill portal-pill--ambulance">Emergency Response</span>
               </div>
               <p class="portal-desc">
                 Access your driver workspace and manage assigned emergency requests.
               </p>
               <div class="portal-action-row">
-                <span class="portal-cta" style="color:#E53E3E;">
+                <span class="portal-cta portal-cta--ambulance">
                   Continue to Driver Portal &rarr;
                 </span>
               </div>
@@ -132,10 +126,8 @@ export function renderUserType() {
         </div>
 
         <!-- Footer platform info -->
-        <footer style="margin-top:36px;text-align:center;padding:16px 0;border-top:1px solid var(--border-light);">
-          <div style="font-size:12px;color:var(--text-tertiary);">
-            HealthVerse System &bull; Secure Client Verification &bull; v2.0
-          </div>
+        <footer class="landing-footer">
+          HealthVerse System &bull; Secure Client Verification &bull; v2.0
         </footer>
       </main>
     </div>

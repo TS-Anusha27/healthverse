@@ -40,27 +40,102 @@ export function showToast(message, type = 'info', duration = 3500) {
 
 // Modal System
 let activeModal = null;
+let lastFocusedBeforeModal = null;
+let modalKeydownHandler = null;
+
+const FOCUSABLE_SELECTOR = 'a[href], area[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]), [role="button"]';
+
+export function enhanceAccessibility(root = document) {
+  if (!root || !root.querySelectorAll) return;
+
+  root.querySelectorAll('[onclick]').forEach(el => {
+    const tag = el.tagName;
+    if (tag === 'BUTTON' || tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+    if (tag === 'A' && el.hasAttribute('href')) return;
+    if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
+    if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+  });
+
+  root.querySelectorAll('button').forEach(btn => {
+    if (btn.hasAttribute('aria-label')) return;
+    const text = (btn.textContent || '').replace(/\s+/g, ' ').trim();
+    if (!text) {
+      const title = btn.getAttribute('title');
+      btn.setAttribute('aria-label', title || (btn.classList.contains('back-btn') ? 'Go back' : 'Action'));
+    }
+  });
+}
 
 export function showModal(content, options = {}) {
   const container = document.getElementById('modal-container');
   if (!container) return;
 
-  closeModal();
+  if (!activeModal && document.activeElement instanceof HTMLElement) {
+    lastFocusedBeforeModal = document.activeElement;
+  }
 
+  closeModal({ restoreFocus: false });
+
+  const dialogLabel = escapeHtml(options.ariaLabel || 'Dialog');
   container.style.pointerEvents = 'all';
   container.innerHTML = `
     <div class="modal-overlay" id="modal-overlay"></div>
-    <div class="modal-sheet" id="modal-sheet">
+    <div class="modal-sheet" id="modal-sheet" role="dialog" aria-modal="true" aria-label="${dialogLabel}" tabindex="-1">
       <div class="modal-handle"></div>
       ${content}
     </div>
   `;
 
   activeModal = container;
+  const sheet = document.getElementById('modal-sheet');
+  enhanceAccessibility(sheet);
 
-  document.getElementById('modal-overlay').addEventListener('click', closeModal);
+  document.getElementById('modal-overlay')?.addEventListener('click', () => closeModal());
+
+  modalKeydownHandler = (e) => {
+    if (!activeModal || !sheet) return;
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeModal();
+      return;
+    }
+    if (e.key === 'Tab') {
+      const focusable = Array.from(sheet.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
+        el => el.offsetParent !== null || el === document.activeElement
+      );
+      if (focusable.length === 0) {
+        e.preventDefault();
+        sheet.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first || document.activeElement === sheet || !sheet.contains(document.activeElement)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last || !sheet.contains(document.activeElement)) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+  };
+  document.addEventListener('keydown', modalKeydownHandler);
 
   if (options.onOpen) options.onOpen();
+
+  setTimeout(() => {
+    if (!sheet || !document.body.contains(sheet)) return;
+    const firstFocusable = sheet.querySelector(FOCUSABLE_SELECTOR);
+    if (firstFocusable instanceof HTMLElement) {
+      firstFocusable.focus();
+    } else {
+      sheet.focus();
+    }
+  }, 20);
 
   return {
     close: closeModal,
@@ -68,16 +143,41 @@ export function showModal(content, options = {}) {
   };
 }
 
-export function closeModal() {
+export function closeModal({ restoreFocus = true } = {}) {
   const container = document.getElementById('modal-container');
-  if (!container || !container.innerHTML.trim()) return;
+  if (modalKeydownHandler) {
+    document.removeEventListener('keydown', modalKeydownHandler);
+    modalKeydownHandler = null;
+  }
+  if (!container || !container.innerHTML.trim()) {
+    activeModal = null;
+    return;
+  }
 
   container.style.pointerEvents = 'none';
   container.innerHTML = '';
   activeModal = null;
+
+  if (restoreFocus && lastFocusedBeforeModal && document.body.contains(lastFocusedBeforeModal)) {
+    const target = lastFocusedBeforeModal;
+    lastFocusedBeforeModal = null;
+    try { target.focus(); } catch { /* noop */ }
+  } else if (restoreFocus) {
+    lastFocusedBeforeModal = null;
+  }
 }
 
 // Format utilities
+export function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export function formatDate(d) {
   return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
@@ -108,6 +208,87 @@ export function debounce(fn, delay) {
   };
 }
 
+export function renderSkeletonCards(count = 3, withAvatar = true) {
+  return `
+    <div class="skeleton-stack" aria-busy="true" aria-label="Loading content">
+      ${Array.from({ length: count }, () => `
+        <div class="skeleton-card">
+          <div class="skeleton-row">
+            ${withAvatar ? '<div class="skeleton skeleton-avatar"></div>' : ''}
+            <div style="flex:1;">
+              <div class="skeleton skeleton-line skeleton-line--title"></div>
+              <div class="skeleton skeleton-line skeleton-line--medium"></div>
+              <div class="skeleton skeleton-line skeleton-line--short"></div>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+export function renderSkeletonStats(count = 3) {
+  return `
+    <div class="grid-${count === 2 ? '2' : '3'}" aria-busy="true" aria-label="Loading stats">
+      ${Array.from({ length: count }, () => '<div class="skeleton skeleton-stat"></div>').join('')}
+    </div>
+  `;
+}
+
+export function renderEmptyState({
+  title = 'Nothing here yet',
+  description = 'There is no data to display right now.',
+  actionLabel = '',
+  actionOnclick = '',
+  icon = ''
+} = {}) {
+  const defaultIcon = `
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="9" y1="15" x2="15" y2="15"/>
+    </svg>
+  `;
+  return `
+    <div class="empty-state">
+      <div class="empty-state-illustration">${icon || defaultIcon}</div>
+      <div class="empty-state-title">${escapeHtml(title)}</div>
+      <div class="empty-state-desc">${escapeHtml(description)}</div>
+      ${actionLabel && actionOnclick ? `
+        <div class="empty-state-action">
+          <button class="btn btn-primary btn-sm" onclick="${actionOnclick}">${escapeHtml(actionLabel)}</button>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+export function renderErrorState({
+  title = 'Unable to load data',
+  description = 'Something went wrong while fetching this information. Please try again.',
+  retryOnclick = '',
+  retryLabel = 'Retry'
+} = {}) {
+  return `
+    <div class="error-state" role="alert">
+      <div class="error-state-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <div class="error-state-title">${escapeHtml(title)}</div>
+      <div class="error-state-desc">${escapeHtml(description)}</div>
+      ${retryOnclick ? `
+        <div class="error-state-action">
+          <button class="btn btn-primary btn-sm" onclick="${retryOnclick}">${escapeHtml(retryLabel)}</button>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
 // Generate QR-like pattern (visual placeholder)
 export function generateQRDisplay(code) {
   return `
@@ -128,4 +309,132 @@ export function generateQRDisplay(code) {
     </div>
     <div style="font-size: 11px; color: #6B7A8D; text-align: center; margin-top: 8px; font-family: monospace; letter-spacing: 1px;">${code}</div>
   `;
+}
+
+export function animateCountUp(el, target, { duration = 600, prefix = '', suffix = '' } = {}) {
+  if (!el) return;
+  const numericTarget = Number(target);
+  if (!Number.isFinite(numericTarget)) {
+    el.textContent = `${prefix}${target}${suffix}`;
+    return;
+  }
+  const prefersReduced = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReduced || duration <= 0 || numericTarget === 0) {
+    el.textContent = `${prefix}${numericTarget}${suffix}`;
+    return;
+  }
+  const start = performance.now();
+  const isFloat = !Number.isInteger(numericTarget);
+  function frame(now) {
+    const elapsed = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - elapsed, 3);
+    const current = numericTarget * eased;
+    el.textContent = `${prefix}${isFloat ? current.toFixed(1) : Math.round(current)}${suffix}`;
+    if (elapsed < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      el.textContent = `${prefix}${numericTarget}${suffix}`;
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+export function applyCountUps(root = document) {
+  if (!root) return;
+  const targets = root.querySelectorAll('[data-countup]');
+  targets.forEach(el => {
+    if (el.dataset.counted === 'true') return;
+    el.dataset.counted = 'true';
+    const raw = el.getAttribute('data-countup');
+    const prefix = el.getAttribute('data-countup-prefix') || '';
+    const suffix = el.getAttribute('data-countup-suffix') || '';
+    animateCountUp(el, raw, { prefix, suffix });
+  });
+}
+
+export function setFieldError(inputId, message) {
+  const input = document.getElementById(inputId);
+  const errId = `err-${inputId}`;
+  let errEl = document.getElementById(errId);
+  if (!errEl && input) {
+    const group = input.closest('.form-group') || input.parentElement;
+    if (group) {
+      errEl = document.createElement('div');
+      errEl.id = errId;
+      errEl.className = 'form-error hidden';
+      errEl.setAttribute('role', 'alert');
+      group.appendChild(errEl);
+    }
+  }
+  if (message) {
+    if (input) {
+      input.classList.add('error');
+      input.setAttribute('aria-invalid', 'true');
+      input.setAttribute('aria-describedby', errId);
+    }
+    if (errEl) {
+      errEl.textContent = message;
+      errEl.classList.remove('hidden');
+    }
+    return false;
+  }
+  if (input) {
+    input.classList.remove('error');
+    input.removeAttribute('aria-invalid');
+  }
+  if (errEl) {
+    errEl.textContent = '';
+    errEl.classList.add('hidden');
+  }
+  return true;
+}
+
+export function clearFieldError(inputId) {
+  return setFieldError(inputId, '');
+}
+
+export function clearFormErrors(root = document) {
+  if (!root) return;
+  root.querySelectorAll('.form-input.error').forEach(el => {
+    el.classList.remove('error');
+    el.removeAttribute('aria-invalid');
+  });
+  root.querySelectorAll('.form-error').forEach(el => {
+    el.textContent = '';
+    el.classList.add('hidden');
+  });
+}
+
+export function evaluatePasswordStrength(password = '') {
+  if (!password) return { score: 0, label: '', tier: '' };
+  if (password.length < 6) {
+    return { score: 1, label: 'Weak — at least 6 characters required', tier: 'weak' };
+  }
+  let variety = 0;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) variety += 1;
+  if (/\d/.test(password)) variety += 1;
+  if (/[^A-Za-z0-9]/.test(password)) variety += 1;
+  if (password.length >= 10) variety += 1;
+
+  if (variety >= 3) return { score: 4, label: 'Strong password', tier: 'strong' };
+  if (variety === 2) return { score: 3, label: 'Good password', tier: 'good' };
+  return { score: 2, label: 'Fair — add numbers or symbols to strengthen', tier: 'fair' };
+}
+
+export function setButtonLoading(btnOrId, isLoading, loadingText = 'Submitting...') {
+  const btn = typeof btnOrId === 'string' ? document.getElementById(btnOrId) : btnOrId;
+  if (!btn) return;
+  if (isLoading) {
+    if (!btn.dataset.originalHtml) {
+      btn.dataset.originalHtml = btn.innerHTML;
+    }
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-inline animate-spin"></span> ${escapeHtml(loadingText)}`;
+  } else {
+    btn.disabled = false;
+    if (btn.dataset.originalHtml) {
+      btn.innerHTML = btn.dataset.originalHtml;
+      delete btn.dataset.originalHtml;
+    }
+  }
 }

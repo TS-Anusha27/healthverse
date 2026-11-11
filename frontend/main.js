@@ -5,10 +5,12 @@ import { store } from './store/store.js';
 import * as utils from './utils/utils.js';
 import * as routerModule from './routes/router.js';
 import { authService } from './services/auth/authService.js';
+import { ensureDemoAccountsSeeded } from './utils/demoUsers.js';
 
 // Expose routing and utilities globally for inline onclick handlers across templates
 window.navigate = navigate;
 window.goBack = goBack;
+window.escapeHtml = utils.escapeHtml;
 window._utils = utils;
 window._router = routerModule;
 window._authService = authService;
@@ -31,7 +33,9 @@ import { renderSOS } from './pages/emergency/sos.js';
 import { renderDoctorDashboard } from './pages/doctor/doctor-dashboard.js';
 import { renderDoctorSummary } from './pages/doctor/doctor-summary.js';
 import { renderDoctorPrescription } from './pages/doctor/doctor-prescription.js';
+import { renderDoctorSetup } from './pages/doctor/doctor-setup.js';
 import { renderAmbulanceDriver } from './pages/ambulance/ambulance-driver.js';
+import { renderAmbulanceSetup } from './pages/ambulance/ambulance-setup.js';
 import { renderSettings } from './pages/profile/settings.js';
 import { renderNotifications } from './pages/profile/notifications.js';
 
@@ -55,15 +59,40 @@ register('sos', renderSOS);
 register('doctor-home', renderDoctorDashboard);
 register('doctor-summary', renderDoctorSummary);
 register('doctor-prescription', renderDoctorPrescription);
+register('doctor-setup', renderDoctorSetup);
 register('ambulance-home', renderAmbulanceDriver);
+register('ambulance-setup', renderAmbulanceSetup);
 register('settings', renderSettings);
 register('notifications', renderNotifications);
 
 // Initialize router popstate/hashchange event listeners
 initRouter();
 
+// Global keyboard activation for clickable non-button controls (role="button")
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const target = e.target;
+  if (!(target instanceof HTMLElement)) return;
+  if (target.matches('button, input, select, textarea, a[href]')) return;
+  const roleBtn = target.closest('[role="button"]');
+  if (roleBtn instanceof HTMLElement) {
+    e.preventDefault();
+    roleBtn.click();
+  }
+});
+
+// Keep dynamically loaded lists/cards accessible when async views populate
+const appRoot = document.getElementById('app');
+if (appRoot && typeof MutationObserver !== 'undefined') {
+  const observer = new MutationObserver(() => {
+    utils.enhanceAccessibility(appRoot);
+  });
+  observer.observe(appRoot, { childList: true, subtree: true });
+}
+
 // Startup bootstrap: restore session & navigate to targeted route
 async function bootstrap() {
+  await ensureDemoAccountsSeeded();
   await store.loadSavedUser();
 
   const currentHash = window.location.hash.trim();

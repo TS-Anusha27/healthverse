@@ -1,6 +1,7 @@
 // HealthVerse — Ambulance Driver Dashboard connected to Supabase DB & High-Precision Leaflet GPS Maps
 import { navigate } from '../../routes/router.js';
-import { showToast, showModal, closeModal, getInitials } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, getInitials, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState } from '../../utils/utils.js';
+import { uiIcon } from '../../utils/icons.js';
 import { getEmergencyRequests, updateEmergencyRequestStatus, updateDriverStatus } from '../../services/supabase/db.js';
 import { signOutUser } from '../../services/supabase/auth.js';
 import { store } from '../../store/store.js';
@@ -9,7 +10,7 @@ let isOnline = true;
 let inRide = false;
 let driverMap = null;
 
-export async function renderAmbulanceDriver() {
+export function renderAmbulanceDriver() {
   const driver = store.driver || (store.currentUser ? {
     name: store.currentUser.name,
     vehicle: store.driver?.vehicleNumber || 'Emergency Response Ambulance',
@@ -24,19 +25,6 @@ export async function renderAmbulanceDriver() {
   const driverName = driver.fullName || driver.name;
   const isPending = driver.verificationStatus === 'pending_verification';
 
-  const requests = await getEmergencyRequests();
-  const req = requests[0] || {
-    id: 'req_emergency_1',
-    patientName: 'Meera Krishnan',
-    condition: 'Chest Pain — Severe SOS',
-    address: '45, Anna Nagar 2nd Main Rd, Chennai',
-    distance: '1.2 km',
-    eta: '4 min',
-    hospital: 'Apollo Hospitals, Greams Rd',
-    lat: 13.0827,
-    lng: 80.2707
-  };
-
   const app = document.getElementById('app');
 
   app.innerHTML = `
@@ -45,22 +33,22 @@ export async function renderAmbulanceDriver() {
       <div style="background:#111827;color:white;padding:calc(14px + var(--safe-top)) 16px 14px;position:relative;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="avatar" style="background:var(--emergency);color:white;font-weight:800;" onclick="navigate('settings')">${getInitials(driverName)}</div>
+            <div class="avatar" role="button" tabindex="0" aria-label="Profile and settings" style="background:var(--emergency);color:white;font-weight:800;cursor:pointer;" onclick="navigate('settings')">${getInitials(driverName)}</div>
             <div>
               <div style="display:flex;align-items:center;">
-                <span style="font-family:var(--font-display);font-size:15px;font-weight:700;">${driverName}</span>
-                <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:${isPending ? '#FEF3C7' : '#D1FAE5'};color:${isPending ? '#92400E' : '#065F46'};margin-left:6px;">
-                  ${isPending ? '⏳ Pending' : '✓ Verified'}
+                <span style="font-family:var(--font-display);font-size:15px;font-weight:700;">${escapeHtml(driverName)}</span>
+                <span class="badge ${isPending ? 'badge-warning' : 'badge-success'} inline-icon-text" style="margin-left:6px;">
+                  ${isPending ? `${uiIcon('hourglass', { size: 12 })} Pending` : `${uiIcon('check', { size: 12, strokeWidth: 2.5 })} Verified`}
                 </span>
               </div>
-              <div style="font-size:11px;color:rgba(255,255,255,0.7);">${driver.vehicle || driver.vehicleNumber || 'Emergency Fleet'}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.7);">${escapeHtml(driver.vehicle || driver.vehicleNumber || 'Emergency Fleet')}</div>
             </div>
           </div>
 
           <!-- Controls: Switch Role & Logout -->
           <div class="flex items-center gap-2">
             <button class="btn btn-xs" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.25);" onclick="navigate('user-type')" title="Switch Role">
-              🔄 Switch Role
+              ${uiIcon('repeat', { size: 13 })} Switch Role
             </button>
             <button class="btn btn-xs btn-ghost" style="color:#FF4757;padding:4px 8px;" onclick="handleDriverSignOut()" title="Sign Out">
               Sign Out
@@ -81,46 +69,88 @@ export async function renderAmbulanceDriver() {
         </div>
       </div>
 
+      ${isPending ? `
+      <div class="verification-banner verification-banner--bar">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="display:inline-flex;color:var(--warning-dark, #B45309);">${uiIcon('alertTriangle', { size: 15 })}</span>
+          <span class="verification-banner-title" style="font-size:11px;">Vehicle verification pending</span>
+        </div>
+        <button class="btn btn-xs verification-banner-btn" onclick="navigate('ambulance-setup')">Complete verification &rarr;</button>
+      </div>` : ''}
+
       <!-- High-Precision Leaflet Map Container -->
       <div id="amb-map" style="height:calc(100dvh - 290px);width:100%;position:relative;z-index:1;"></div>
 
       <!-- Driver Ride Controls Panel -->
-      <div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--surface);border-radius:24px 24px 0 0;padding:18px 20px calc(18px + var(--safe-bottom));box-shadow:0 -8px 30px rgba(0,0,0,0.2);z-index:20;">
-        ${!inRide ? `
-          <div style="font-family:var(--font-display);font-size:13px;font-weight:800;color:var(--emergency);letter-spacing:0.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
-            <span style="width:8px;height:8px;background:var(--emergency);border-radius:50%;animation:pulse-ring 1.2s infinite;"></span>
-            INCOMING EMERGENCY REQUEST (SUPABASE SYNCED)
-          </div>
-          <div class="card card-sm mb-3" style="background:var(--surface-dim);padding:14px;border-left:4px solid var(--emergency);">
-            <div class="flex justify-between items-center mb-1">
-              <span style="font-size:15px;font-weight:800;color:var(--text-primary);">${req.patient_name || req.patientName}</span>
-              <span class="badge badge-emergency">${req.condition || 'SOS Emergency'}</span>
-            </div>
-            <div style="font-size:13px;color:var(--text-primary);margin-top:4px;">📍 Pickup: <strong>${req.address}</strong> (${req.distance || '1.2 km'})</div>
-            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">🏥 Target: <strong>${req.hospital || 'Apollo Hospitals'}</strong></div>
-          </div>
-          <button class="btn btn-emergency btn-full btn-lg" onclick="acceptEmergencyRide('${req.id}')" style="font-weight:800;">
-            ACCEPT EMERGENCY RIDE (ETA ${req.eta || '4 min'})
-          </button>
-        ` : `
-          <div style="font-family:var(--font-display);font-size:13px;font-weight:800;color:var(--secondary);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
-            <span style="width:8px;height:8px;background:var(--secondary);border-radius:50%;animation:pulse-ring 1s infinite;"></span>
-            MISSION ACTIVE — EN ROUTE TO PATIENT
-          </div>
-          <div class="card card-sm mb-3" style="background:var(--surface-dim);padding:14px;border-left:4px solid var(--secondary);">
-            <div style="font-size:14px;font-weight:700;">Navigation: Anna Nagar 2nd Main Rd → Greams Rd</div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">Live Speed: 42 km/h • GPS Lock High Accuracy</div>
-          </div>
-          <button class="btn btn-primary btn-full btn-lg" onclick="completeEmergencyRide('${req.id}')" style="background:var(--secondary);border:none;font-weight:800;">
-            ✓ MARK MISSION COMPLETED
-          </button>
-        `}
+      <div id="amb-controls-panel" class="amb-controls-panel">
+        ${renderSkeletonCards(1)}
       </div>
     </div>
   `;
 
   initDriverHandlers();
-  setTimeout(() => initDriverMap(req), 200);
+  window.retryAmbulanceDashboard = () => loadAmbulanceDispatchData();
+  loadAmbulanceDispatchData();
+}
+
+async function loadAmbulanceDispatchData() {
+  const panel = document.getElementById('amb-controls-panel');
+  if (!panel) return;
+  panel.innerHTML = renderSkeletonCards(1);
+
+  try {
+    const requests = await getEmergencyRequests();
+    if (!document.getElementById('amb-controls-panel')) return;
+
+    if (!requests || requests.length === 0) {
+      panel.innerHTML = renderEmptyState({
+        title: 'No Active SOS Requests',
+        description: 'Standing by for emergency dispatch calls near your GPS location.'
+      });
+      setTimeout(() => initDriverMap(null), 150);
+      return;
+    }
+
+    const req = requests[0];
+    panel.innerHTML = !inRide ? `
+      <div style="font-family:var(--font-display);font-size:13px;font-weight:800;color:var(--emergency);letter-spacing:0.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        <span style="width:8px;height:8px;background:var(--emergency);border-radius:50%;animation:pulse-ring 1.2s infinite;"></span>
+        INCOMING EMERGENCY REQUEST
+      </div>
+      <div class="card card-sm mb-3" style="background:var(--surface-dim);padding:14px;border-left:4px solid var(--emergency);">
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:15px;font-weight:800;color:var(--text-primary);">${escapeHtml(req.patient_name || req.patientName)}</span>
+          <span class="badge badge-emergency">${escapeHtml(req.condition || 'SOS Emergency')}</span>
+        </div>
+        <div style="font-size:13px;color:var(--text-primary);margin-top:4px;" class="inline-icon-text">${uiIcon('mapPin', { size: 14, color: 'var(--emergency)' })} Pickup: <strong>${escapeHtml(req.address)}</strong> (${escapeHtml(req.distance || '1.2 km')})</div>
+        <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;" class="inline-icon-text">${uiIcon('hospital', { size: 14, color: 'var(--primary)' })} Target: <strong>${escapeHtml(req.hospital || 'Apollo Hospitals')}</strong></div>
+      </div>
+      <button class="btn btn-emergency btn-full btn-lg" onclick="acceptEmergencyRide('${escapeHtml(req.id)}')" style="font-weight:800;">
+        ACCEPT EMERGENCY RIDE (ETA ${escapeHtml(req.eta || '4 min')})
+      </button>
+    ` : `
+      <div style="font-family:var(--font-display);font-size:13px;font-weight:800;color:var(--secondary);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        <span style="width:8px;height:8px;background:var(--secondary);border-radius:50%;animation:pulse-ring 1s infinite;"></span>
+        MISSION ACTIVE — EN ROUTE TO PATIENT
+      </div>
+      <div class="card card-sm mb-3" style="background:var(--surface-dim);padding:14px;border-left:4px solid var(--secondary);">
+        <div style="font-size:14px;font-weight:700;">Navigation: Anna Nagar 2nd Main Rd → Greams Rd</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">Live Speed: 42 km/h • GPS Lock High Accuracy</div>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="completeEmergencyRide('${escapeHtml(req.id)}')" style="background:var(--secondary);border:none;font-weight:800;">
+        ${uiIcon('check', { size: 18, strokeWidth: 2.5 })} MARK MISSION COMPLETED
+      </button>
+    `;
+
+    setTimeout(() => initDriverMap(req), 200);
+  } catch (err) {
+    if (!document.getElementById('amb-controls-panel')) return;
+    panel.innerHTML = renderErrorState({
+      title: 'Dispatch feed unavailable',
+      description: err?.message || 'Unable to connect to emergency dispatch requests.',
+      retryOnclick: 'retryAmbulanceDashboard()'
+    });
+  }
 }
 
 function initDriverMap(req) {
@@ -154,34 +184,36 @@ function initDriverMap(req) {
 
   // Custom SVG Markers
   const ambulanceIcon = L.divIcon({
-    html: `<div style="background:#FF4757;color:white;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(255,71,87,0.5);border:2px solid white;">🚑</div>`,
+    html: `<div style="background:#FF4757;color:white;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,71,87,0.5);border:2px solid white;">${uiIcon('ambulance', { size: 20, color: 'white' })}</div>`,
     className: '',
     iconSize: [38, 38],
     iconAnchor: [19, 19]
   });
 
+  L.marker(driverLoc, { icon: ambulanceIcon }).addTo(driverMap)
+    .bindPopup('<b>Your ICU Ambulance</b><br>Speed: 42 km/h').openPopup();
+
+  if (!req) return;
+
   const patientIcon = L.divIcon({
-    html: `<div style="background:#FFA502;color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(255,165,2,0.5);border:2px solid white;">📍</div>`,
+    html: `<div style="background:#FFA502;color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,165,2,0.5);border:2px solid white;">${uiIcon('mapPin', { size: 18, color: 'white' })}</div>`,
     className: '',
     iconSize: [34, 34],
     iconAnchor: [17, 17]
   });
 
   const hospitalIcon = L.divIcon({
-    html: `<div style="background:#4A90D9;color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(74,144,217,0.5);border:2px solid white;">🏥</div>`,
+    html: `<div style="background:#4A90D9;color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(74,144,217,0.5);border:2px solid white;">${uiIcon('hospital', { size: 18, color: 'white' })}</div>`,
     className: '',
     iconSize: [34, 34],
     iconAnchor: [17, 17]
   });
 
-  L.marker(driverLoc, { icon: ambulanceIcon }).addTo(driverMap)
-    .bindPopup('<b>Your ICU Ambulance</b><br>Speed: 42 km/h').openPopup();
-
   L.marker(patientLoc, { icon: patientIcon }).addTo(driverMap)
-    .bindPopup(`<b>Patient: ${req.patient_name || req.patientName}</b><br>${req.address}`);
+    .bindPopup(`<b>Patient: ${escapeHtml(req.patient_name || req.patientName)}</b><br>${escapeHtml(req.address)}`);
 
   L.marker(hospitalLoc, { icon: hospitalIcon }).addTo(driverMap)
-    .bindPopup(`<b>Target: ${req.hospital || 'Apollo Hospitals'}</b><br>ICU Bed Reserved`);
+    .bindPopup(`<b>Target: ${escapeHtml(req.hospital || 'Apollo Hospitals')}</b><br>ICU Bed Reserved`);
 
   // Draw High-Visibility Navigation Polyline Route
   const route = L.polyline([driverLoc, patientLoc, hospitalLoc], {
@@ -209,7 +241,7 @@ function initDriverHandlers() {
   window.acceptEmergencyRide = async (id) => {
     inRide = true;
     await updateEmergencyRequestStatus(id, 'accepted', 'amb1');
-    showToast('Emergency ride accepted in Supabase! Live GPS navigation active.', 'success', 5000);
+    showToast('Emergency ride accepted! Live GPS navigation active.', 'success', 5000);
     renderAmbulanceDriver();
   };
 

@@ -1,6 +1,7 @@
 // HealthVerse — Emergency SOS Screen with Supabase Integration & High-Precision Leaflet Map
 import { navigate, goBack } from '../../routes/router.js';
 import { showToast } from '../../utils/utils.js';
+import { uiIcon } from '../../utils/icons.js';
 import { createEmergencyRequest } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 
@@ -13,44 +14,44 @@ export function renderSOS() {
   countdown = 5;
 
   app.innerHTML = `
-    <div class="screen" style="background:linear-gradient(160deg,#1A0A0A 0%,#2D0B0E 50%,#1A2332 100%);color:white;min-height:100dvh;justify-content:space-between;padding:calc(20px + var(--safe-top)) 24px calc(40px + var(--safe-bottom));">
+    <div class="screen sos-screen">
       <div>
         <div class="flex items-center justify-between">
-          <button class="back-btn" onclick="cancelSOS()" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);">
+          <button class="back-btn sos-back-btn" onclick="cancelSOS()" aria-label="Cancel SOS and go back">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
-          <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--emergency);">EMERGENCY SOS</div>
-          <div style="width:38px;"></div>
+          <div class="sos-header-title">EMERGENCY SOS</div>
+          <div class="header-spacer-sm"></div>
         </div>
 
-        <div style="text-align:center;margin-top:30px;">
-          <h1 style="font-family:var(--font-display);font-size:28px;font-weight:800;color:white;">Emergency Mode</h1>
-          <p style="font-size:14px;color:rgba(255,255,255,0.7);margin-top:6px;">Tap SOS button to immediately dispatch nearest ambulance and alert family.</p>
+        <div class="sos-hero">
+          <h1 class="sos-hero-title">Emergency Mode</h1>
+          <p class="sos-hero-sub">Tap SOS button to immediately dispatch nearest ambulance and alert family.</p>
         </div>
       </div>
 
       <!-- Giant SOS Button -->
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <div class="sos-center">
         <button class="sos-btn" id="main-sos-btn" onclick="triggerSOS()">
           <span>SOS</span>
-          <span style="font-size:11px;font-weight:600;opacity:0.8;margin-top:-2px;">PRESS NOW</span>
+          <span class="sos-press-label">PRESS NOW</span>
         </button>
-        <div id="sos-countdown" style="margin-top:28px;font-size:15px;color:rgba(255,255,255,0.8);font-weight:600;">
+        <div id="sos-countdown" class="sos-countdown-text">
           GPS Location Shared Automatically
         </div>
       </div>
 
       <!-- Action Footer -->
-      <div style="display:flex;flex-direction:column;gap:12px;">
-        <div style="background:rgba(255,255,255,0.08);border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;backdrop-filter:blur(10px);">
+      <div class="flex-col gap-3">
+        <div class="sos-location-card">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           <div>
-            <div style="font-size:13px;font-weight:600;color:white;">Current Location: Velachery Main Rd, Chennai</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.6);">High Accuracy GPS: 12.9759° N, 80.2212° E</div>
+            <div class="sos-location-title">Current Location: Velachery Main Rd, Chennai</div>
+            <div class="sos-location-coords">High Accuracy GPS: 12.9759° N, 80.2212° E</div>
           </div>
         </div>
 
-        <button class="btn btn-ghost btn-full" onclick="cancelSOS()" style="background:rgba(255,255,255,0.15);color:white;border:none;">
+        <button class="btn btn-ghost btn-full sos-cancel-btn" onclick="cancelSOS()">
           Cancel / Back to Dashboard
         </button>
       </div>
@@ -64,7 +65,7 @@ export function renderSOS() {
 
     timer = setInterval(() => {
       countdown--;
-      if (cdEl) cdEl.innerHTML = `<span style="color:var(--emergency);font-size:20px;font-weight:800;">Dispatching in ${countdown}s...</span>`;
+      if (cdEl) cdEl.innerHTML = `<span class="sos-countdown-urgent">Dispatching in ${countdown}s...</span>`;
       if (countdown <= 0) {
         clearInterval(timer);
         dispatchEmergency();
@@ -95,29 +96,29 @@ async function dispatchEmergency() {
   });
 
   app.innerHTML = `
-    <div class="screen" style="background:#111827;color:white;padding:20px;min-height:100dvh;display:flex;flex-direction:column;justify-content:between;">
-      <div style="text-align:center;margin-top:20px;" class="animate-slide-up">
-        <div style="width:70px;height:70px;border-radius:50%;background:var(--emergency);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 0 30px rgba(255,71,87,0.6);animation:pulse-ring 1.5s infinite;">
-          🚨
+    <div class="screen sos-dispatch-screen">
+      <div class="text-center mt-4 animate-slide-up">
+        <div class="sos-dispatch-badge">
+          ${uiIcon('siren', { size: 32, color: 'white' })}
         </div>
-        <h1 style="font-family:var(--font-display);font-size:24px;font-weight:800;color:white;">Ambulance Dispatched!</h1>
-        <p style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">Saved to Supabase database. Driver Ravi Kumar en route.</p>
+        <h1 class="sos-dispatch-title" style="font-family:var(--font-display);font-size:24px;font-weight:800;color:white;">Ambulance Dispatched!</h1>
+        <p class="sos-hero-sub">Emergency alert sent. Driver Ravi Kumar en route.</p>
       </div>
 
       <!-- High Precision Leaflet SOS Tracking Map -->
-      <div id="sos-tracking-map" style="height:240px;width:100%;border-radius:18px;margin:16px 0;box-shadow:0 8px 24px rgba(0,0,0,0.4);overflow:hidden;"></div>
+      <div id="sos-tracking-map" class="sos-dispatch-map"></div>
 
       <!-- Live Tracking Status Card -->
-      <div class="card" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:white;padding:16px;margin-bottom:16px;">
+      <div class="card sos-dispatch-card">
         <div class="flex justify-between items-center mb-2">
-          <span style="font-size:12px;color:rgba(255,255,255,0.7);font-weight:700;">LIVE AMBULANCE ETA</span>
-          <span style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--secondary);">4 MINS</span>
+          <span class="sos-eta-label">LIVE AMBULANCE ETA</span>
+          <span class="sos-eta-value">4 MINS</span>
         </div>
-        <div class="progress-bar mb-3" style="background:rgba(255,255,255,0.15);"><div class="progress-fill" style="width:75%;background:var(--secondary);"></div></div>
-        <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:rgba(255,255,255,0.85);">
-          <div>🚑 Driver: <strong>Ravi Kumar (+91 98765 00001)</strong></div>
-          <div>🏥 Target Hospital: <strong>Apollo Hospitals, Greams Rd</strong></div>
-          <div>📍 Your Address: <strong>Velachery Main Rd, Chennai</strong></div>
+        <div class="progress-bar mb-3 sos-progress-dark"><div class="progress-fill" style="width:75%;background:var(--secondary);"></div></div>
+        <div class="flex-col gap-1 sos-dispatch-meta">
+          <div class="inline-icon-text">${uiIcon('ambulance', { size: 14, color: 'var(--emergency)' })} Driver: <strong>Ravi Kumar (+91 98765 00001)</strong></div>
+          <div class="inline-icon-text">${uiIcon('hospital', { size: 14, color: 'var(--primary)' })} Target Hospital: <strong>Apollo Hospitals, Greams Rd</strong></div>
+          <div class="inline-icon-text">${uiIcon('mapPin', { size: 14, color: 'var(--warning)' })} Your Address: <strong>Velachery Main Rd, Chennai</strong></div>
         </div>
       </div>
 
@@ -128,7 +129,7 @@ async function dispatchEmergency() {
   `;
 
   setTimeout(initSOSTrackingMap, 200);
-  showToast('🚨 Emergency SOS recorded in Supabase! Driver en route.', 'error', 6000);
+  showToast('🚨 Emergency SOS alert sent! Driver en route.', 'error', 6000);
 }
 
 function initSOSTrackingMap() {
@@ -151,14 +152,14 @@ function initSOSTrackingMap() {
   }).addTo(sosMap);
 
   const ambIcon = L.divIcon({
-    html: `<div style="background:#FF4757;color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(255,71,87,0.6);border:2px solid white;">🚑</div>`,
+    html: `<div style="background:#FF4757;color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,71,87,0.6);border:2px solid white;">${uiIcon('ambulance', { size: 18, color: 'white' })}</div>`,
     className: '',
     iconSize: [34, 34],
     iconAnchor: [17, 17]
   });
 
   const patientIcon = L.divIcon({
-    html: `<div style="background:#FFA502;color:white;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 4px 12px rgba(255,165,2,0.6);border:2px solid white;">📍</div>`,
+    html: `<div style="background:#FFA502;color:white;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,165,2,0.6);border:2px solid white;">${uiIcon('mapPin', { size: 16, color: 'white' })}</div>`,
     className: '',
     iconSize: [30, 30],
     iconAnchor: [15, 15]

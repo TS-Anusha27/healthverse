@@ -1,7 +1,8 @@
 // HealthVerse — Doctor Onboarding & Credential Verification
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
-import { showToast } from '../../utils/utils.js';
+import { showToast, escapeHtml, setFieldError, clearFormErrors } from '../../utils/utils.js';
+import { uiIcon } from '../../utils/icons.js';
 
 export function renderDoctorSetup() {
   const app = document.getElementById('app');
@@ -14,8 +15,8 @@ export function renderDoctorSetup() {
       <div style="background:linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #0D4F3C 100%);color:white;padding:calc(20px + var(--safe-top)) 20px 24px;">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <div style="width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">
-              🩺
+            <div style="width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;">
+              ${uiIcon('stethoscope', { size: 20, color: 'white' })}
             </div>
             <div>
               <div style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:700;letter-spacing:0.5px;">MEDICAL CREDENTIALS ONBOARDING</div>
@@ -33,7 +34,7 @@ export function renderDoctorSetup() {
         <!-- Verification Info Card -->
         <div class="card p-3 mb-4" style="background:var(--secondary-light);border:1px solid rgba(82,201,155,0.3);border-radius:16px;">
           <div class="flex items-start gap-3">
-            <span style="font-size:24px;">🛡️</span>
+            <span style="display:inline-flex;color:var(--secondary);margin-top:2px;">${uiIcon('shield', { size: 24 })}</span>
             <div>
               <strong style="color:var(--text-primary);font-size:14px;display:block;">Verified Medical Practitioner Portal</strong>
               <p style="font-size:12px;color:var(--text-secondary);margin:2px 0 0;line-height:1.4;">
@@ -44,22 +45,22 @@ export function renderDoctorSetup() {
         </div>
 
         <!-- Setup Form -->
-        <form id="doc-setup-form" onsubmit="event.preventDefault(); handleDoctorVerificationSubmit();">
+        <form id="doc-setup-form" onsubmit="event.preventDefault(); handleDoctorVerificationSubmit();" novalidate>
           <!-- Doctor Name -->
           <div class="form-group mb-3">
-            <label class="form-label">Doctor Full Legal Name *</label>
+            <label class="form-label" for="setup-doc-name">Doctor Full Legal Name *</label>
             <div class="input-group">
-              <span class="input-icon">👨‍⚕️</span>
-              <input type="text" class="form-input" id="setup-doc-name" value="${doc.name || user.name || 'Dr. Priya Krishnamurthy'}" required placeholder="e.g. Dr. Jane Smith, MD" />
+              <span class="input-icon">${uiIcon('stethoscope', { size: 16 })}</span>
+              <input type="text" class="form-input" id="setup-doc-name" value="${escapeHtml(doc.name || user.name || 'Dr. Priya Krishnamurthy')}" autocomplete="name" required placeholder="e.g. Dr. Jane Smith, MD" />
             </div>
           </div>
 
           <!-- Hospital Name -->
           <div class="form-group mb-3">
-            <label class="form-label">Hospital / Clinic Affiliation *</label>
+            <label class="form-label" for="setup-doc-hospital">Hospital / Clinic Affiliation *</label>
             <div class="input-group">
-              <span class="input-icon">🏥</span>
-              <input type="text" class="form-input" id="setup-doc-hospital" value="${doc.hospital || 'Apollo Hospitals, Greams Road'}" required placeholder="e.g. Apollo Hospitals, Greams Rd" />
+              <span class="input-icon">${uiIcon('hospital', { size: 16 })}</span>
+              <input type="text" class="form-input" id="setup-doc-hospital" value="${escapeHtml(doc.hospital || 'Apollo Hospitals, Greams Road')}" autocomplete="organization" required placeholder="e.g. Apollo Hospitals, Greams Rd" />
             </div>
             <!-- Quick Suggestion Chips -->
             <div class="flex gap-2 flex-wrap mt-2">
@@ -89,8 +90,8 @@ export function renderDoctorSetup() {
           <div class="form-group mb-3">
             <label class="form-label">Medical Council Registration / License No. *</label>
             <div class="input-group">
-              <span class="input-icon">📜</span>
-              <input type="text" class="form-input" id="setup-doc-regnum" value="${doc.regNumber || 'NMC-2024-88421'}" required placeholder="e.g. NMC-2024-88421" />
+              <span class="input-icon">${uiIcon('scrollText', { size: 16 })}</span>
+              <input type="text" class="form-input" id="setup-doc-regnum" value="${escapeHtml(doc.regNumber || 'NMC-2024-88421')}" required placeholder="e.g. NMC-2024-88421" />
             </div>
           </div>
 
@@ -99,9 +100,9 @@ export function renderDoctorSetup() {
             <label class="form-label">Upload Verified Doctor Certificate *</label>
             <div class="certificate-dropzone" id="cert-dropzone" onclick="document.getElementById('cert-file-input').click()">
               <input type="file" id="cert-file-input" style="display:none;" accept=".pdf,.png,.jpg,.jpeg" onchange="handleCertFileChosen(this)" />
-              <div class="dropzone-icon" id="cert-icon">📑</div>
+              <div class="dropzone-icon" id="cert-icon" style="color:var(--secondary);">${uiIcon('fileText', { size: 32 })}</div>
               <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-top:6px;" id="cert-title">
-                ${doc.certificateName || 'Click or Drag & Drop Doctor Certificate'}
+                ${escapeHtml(doc.certificateName || 'Click or Drag & Drop Doctor Certificate')}
               </div>
               <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;" id="cert-sub">
                 Supported formats: PDF, PNG, JPG (Medical Degree / State Council Registration)
@@ -142,7 +143,7 @@ function initDoctorSetupHandlers() {
 
       if (title) title.innerText = file.name;
       if (sub) sub.innerText = `Size: ${(file.size / 1024).toFixed(1)} KB • Cryptographically Checked`;
-      if (icon) icon.innerText = '✅';
+      if (icon) icon.innerHTML = uiIcon('checkCircle', { size: 32, color: 'var(--success)' });
       if (pill) {
         pill.innerText = '✓ Document Uploaded & Validated';
         pill.style.background = '#2ED573';
@@ -152,13 +153,18 @@ function initDoctorSetupHandlers() {
   };
 
   window.handleDoctorVerificationSubmit = () => {
+    clearFormErrors(document.getElementById('doc-setup-form'));
     const name = document.getElementById('setup-doc-name')?.value.trim();
     const hospital = document.getElementById('setup-doc-hospital')?.value.trim();
     const specialty = document.getElementById('setup-doc-specialty')?.value;
     const regNumber = document.getElementById('setup-doc-regnum')?.value.trim();
     const certTitle = document.getElementById('cert-title')?.innerText || 'Doctor_Verification_Cert.pdf';
 
-    if (!name || !hospital || !regNumber) {
+    let valid = true;
+    if (!name) { setFieldError('setup-doc-name', 'Doctor legal name is required'); valid = false; }
+    if (!hospital) { setFieldError('setup-doc-hospital', 'Hospital affiliation is required'); valid = false; }
+    if (!regNumber) { setFieldError('setup-doc-regnum', 'Registration number is required'); valid = false; }
+    if (!valid) {
       showToast('Please fill in all doctor verification fields', 'error');
       return;
     }

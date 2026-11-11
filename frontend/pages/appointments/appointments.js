@@ -1,23 +1,31 @@
-// HealthVerse â€” Appointments + Map Screen
+// HealthVerse — Appointments + Map Screen
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
-import { showToast, showModal, closeModal, generateQRDisplay } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, generateQRDisplay, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState } from '../../utils/utils.js';
+import { uiIcon } from '../../utils/icons.js';
 import { getHospitals, getDoctors, createAppointment } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
+import { renderBottomNav } from '../patient/patient-home.js';
 
 let map = null;
+let loadedHospitals = [...mockData.hospitals];
 let selectedHospital = null;
 let selectedDoctor = null;
 let selectedDate = null;
 let selectedSlot = null;
 
 export function renderAppointments() {
+  if (map) {
+    try { map.remove(); } catch (e) {}
+    map = null;
+  }
+
   const app = document.getElementById('app');
   app.innerHTML = `
     <div class="screen" id="appt-screen">
       <!-- Header -->
       <div class="page-header">
-        <button class="back-btn" onclick="goBack()">
+        <button class="back-btn" onclick="goBack()" aria-label="Go back">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <div class="page-title">Find & Book</div>
@@ -50,7 +58,7 @@ export function renderAppointments() {
         <div class="section mt-4">
           <div class="section-header">
             <div class="section-title">Hospitals Near You</div>
-            <div style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--secondary);">
+            <div class="appt-location-badge">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
               Chennai, TN
             </div>
@@ -62,36 +70,77 @@ export function renderAppointments() {
 
         <!-- Hospital List -->
         <div class="section mt-4 mb-4" id="hospital-list">
-          <div class="section-title mb-3">Available Hospitals (${mockData.hospitals.length})</div>
-          <div style="display:flex;flex-direction:column;gap:14px;">
-            ${mockData.hospitals.map(h => renderHospitalCard(h)).join('')}
+          <div class="section-title mb-3">Available Hospitals</div>
+          <div id="hospital-cards" class="flex-col gap-3">
+            ${renderSkeletonCards(3)}
           </div>
         </div>
       </div>
+      ${renderBottomNav('appointments', { desktopOnly: true })}
     </div>
   `;
 
-  initMap();
   if (typeof lucide !== 'undefined') lucide.createIcons();
   initApptHandlers();
+  window.retryLoadHospitals = () => loadHospitalsData();
+  loadHospitalsData();
+}
+
+async function loadHospitalsData() {
+  const list = document.getElementById('hospital-list');
+  const cardsEl = document.getElementById('hospital-cards');
+  const titleEl = list?.querySelector('.section-title');
+  if (!cardsEl) return;
+
+  cardsEl.innerHTML = renderSkeletonCards(3);
+
+  try {
+    const hospitals = await getHospitals();
+    if (!document.getElementById('hospital-cards')) return;
+
+    loadedHospitals = Array.isArray(hospitals) ? hospitals : [];
+    if (titleEl) titleEl.textContent = `Available Hospitals (${loadedHospitals.length})`;
+
+    if (loadedHospitals.length === 0) {
+      cardsEl.innerHTML = renderEmptyState({
+        title: 'No hospitals found',
+        description: 'No clinics or hospitals are currently listed in this area.',
+        actionLabel: 'Refresh List',
+        actionOnclick: 'retryLoadHospitals()'
+      });
+    } else {
+      cardsEl.innerHTML = loadedHospitals.map(h => renderHospitalCard(h)).join('');
+    }
+    initMap();
+  } catch (err) {
+    if (!document.getElementById('hospital-cards')) return;
+    if (titleEl) titleEl.textContent = 'Available Hospitals';
+    cardsEl.innerHTML = renderErrorState({
+      title: 'Unable to load hospitals',
+      description: err?.message || 'Could not retrieve nearby hospitals. Please try again.',
+      retryOnclick: 'retryLoadHospitals()'
+    });
+  }
 }
 
 function renderHospitalCard(h) {
+  const specs = Array.isArray(h.specialties) ? h.specialties : [];
+  const name = h.name || 'Hospital';
   return `
-    <div class="hosp-card" id="hosp-${h.id}" onclick="openHospital('${h.id}')">
+    <div class="hosp-card" id="hosp-${escapeHtml(h.id)}" onclick="openHospital('${escapeHtml(h.id)}')">
       <div class="hosp-card-header">
-        <div class="hosp-avatar">${h.name.charAt(0)}</div>
-        <div style="flex:1;">
-          <div class="hosp-name">${h.name}</div>
-          <div class="hosp-spec">${h.specialty}</div>
-          <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+        <div class="hosp-avatar">${escapeHtml(name.charAt(0))}</div>
+        <div class="flex-1">
+          <div class="hosp-name">${escapeHtml(name)}</div>
+          <div class="hosp-spec">${escapeHtml(h.specialty || 'Multi-Specialty')}</div>
+          <div class="appt-meta-row">
             <div class="hosp-rating">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFA502" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              ${h.rating} <span style="color:var(--text-tertiary);">(${h.reviews.toLocaleString()})</span>
+              ${escapeHtml(h.rating || '4.8')} <span class="text-tertiary">(${Number(h.reviews || 0).toLocaleString()})</span>
             </div>
             <div class="hosp-distance">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              ${h.distance}
+              ${escapeHtml(h.distance || 'Nearby')}
             </div>
           </div>
         </div>
@@ -100,22 +149,22 @@ function renderHospitalCard(h) {
       <div class="hosp-card-body">
         <div class="hosp-stat">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Wait: <strong>${h.waitTime}</strong>
+          Wait: <strong>${escapeHtml(h.waitTime || '15 min')}</strong>
         </div>
         <div class="hosp-stat">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          Queue: <strong>${h.queue} patients</strong>
+          Queue: <strong>${escapeHtml(h.queue ?? 0)} patients</strong>
         </div>
         <div class="hosp-stat">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          Beds: <strong>${h.beds.available} free</strong>
+          Beds: <strong>${escapeHtml(h.beds?.available ?? 12)} free</strong>
         </div>
       </div>
       <div class="hosp-specialties">
-        ${h.specialties.slice(0,3).map(sp => `<span class="badge badge-primary" style="font-size:10px;">${sp}</span>`).join('')}
-        ${h.specialties.length > 3 ? `<span class="badge badge-primary" style="font-size:10px;">+${h.specialties.length-3}</span>` : ''}
+        ${specs.slice(0,3).map(sp => `<span class="badge badge-primary" style="font-size:10px;">${escapeHtml(sp)}</span>`).join('')}
+        ${specs.length > 3 ? `<span class="badge badge-primary" style="font-size:10px;">+${specs.length-3}</span>` : ''}
       </div>
-      <button class="btn btn-primary btn-sm btn-full mt-3" onclick="event.stopPropagation();bookAtHospital('${h.id}')">
+      <button class="btn btn-primary btn-sm btn-full mt-3" onclick="event.stopPropagation();bookAtHospital('${escapeHtml(h.id)}')">
         Book Appointment
       </button>
     </div>
@@ -126,6 +175,7 @@ function initMap() {
   setTimeout(() => {
     const mapEl = document.getElementById('map');
     if (!mapEl || map) return;
+    if (typeof L === 'undefined') return;
 
     map = L.map('map', { zoomControl: false, attributionControl: false }).setView([13.0570, 80.2290], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
@@ -140,15 +190,16 @@ function initMap() {
       iconAnchor: [18, 18]
     });
 
-    mockData.hospitals.forEach(h => {
+    loadedHospitals.forEach(h => {
+      if (h.lat == null || h.lng == null) return;
       L.marker([h.lat, h.lng], { icon: hospitalIcon })
         .addTo(map)
         .bindPopup(`
           <div style="font-family:var(--font-display);min-width:160px;">
-            <div style="font-weight:700;font-size:14px;color:#1A2332;">${h.name}</div>
-            <div style="color:#6B7A8D;font-size:12px;margin-top:3px;">â­ ${h.rating} â€¢ ${h.distance}</div>
-            <div style="color:#6B7A8D;font-size:12px;margin-top:2px;">â±ï¸ Wait: ${h.waitTime}</div>
-            <button onclick="bookAtHospital('${h.id}')" style="margin-top:8px;width:100%;padding:6px;background:#4A90D9;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;">Book Now</button>
+            <div style="font-weight:700;font-size:14px;color:var(--text-primary);">${escapeHtml(h.name)}</div>
+            <div style="color:var(--text-secondary);font-size:12px;margin-top:3px;" class="inline-icon-text">${uiIcon('star', { size: 12, color: '#FFA502', fill: '#FFA502' })} ${escapeHtml(h.rating)} • ${escapeHtml(h.distance)}</div>
+            <div style="color:var(--text-secondary);font-size:12px;margin-top:2px;" class="inline-icon-text">${uiIcon('clock', { size: 12, color: 'var(--primary)' })} Wait: ${escapeHtml(h.waitTime)}</div>
+            <button onclick="bookAtHospital('${escapeHtml(h.id)}')" style="margin-top:8px;width:100%;padding:6px;background:var(--primary-dark);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;">Book Now</button>
           </div>
         `);
     });
@@ -160,7 +211,7 @@ function initMap() {
       iconSize: [14, 14],
       iconAnchor: [7, 7]
     });
-    L.marker([13.0570, 80.2290], { icon: userIcon }).addTo(map).bindPopup('<div style="font-size:12px;font-weight:600;">ðŸ“ Your Location</div>');
+    L.marker([13.0570, 80.2290], { icon: userIcon }).addTo(map).bindPopup(`<div style="font-size:12px;font-weight:600;" class="inline-icon-text">${uiIcon('mapPin', { size: 13, color: 'var(--primary)' })} Your Location</div>`);
 
     // Circles for nearby
     L.circle([13.0570, 80.2290], { radius: 5000, color: '#4A90D9', fillColor: '#4A90D9', fillOpacity: 0.04, weight: 1 }).addTo(map);
@@ -171,21 +222,30 @@ function initMap() {
 
 function initApptHandlers() {
   window.filterHospitals = (query) => {
-    const q = query.toLowerCase();
+    const q = (query || '').toLowerCase();
     const list = document.getElementById('hospital-list');
-    const filtered = mockData.hospitals.filter(h =>
-      h.name.toLowerCase().includes(q) || h.specialty.toLowerCase().includes(q) ||
-      h.specialties.some(s => s.toLowerCase().includes(q))
+    const filtered = loadedHospitals.filter(h =>
+      (h.name || '').toLowerCase().includes(q) || (h.specialty || '').toLowerCase().includes(q) ||
+      (Array.isArray(h.specialties) && h.specialties.some(s => s.toLowerCase().includes(q)))
     );
     const titleEl = list?.querySelector('.section-title');
     if (titleEl) titleEl.textContent = `Available Hospitals (${filtered.length})`;
-    const cards = list?.querySelector('div[style]');
-    if (cards) cards.innerHTML = filtered.map(h => renderHospitalCard(h)).join('');
+    const cards = document.getElementById('hospital-cards') || list?.querySelector('div[style]');
+    if (cards) {
+      cards.innerHTML = filtered.length > 0
+        ? filtered.map(h => renderHospitalCard(h)).join('')
+        : renderEmptyState({
+            title: 'No hospitals match your filter',
+            description: 'Try another hospital name, specialty, or reset your filter.',
+            actionLabel: 'Show All',
+            actionOnclick: "document.getElementById('search-input').value='';filterCategory(document.querySelector('#appt-screen .chip'),'All')"
+          });
+    }
   };
 
   window.filterCategory = (el, cat) => {
     document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-    el.classList.add('active');
+    if (el) el.classList.add('active');
     if (cat === 'All') {
       window.filterHospitals('');
     } else {
@@ -194,60 +254,60 @@ function initApptHandlers() {
   };
 
   window.openHospital = (id) => {
-    const h = mockData.hospitals.find(h => h.id === id);
+    const h = loadedHospitals.find(h => h.id === id) || mockData.hospitals.find(h => h.id === id);
     if (!h) return;
     showModal(`
-      <h3 style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text-primary);">${h.name}</h3>
-      <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
-        <span class="badge badge-primary">â­ ${h.rating}</span>
-        <span class="badge badge-secondary">ðŸ“ ${h.distance}</span>
-        ${h.emergency ? '<span class="badge badge-emergency">ðŸš¨ Emergency</span>' : ''}
+      <h3 class="modal-title-lg">${escapeHtml(h.name)}</h3>
+      <div class="flex-wrap-gap mt-2">
+        <span class="badge badge-primary inline-icon-text">${uiIcon('star', { size: 12, color: '#FFA502', fill: '#FFA502' })} ${escapeHtml(h.rating)}</span>
+        <span class="badge badge-secondary inline-icon-text">${uiIcon('mapPin', { size: 12 })} ${escapeHtml(h.distance)}</span>
+        ${h.emergency ? `<span class="badge badge-emergency inline-icon-text">${uiIcon('siren', { size: 12 })} Emergency</span>` : ''}
       </div>
-      <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;font-size:14px;color:var(--text-secondary);">
-        <div>ðŸ“ ${h.address}</div>
-        <div>ðŸ“ž ${h.phone}</div>
-        <div>â±ï¸ Wait time: <strong style="color:var(--text-primary);">${h.waitTime}</strong></div>
-        <div>ðŸ‘¥ Queue: <strong style="color:var(--text-primary);">${h.queue} patients</strong></div>
-        <div>ðŸ›ï¸ Available beds: <strong style="color:var(--secondary);">${h.beds.available} / ${h.beds.total}</strong></div>
+      <div class="flex-col gap-2 mt-4 text-body-sm text-secondary">
+        <div class="inline-icon-text">${uiIcon('mapPin', { size: 14, color: 'var(--primary)' })} <span>${escapeHtml(h.address)}</span></div>
+        <div class="inline-icon-text">${uiIcon('phone', { size: 14, color: 'var(--primary)' })} <span>${escapeHtml(h.phone)}</span></div>
+        <div class="inline-icon-text">${uiIcon('clock', { size: 14, color: 'var(--primary)' })} <span>Wait time: <strong class="text-primary">${escapeHtml(h.waitTime)}</strong></span></div>
+        <div class="inline-icon-text">${uiIcon('users', { size: 14, color: 'var(--primary)' })} <span>Queue: <strong class="text-primary">${escapeHtml(h.queue)} patients</strong></span></div>
+        <div class="inline-icon-text">${uiIcon('bed', { size: 14, color: 'var(--secondary)' })} <span>Available beds: <strong class="text-secondary">${escapeHtml(h.beds?.available ?? 0)} / ${escapeHtml(h.beds?.total ?? 0)}</strong></span></div>
       </div>
-      <div style="margin-top:16px;">
-        <div style="font-size:12px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Specialties</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;">
-          ${h.specialties.map(s => `<span class="chip active">${s}</span>`).join('')}
+      <div class="mt-4">
+        <div class="modal-section-label">Specialties</div>
+        <div class="flex-wrap-gap">
+          ${(h.specialties || []).map(s => `<span class="chip active">${escapeHtml(s)}</span>`).join('')}
         </div>
       </div>
-      <div style="margin-top:16px;">
-        <div style="font-size:12px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Insurance Accepted</div>
-        <div style="font-size:13px;color:var(--text-secondary);">${h.insurance.join(' â€¢ ')}</div>
+      <div class="mt-4">
+        <div class="modal-section-label">Insurance Accepted</div>
+        <div class="text-body-sm text-secondary">${(h.insurance || []).map(i => escapeHtml(i)).join(' • ')}</div>
       </div>
-      <button class="btn btn-primary btn-full mt-4" onclick="bookAtHospital('${h.id}');closeModal()">
-        Book Appointment at ${h.name}
+      <button class="btn btn-primary btn-full mt-4" onclick="bookAtHospital('${escapeHtml(h.id)}');closeModal()">
+        Book Appointment at ${escapeHtml(h.name)}
       </button>
     `);
   };
 
   window.bookAtHospital = (hospitalId) => {
-    selectedHospital = mockData.hospitals.find(h => h.id === hospitalId);
+    selectedHospital = loadedHospitals.find(h => h.id === hospitalId) || mockData.hospitals.find(h => h.id === hospitalId);
     closeModal();
     showBookingFlow();
   };
 
   window.showFilters = () => {
     showModal(`
-      <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:20px;">Filter Hospitals</h3>
-      <div style="display:flex;flex-direction:column;gap:16px;">
+      <h3 class="modal-title mb-4">Filter Hospitals</h3>
+      <div class="flex-col gap-4">
         <div class="form-group">
           <label class="form-label">Sort By</label>
           <select class="form-input form-select">
-            <option>Distance â€” Nearest First</option>
-            <option>Rating â€” Highest First</option>
-            <option>Wait Time â€” Shortest First</option>
+            <option>Distance — Nearest First</option>
+            <option>Rating — Highest First</option>
+            <option>Wait Time — Shortest First</option>
             <option>Availability</option>
           </select>
         </div>
         <div class="form-group">
           <label class="form-label">Consultation Type</label>
-          <div style="display:flex;gap:8px;">
+          <div class="flex gap-2">
             <div class="chip active">In-Person</div>
             <div class="chip">Video Call</div>
             <div class="chip">Home Visit</div>
@@ -255,14 +315,14 @@ function initApptHandlers() {
         </div>
         <div class="form-group">
           <label class="form-label">Maximum Distance</label>
-          <input type="range" min="1" max="20" value="10" style="width:100%;" />
-          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-tertiary);">
+          <input type="range" min="1" max="20" value="10" class="w-full" />
+          <div class="flex justify-between text-caption">
             <span>1 km</span><span>10 km</span><span>20 km</span>
           </div>
         </div>
         <div class="form-group">
           <label class="form-label">Features</label>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <div class="flex-wrap-gap">
             <div class="chip">Emergency 24/7</div>
             <div class="chip">Accepts ABHA</div>
             <div class="chip">Cashless Insurance</div>
@@ -281,39 +341,39 @@ function showBookingFlow() {
   const doctors = mockData.doctors.filter(d => selectedHospital.doctors.includes(d.id));
 
   showModal(`
-    <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:4px;">Select Doctor</h3>
-    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">${selectedHospital.name}</p>
-    <div style="display:flex;flex-direction:column;gap:12px;" id="doctor-list">
+    <h3 class="modal-title">Select Doctor</h3>
+    <p class="modal-subtitle">${escapeHtml(selectedHospital.name)}</p>
+    <div class="flex-col gap-3" id="doctor-list">
       ${doctors.length > 0 ? doctors.map(d => `
-        <div class="doctor-card ${!d.available ? 'unavailable' : ''}" onclick="selectDoctor('${d.id}')" id="doc-sel-${d.id}">
+        <div class="doctor-card ${!d.available ? 'unavailable' : ''}" onclick="selectDoctor('${escapeHtml(d.id)}')" id="doc-sel-${escapeHtml(d.id)}">
           <div class="doc-avatar">${d.name.split(' ').slice(-1)[0].charAt(0)}</div>
-          <div style="flex:1;">
-            <div style="font-family:var(--font-display);font-size:15px;font-weight:700;">${d.name}</div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${d.specialty} â€¢ ${d.experience}yr exp</div>
-            <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
-              <span style="font-size:11px;font-weight:600;color:var(--warning);">â­ ${d.rating}</span>
-              <span style="font-size:11px;color:var(--text-tertiary);">${d.reviews} reviews</span>
+          <div class="flex-1">
+            <div class="text-h4">${escapeHtml(d.name)}</div>
+            <div class="text-caption mt-1">${escapeHtml(d.specialty)} • ${escapeHtml(d.experience)}yr exp</div>
+            <div class="appt-meta-row">
+              <span class="text-warning bold inline-icon-text" style="font-size:11px;">${uiIcon('star', { size: 11, color: '#FFA502', fill: '#FFA502' })} ${escapeHtml(d.rating)}</span>
+              <span class="text-caption">${escapeHtml(d.reviews)} reviews</span>
             </div>
           </div>
-          <div style="text-align:right;">
-            <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--primary);">â‚¹${d.fee}</div>
-            <div class="badge ${d.available ? 'badge-success' : 'badge-warning'}" style="margin-top:4px;">${d.available ? 'Available' : 'Busy'}</div>
+          <div class="text-right">
+            <div class="text-h4 text-primary">₹${escapeHtml(d.fee)}</div>
+            <div class="badge ${d.available ? 'badge-success' : 'badge-warning'} mt-1">${d.available ? 'Available' : 'Busy'}</div>
           </div>
         </div>
       `).join('') : `
-        <div style="text-align:center;padding:30px;color:var(--text-secondary);">
-          <p style="font-size:14px;">Showing general doctors for this hospital</p>
+        <div class="text-center p-5 text-secondary">
+          <p class="text-body-sm">Showing general doctors for this hospital</p>
         </div>
         ${mockData.doctors.slice(0, 2).map(d => `
-          <div class="doctor-card" onclick="selectDoctor('${d.id}')" id="doc-sel-${d.id}">
+          <div class="doctor-card" onclick="selectDoctor('${escapeHtml(d.id)}')" id="doc-sel-${escapeHtml(d.id)}">
             <div class="doc-avatar">${d.name.split(' ').slice(-1)[0].charAt(0)}</div>
-            <div style="flex:1;">
-              <div style="font-family:var(--font-display);font-size:15px;font-weight:700;">${d.name}</div>
-              <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${d.specialty} â€¢ ${d.experience}yr exp</div>
+            <div class="flex-1">
+              <div class="text-h4">${escapeHtml(d.name)}</div>
+              <div class="text-caption mt-1">${escapeHtml(d.specialty)} • ${escapeHtml(d.experience)}yr exp</div>
             </div>
-            <div style="text-align:right;">
-              <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--primary);">â‚¹${d.fee}</div>
-              <div class="badge badge-success" style="margin-top:4px;">Available</div>
+            <div class="text-right">
+              <div class="text-h4 text-primary">₹${escapeHtml(d.fee)}</div>
+              <div class="badge badge-success mt-1">Available</div>
             </div>
           </div>
         `).join('')}
@@ -367,9 +427,9 @@ function showDatePicker() {
   }
 
   showModal(`
-    <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:4px;">Select Date & Slot</h3>
-    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">${selectedDoctor?.name} â€¢ ${selectedHospital?.name}</p>
-    <div class="scroll-x" style="gap:8px;margin-bottom:20px;">
+    <h3 class="modal-title">Select Date & Slot</h3>
+    <p class="modal-subtitle">${escapeHtml(selectedDoctor?.name)} • ${escapeHtml(selectedHospital?.name)}</p>
+    <div class="scroll-x gap-2 mb-4">
       ${dates.map((d, i) => `
         <div class="date-chip ${i===0?'selected':''}" onclick="selectDate(this,'${d.value}')" id="date-${d.value}">
           <div class="date-label">${d.label}</div>
@@ -377,8 +437,8 @@ function showDatePicker() {
         </div>
       `).join('')}
     </div>
-    <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:12px;">Available Time Slots</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;" id="slot-grid">
+    <div class="text-body-sm semibold mb-2">Available Time Slots</div>
+    <div class="modal-slot-grid" id="slot-grid">
       ${mockData.timeSlots.map(s => `
         <div class="time-slot ${!s.available ? 'booked' : ''}" onclick="${s.available ? `selectSlot(this,'${s.time}')` : ''}" id="slot-${s.id}">
           ${s.time}
@@ -431,44 +491,44 @@ function showDatePicker() {
 function showPayment() {
   const fee = selectedDoctor?.fee || 800;
   showModal(`
-    <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:4px;">Payment</h3>
-    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">Secure checkout via HealthVerse Pay</p>
+    <h3 class="modal-title">Payment</h3>
+    <p class="modal-subtitle">Secure checkout via HealthVerse Pay</p>
 
     <!-- Booking Summary -->
-    <div style="background:var(--surface-dim);border-radius:14px;padding:16px;margin-bottom:16px;">
-      <div style="font-size:13px;font-weight:600;color:var(--text-tertiary);margin-bottom:10px;">BOOKING SUMMARY</div>
-      <div style="display:flex;flex-direction:column;gap:8px;font-size:14px;">
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">Doctor</span><span style="font-weight:600;">${selectedDoctor?.name}</span></div>
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">Hospital</span><span style="font-weight:600;">${selectedHospital?.name}</span></div>
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">Date & Time</span><span style="font-weight:600;">${selectedDate === new Date().toISOString().split('T')[0] ? 'Today' : 'Tomorrow'}, ${selectedSlot}</span></div>
-        <div class="divider" style="margin:4px 0;"></div>
-        <div class="flex justify-between"><span>Consultation Fee</span><span>â‚¹${fee}</span></div>
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">Platform Fee</span><span>â‚¹29</span></div>
-        <div class="flex justify-between"><span style="color:var(--text-secondary);">GST (18%)</span><span>â‚¹${Math.round(fee * 0.18)}</span></div>
-        <div class="divider" style="margin:4px 0;"></div>
-        <div class="flex justify-between"><span style="font-family:var(--font-display);font-weight:700;font-size:16px;">Total</span><span style="font-family:var(--font-display);font-weight:800;font-size:18px;color:var(--primary);">â‚¹${fee + 29 + Math.round(fee * 0.18)}</span></div>
+    <div class="modal-summary-box">
+      <div class="modal-section-label">BOOKING SUMMARY</div>
+      <div class="flex-col gap-2 text-body-sm">
+        <div class="flex justify-between"><span class="text-muted">Doctor</span><span class="semibold">${escapeHtml(selectedDoctor?.name)}</span></div>
+        <div class="flex justify-between"><span class="text-muted">Hospital</span><span class="semibold">${escapeHtml(selectedHospital?.name)}</span></div>
+        <div class="flex justify-between"><span class="text-muted">Date & Time</span><span class="semibold">${selectedDate === new Date().toISOString().split('T')[0] ? 'Today' : 'Tomorrow'}, ${escapeHtml(selectedSlot)}</span></div>
+        <div class="divider modal-divider"></div>
+        <div class="flex justify-between"><span>Consultation Fee</span><span>₹${fee}</span></div>
+        <div class="flex justify-between"><span class="text-muted">Platform Fee</span><span>₹29</span></div>
+        <div class="flex justify-between"><span class="text-muted">GST (18%)</span><span>₹${Math.round(fee * 0.18)}</span></div>
+        <div class="divider modal-divider"></div>
+        <div class="flex justify-between"><span class="text-h4 bold">Total</span><span class="text-h3 bold text-primary">₹${fee + 29 + Math.round(fee * 0.18)}</span></div>
       </div>
     </div>
 
     <!-- Payment Methods -->
-    <div style="font-size:13px;font-weight:600;color:var(--text-tertiary);margin-bottom:10px;">PAYMENT METHOD</div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+    <div class="modal-section-label">PAYMENT METHOD</div>
+    <div class="flex-col gap-2 mb-4">
       ${['UPI (GooglePay, PhonePe, Paytm)', 'Credit / Debit Card', 'Net Banking', 'EMI', 'ABHA Wallet'].map((m, i) => `
-        <label style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface-dim);border-radius:12px;cursor:pointer;border:1.5px solid ${i===0 ? 'var(--primary)' : 'transparent'};">
+        <label class="pay-method-option ${i===0 ? 'pay-method-option--active' : ''}">
           <input type="radio" name="pay-method" value="${m}" ${i===0?'checked':''} />
-          <span style="font-size:14px;font-weight:500;">${m}</span>
+          <span class="text-body-sm">${m}</span>
         </label>
       `).join('')}
     </div>
 
     <button class="btn btn-primary btn-full btn-lg" onclick="completePayment()">
-      Pay â‚¹${fee + 29 + Math.round(fee * 0.18)} Securely
+      Pay ₹${fee + 29 + Math.round(fee * 0.18)} Securely
     </button>
   `);
 
   window.completePayment = () => {
     const btn = document.querySelector('#modal-sheet .btn-primary');
-    if (btn) { btn.innerHTML = '<span class="animate-spin" style="display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;"></span> Processing...'; btn.disabled = true; }
+    if (btn) { btn.innerHTML = '<span class="spinner-inline animate-spin"></span> Processing...'; btn.disabled = true; }
 
     setTimeout(() => {
       closeModal();
@@ -497,29 +557,29 @@ function showBookingConfirmation() {
   createAppointment(apptData);
 
   showModal(`
-    <div style="text-align:center;padding:20px 0;">
-      <div style="width:80px;height:80px;background:var(--success-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;animation:scaleInSpring 0.5s var(--transition-spring);">
+    <div class="booking-confirm-box">
+      <div class="booking-success-icon">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
-      <h3 style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--text-primary);">Booked! 🎉</h3>
-      <p style="font-size:14px;color:var(--text-secondary);margin-top:8px;">Your appointment has been confirmed and saved to Supabase</p>
-      <div style="background:var(--surface-dim);border-radius:16px;padding:20px;margin:20px 0;text-align:left;">
-        <div style="display:flex;flex-direction:column;gap:8px;font-size:14px;">
-          <div class="flex justify-between"><span style="color:var(--text-secondary);">Doctor</span><span style="font-weight:600;">${selectedDoctor?.name || 'Dr. Priya K.'}</span></div>
-          <div class="flex justify-between"><span style="color:var(--text-secondary);">Hospital</span><span style="font-weight:600;">${selectedHospital?.name || 'Apollo'}</span></div>
-          <div class="flex justify-between"><span style="color:var(--text-secondary);">Slot</span><span style="font-weight:600;">${selectedSlot || '3:30 PM'}</span></div>
-          <div class="flex justify-between"><span style="color:var(--text-secondary);">Token</span><span style="font-weight:700;color:var(--primary);">${token}</span></div>
+      <h3 class="booking-confirm-title">Booked! 🎉</h3>
+      <p class="text-body-sm text-muted mt-2">Your appointment has been confirmed</p>
+      <div class="modal-summary-box mt-4" style="text-align:left;">
+        <div class="flex-col gap-2 text-body-sm">
+          <div class="flex justify-between"><span class="text-muted">Doctor</span><span class="semibold">${escapeHtml(selectedDoctor?.name || 'Dr. Priya K.')}</span></div>
+          <div class="flex justify-between"><span class="text-muted">Hospital</span><span class="semibold">${escapeHtml(selectedHospital?.name || 'Apollo')}</span></div>
+          <div class="flex justify-between"><span class="text-muted">Slot</span><span class="semibold">${escapeHtml(selectedSlot || '3:30 PM')}</span></div>
+          <div class="flex justify-between"><span class="text-muted">Token</span><span class="bold text-primary">${token}</span></div>
         </div>
       </div>
-      <div style="display:flex;justify-content:center;margin:16px 0;">
+      <div class="flex justify-center my-4">
         ${generateQRDisplay(`QR-${token}-HEALTHVERSE`)}
       </div>
-      <div style="display:flex;gap:10px;margin-top:20px;">
-        <button class="btn btn-primary" style="flex:1;" onclick="closeModal();navigate('live-queue')">View Queue</button>
+      <div class="flex gap-2 mt-4">
+        <button class="btn btn-primary flex-1" onclick="closeModal();navigate('live-queue')">View Queue</button>
         <button class="btn btn-ghost" onclick="closeModal()">Done</button>
       </div>
     </div>
   `);
 
-  showToast('Appointment booked! Saved to Supabase database 📧', 'success');
+  showToast('Appointment booked successfully! 📧', 'success');
 }

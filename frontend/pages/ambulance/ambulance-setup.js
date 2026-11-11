@@ -1,7 +1,8 @@
 // HealthVerse — Ambulance Driver Onboarding & Vehicle Verification
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
-import { showToast } from '../../utils/utils.js';
+import { showToast, escapeHtml, setFieldError, clearFormErrors } from '../../utils/utils.js';
+import { uiIcon } from '../../utils/icons.js';
 
 export function renderAmbulanceSetup() {
   const app = document.getElementById('app');
@@ -14,8 +15,8 @@ export function renderAmbulanceSetup() {
       <div style="background:linear-gradient(135deg, #111827 0%, #1F2937 50%, #7F1D1D 100%);color:white;padding:calc(20px + var(--safe-top)) 20px 24px;">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <div style="width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">
-              🚑
+            <div style="width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;">
+              ${uiIcon('ambulance', { size: 20, color: 'white' })}
             </div>
             <div>
               <div style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:700;letter-spacing:0.5px;">EMERGENCY FLEET ONBOARDING</div>
@@ -33,7 +34,7 @@ export function renderAmbulanceSetup() {
         <!-- Verification Info Card -->
         <div class="card p-3 mb-4" style="background:var(--emergency-light);border:1px solid rgba(255,71,87,0.3);border-radius:16px;">
           <div class="flex items-start gap-3">
-            <span style="font-size:24px;">🚨</span>
+            <span style="display:inline-flex;color:var(--emergency);margin-top:2px;">${uiIcon('siren', { size: 24 })}</span>
             <div>
               <strong style="color:var(--text-primary);font-size:14px;display:block;">Emergency Vehicle & Commercial License Setup</strong>
               <p style="font-size:12px;color:var(--text-secondary);margin:2px 0 0;line-height:1.4;">
@@ -44,13 +45,13 @@ export function renderAmbulanceSetup() {
         </div>
 
         <!-- Setup Form -->
-        <form id="amb-setup-form" onsubmit="event.preventDefault(); handleAmbulanceVerificationSubmit();">
+        <form id="amb-setup-form" onsubmit="event.preventDefault(); handleAmbulanceVerificationSubmit();" novalidate>
           <!-- Driver Name -->
           <div class="form-group mb-3">
-            <label class="form-label">Driver Full Name *</label>
+            <label class="form-label" for="setup-amb-name">Driver Full Name *</label>
             <div class="input-group">
-              <span class="input-icon">👤</span>
-              <input type="text" class="form-input" id="setup-amb-name" value="${driver.name || user.name || 'Ravi Kumar'}" required placeholder="e.g. Ravi Kumar" />
+              <span class="input-icon">${uiIcon('user', { size: 16 })}</span>
+              <input type="text" class="form-input" id="setup-amb-name" value="${escapeHtml(driver.name || user.name || 'Ravi Kumar')}" autocomplete="name" required placeholder="e.g. Ravi Kumar" />
             </div>
           </div>
 
@@ -58,8 +59,8 @@ export function renderAmbulanceSetup() {
           <div class="form-group mb-3">
             <label class="form-label">Vehicle Name & Model *</label>
             <div class="input-group">
-              <span class="input-icon">🚑</span>
-              <input type="text" class="form-input" id="setup-amb-vehiclename" value="${driver.vehicleName || 'LifeLine Advanced Cardiac Life Support (ACLS)'}" required placeholder="e.g. Force Traveller ICU Ambulance" />
+              <span class="input-icon">${uiIcon('ambulance', { size: 16 })}</span>
+              <input type="text" class="form-input" id="setup-amb-vehiclename" value="${escapeHtml(driver.vehicleName || 'LifeLine Advanced Cardiac Life Support (ACLS)')}" required placeholder="e.g. Force Traveller ICU Ambulance" />
             </div>
             <!-- Quick Suggestion Chips -->
             <div class="flex gap-2 flex-wrap mt-2">
@@ -73,8 +74,8 @@ export function renderAmbulanceSetup() {
           <div class="form-group mb-3">
             <label class="form-label">Vehicle Registration Number *</label>
             <div class="input-group">
-              <span class="input-icon">🔢</span>
-              <input type="text" class="form-input" id="setup-amb-vehiclenum" value="${driver.vehicleNumber || 'TN 07 HV 2026'}" required placeholder="e.g. TN 07 HV 2026 or MH 01 AX 4892" style="font-weight:700;letter-spacing:1px;text-transform:uppercase;" />
+              <span class="input-icon">${uiIcon('hash', { size: 16 })}</span>
+              <input type="text" class="form-input" id="setup-amb-vehiclenum" value="${escapeHtml(driver.vehicleNumber || 'TN 07 HV 2026')}" required placeholder="e.g. TN 07 HV 2026 or MH 01 AX 4892" style="font-weight:700;letter-spacing:1px;text-transform:uppercase;" />
             </div>
           </div>
 
@@ -82,8 +83,8 @@ export function renderAmbulanceSetup() {
           <div class="form-group mb-3">
             <label class="form-label">Driving License / Commercial Permit Number *</label>
             <div class="input-group">
-              <span class="input-icon">🪪</span>
-              <input type="text" class="form-input" id="setup-amb-licensenum" value="${driver.licenseNumber || 'DL-TN-07-2018-00912'}" required placeholder="e.g. DL-TN-07-2018-00912" />
+              <span class="input-icon">${uiIcon('idCard', { size: 16 })}</span>
+              <input type="text" class="form-input" id="setup-amb-licensenum" value="${escapeHtml(driver.licenseNumber || 'DL-TN-07-2018-00912')}" required placeholder="e.g. DL-TN-07-2018-00912" />
             </div>
           </div>
 
@@ -92,9 +93,9 @@ export function renderAmbulanceSetup() {
             <label class="form-label">Upload Driving License / Commercial Permit *</label>
             <div class="amb-dropzone" id="license-dropzone" onclick="document.getElementById('license-file-input').click()">
               <input type="file" id="license-file-input" style="display:none;" accept=".pdf,.png,.jpg,.jpeg" onchange="handleLicenseFileChosen(this)" />
-              <div class="dropzone-icon" id="license-icon">🪪</div>
+              <div class="dropzone-icon" id="license-icon" style="color:var(--primary);">${uiIcon('idCard', { size: 32 })}</div>
               <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-top:6px;" id="license-title">
-                ${driver.licenseName || 'Click or Drag & Drop Commercial Driving License'}
+                ${escapeHtml(driver.licenseName || 'Click or Drag & Drop Commercial Driving License')}
               </div>
               <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;" id="license-sub">
                 Supported formats: PDF, PNG, JPG (Commercial Heavy / Emergency Badge)
@@ -135,7 +136,7 @@ function initAmbulanceSetupHandlers() {
 
       if (title) title.innerText = file.name;
       if (sub) sub.innerText = `Size: ${(file.size / 1024).toFixed(1)} KB • Commercial Validity Verified`;
-      if (icon) icon.innerText = '✅';
+      if (icon) icon.innerHTML = uiIcon('checkCircle', { size: 32, color: 'var(--success)' });
       if (pill) {
         pill.innerText = '✓ Driving License Validated';
         pill.style.background = '#2ED573';
@@ -145,13 +146,19 @@ function initAmbulanceSetupHandlers() {
   };
 
   window.handleAmbulanceVerificationSubmit = () => {
+    clearFormErrors(document.getElementById('amb-setup-form'));
     const name = document.getElementById('setup-amb-name')?.value.trim();
     const vehicleName = document.getElementById('setup-amb-vehiclename')?.value.trim();
     const vehicleNumber = document.getElementById('setup-amb-vehiclenum')?.value.trim();
     const licenseNumber = document.getElementById('setup-amb-licensenum')?.value.trim();
     const licenseTitle = document.getElementById('license-title')?.innerText || 'Commercial_Driving_License.pdf';
 
-    if (!name || !vehicleName || !vehicleNumber || !licenseNumber) {
+    let valid = true;
+    if (!name) { setFieldError('setup-amb-name', 'Driver full name is required'); valid = false; }
+    if (!vehicleName) { setFieldError('setup-amb-vehiclename', 'Vehicle name/model is required'); valid = false; }
+    if (!vehicleNumber) { setFieldError('setup-amb-vehiclenum', 'Vehicle registration number is required'); valid = false; }
+    if (!licenseNumber) { setFieldError('setup-amb-licensenum', 'Driving license number is required'); valid = false; }
+    if (!valid) {
       showToast('Please fill in all ambulance and vehicle verification fields', 'error');
       return;
     }
