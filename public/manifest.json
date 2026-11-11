@@ -1,0 +1,17 @@
+{
+  "name": "HealthVerse",
+  "short_name": "HealthVerse",
+  "description": "AI-powered healthcare ecosystem connecting patients, doctors, hospitals, and emergency services.",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#4A90D9",
+  "background_color": "#F0F5FA",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
