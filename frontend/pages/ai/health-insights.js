@@ -1,7 +1,7 @@
 // HealthVerse — AI Health Insights & Vital Charts with Supabase Integration
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
-import { showToast, renderSkeletonCards, renderEmptyState, renderErrorState, escapeHtml } from '../../utils/utils.js';
+import { showToast, renderSkeletonCards, renderEmptyState, renderErrorState, escapeHtml, applyCountUps } from '../../utils/utils.js';
 import { getAISummary } from '../../services/supabase/db.js';
 
 let chartInstance = null;
@@ -103,6 +103,7 @@ async function loadHealthInsightsData() {
         </div>
       </div>
     `;
+    applyCountUps(container);
   } catch (err) {
     if (!document.getElementById('insights-content')) return;
     container.innerHTML = renderErrorState({

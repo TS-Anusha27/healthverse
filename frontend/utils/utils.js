@@ -220,3 +220,44 @@ export function generateQRDisplay(code) {
     <div style="font-size: 11px; color: #6B7A8D; text-align: center; margin-top: 8px; font-family: monospace; letter-spacing: 1px;">${code}</div>
   `;
 }
+
+export function animateCountUp(el, target, { duration = 600, prefix = '', suffix = '' } = {}) {
+  if (!el) return;
+  const numericTarget = Number(target);
+  if (!Number.isFinite(numericTarget)) {
+    el.textContent = `${prefix}${target}${suffix}`;
+    return;
+  }
+  const prefersReduced = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReduced || duration <= 0 || numericTarget === 0) {
+    el.textContent = `${prefix}${numericTarget}${suffix}`;
+    return;
+  }
+  const start = performance.now();
+  const isFloat = !Number.isInteger(numericTarget);
+  function frame(now) {
+    const elapsed = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - elapsed, 3);
+    const current = numericTarget * eased;
+    el.textContent = `${prefix}${isFloat ? current.toFixed(1) : Math.round(current)}${suffix}`;
+    if (elapsed < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      el.textContent = `${prefix}${numericTarget}${suffix}`;
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+export function applyCountUps(root = document) {
+  if (!root) return;
+  const targets = root.querySelectorAll('[data-countup]');
+  targets.forEach(el => {
+    if (el.dataset.counted === 'true') return;
+    el.dataset.counted = 'true';
+    const raw = el.getAttribute('data-countup');
+    const prefix = el.getAttribute('data-countup-prefix') || '';
+    const suffix = el.getAttribute('data-countup-suffix') || '';
+    animateCountUp(el, raw, { prefix, suffix });
+  });
+}

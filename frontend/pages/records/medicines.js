@@ -1,6 +1,6 @@
 // HealthVerse — Medicine Reminders & Pharmacy Orders connected to Supabase DB
 import { navigate, goBack } from '../../routes/router.js';
-import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState, applyCountUps } from '../../utils/utils.js';
 import { getMedicines, createMedicine, createMedicineOrder } from '../../services/supabase/db.js';
 import { store } from '../../store/store.js';
 
@@ -63,7 +63,7 @@ async function loadMedicinesData() {
           <div class="flex items-center justify-between">
             <div>
               <div style="font-size:12px;font-weight:700;color:var(--warning);text-transform:uppercase;letter-spacing:0.5px;">Today's Adherence</div>
-              <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:var(--text-primary);margin-top:2px;"><span id="med-adherence-pct">${pct}</span>% Completed</div>
+              <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:var(--text-primary);margin-top:2px;"><span id="med-adherence-pct" data-countup="${pct}">${pct}</span>% Completed</div>
               <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;" id="med-adherence-sub">${takenCount} of ${totalCount} medicines taken today</div>
             </div>
             <div style="width:50px;height:50px;border-radius:50%;background:var(--warning);color:white;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:16px;" id="med-adherence-ratio">
@@ -72,6 +72,7 @@ async function loadMedicinesData() {
           </div>
         </div>
       `;
+      applyCountUps(adherenceEl);
     }
 
     if (currentMeds.length === 0) {

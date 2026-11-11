@@ -1,7 +1,7 @@
 // HealthVerse — Health Records Timeline with Supabase DB & Storage
 import { navigate, goBack } from '../../routes/router.js';
 import { mockData } from '../../services/data.js';
-import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, renderSkeletonStats, renderEmptyState, renderErrorState } from '../../utils/utils.js';
+import { showToast, showModal, closeModal, escapeHtml, renderSkeletonCards, renderSkeletonStats, renderEmptyState, renderErrorState, applyCountUps } from '../../utils/utils.js';
 import { getHealthRecords, createHealthRecord } from '../../services/supabase/db.js';
 import { uploadFile } from '../../services/supabase/storage.js';
 
@@ -99,12 +99,13 @@ async function loadHealthRecordsData() {
             { n: currentRecords.filter(r=>r.type==='Blood Report').length, label: 'Lab Reports', color: 'var(--accent)', bg: 'var(--accent-light)' },
           ].map(s => `
             <div style="background:${s.bg};border-radius:14px;padding:14px;text-align:center;">
-              <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:${s.color};">${s.n}</div>
+              <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:${s.color};" data-countup="${s.n}">${s.n}</div>
               <div style="font-size:11px;font-weight:600;color:${s.color};margin-top:2px;">${s.label}</div>
             </div>
           `).join('')}
         </div>
       `;
+      applyCountUps(statsEl);
     }
 
     if (currentRecords.length === 0) {

@@ -1404,3 +1404,135 @@ h1, h2, h3, h4, h5, h6 {
 .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cursor-pointer { cursor: pointer; }
 .no-select { user-select: none; -webkit-tap-highlight-color: transparent; }
+
+/* --- Task B2: Motion, Transitions, Stagger & Press Feedback --- */
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardStaggerIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.page-enter {
+  animation: pageEnter 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.stagger-grid > *,
+.screen-content .card,
+.screen-content .hosp-card,
+.screen-content .med-card,
+.screen-content .appointment-card,
+.screen-content .hospital-mini-card,
+.screen-content .quick-action {
+  animation: cardStaggerIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.stagger-grid > *:nth-child(1),
+.screen-content .card:nth-child(1),
+.screen-content .hosp-card:nth-child(1),
+.screen-content .med-card:nth-child(1),
+.screen-content .hospital-mini-card:nth-child(1),
+.screen-content .quick-action:nth-child(1) { animation-delay: 0.02s; }
+
+.stagger-grid > *:nth-child(2),
+.screen-content .card:nth-child(2),
+.screen-content .hosp-card:nth-child(2),
+.screen-content .med-card:nth-child(2),
+.screen-content .hospital-mini-card:nth-child(2),
+.screen-content .quick-action:nth-child(2) { animation-delay: 0.05s; }
+
+.stagger-grid > *:nth-child(3),
+.screen-content .card:nth-child(3),
+.screen-content .hosp-card:nth-child(3),
+.screen-content .med-card:nth-child(3),
+.screen-content .hospital-mini-card:nth-child(3),
+.screen-content .quick-action:nth-child(3) { animation-delay: 0.08s; }
+
+.stagger-grid > *:nth-child(4),
+.screen-content .card:nth-child(4),
+.screen-content .hosp-card:nth-child(4),
+.screen-content .med-card:nth-child(4),
+.screen-content .hospital-mini-card:nth-child(4),
+.screen-content .quick-action:nth-child(4) { animation-delay: 0.11s; }
+
+.stagger-grid > *:nth-child(5),
+.screen-content .card:nth-child(5),
+.screen-content .hosp-card:nth-child(5),
+.screen-content .med-card:nth-child(5),
+.screen-content .quick-action:nth-child(5) { animation-delay: 0.14s; }
+
+.stagger-grid > *:nth-child(6),
+.screen-content .card:nth-child(6),
+.screen-content .quick-action:nth-child(6) { animation-delay: 0.17s; }
+
+.stagger-grid > *:nth-child(n+7),
+.screen-content .quick-action:nth-child(n+7) { animation-delay: 0.2s; }
+
+/* Consistent tactile press feedback */
+.btn,
+.chip,
+.nav-item,
+.back-btn,
+.btn-icon,
+.btn-icon-sm,
+.quick-action,
+.hosp-card,
+.med-card,
+.appointment-card,
+.hospital-mini-card {
+  transition: transform 0.14s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.btn:active,
+.chip:active,
+.nav-item:active,
+.back-btn:active,
+.btn-icon:active,
+.btn-icon-sm:active,
+.quick-action:active,
+.med-card:active,
+.appointment-card:active,
+.hosp-card:active,
+.hospital-mini-card:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .page-enter,
+  .stagger-grid > *,
+  .screen-content .card,
+  .screen-content .hosp-card,
+  .screen-content .med-card,
+  .screen-content .appointment-card,
+  .screen-content .hospital-mini-card,
+  .screen-content .quick-action {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

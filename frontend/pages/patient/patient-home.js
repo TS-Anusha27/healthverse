@@ -43,7 +43,7 @@ export function renderPatientHome() {
           <div class="health-score-card">
             <div class="health-score-left">
               <div class="score-label">Health Score</div>
-              <div class="score-value">${patient.healthScore || 82}<span style="font-size:18px;">/100</span></div>
+              <div class="score-value"><span data-countup="${patient.healthScore || 82}">${patient.healthScore || 82}</span><span style="font-size:18px;">/100</span></div>
               <div class="score-status">
                 <div class="score-dot" style="background:var(--secondary);"></div>
                 <span>Good — Keep it up!</span>
@@ -59,7 +59,7 @@ export function renderPatientHome() {
                   style="transition:stroke-dashoffset 1.2s ease;" />
               </svg>
               <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">
-                <div style="font-size:20px;font-weight:800;color:white;">${patient.healthScore || 82}</div>
+                <div style="font-size:20px;font-weight:800;color:white;" data-countup="${patient.healthScore || 82}">${patient.healthScore || 82}</div>
                 <div style="font-size:10px;color:rgba(255,255,255,0.7);">score</div>
               </div>
             </div>

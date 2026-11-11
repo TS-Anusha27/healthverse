@@ -2,7 +2,7 @@
 import { navigate } from '../../routes/router.js';
 import { store } from '../../store/store.js';
 import { mockData } from '../../services/data.js';
-import { showToast, getInitials, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState } from '../../utils/utils.js';
+import { showToast, getInitials, escapeHtml, renderSkeletonCards, renderEmptyState, renderErrorState, animateCountUp } from '../../utils/utils.js';
 import { getAppointments, getEmergencyRequests } from '../../services/supabase/db.js';
 
 export function renderDoctorDashboard() {
@@ -107,9 +107,9 @@ async function loadDoctorDashboardData() {
     const apptsEl = document.getElementById('doc-stat-appts');
     const emergEl = document.getElementById('doc-stat-emerg');
     const videoEl = document.getElementById('doc-stat-video');
-    if (apptsEl) apptsEl.textContent = String((appts || []).length);
-    if (emergEl) emergEl.textContent = String(activeEmergencies);
-    if (videoEl) videoEl.textContent = '4';
+    if (apptsEl) animateCountUp(apptsEl, (appts || []).length);
+    if (emergEl) animateCountUp(emergEl, activeEmergencies);
+    if (videoEl) animateCountUp(videoEl, 4);
 
     const queue = mockData.doctorQueue || [];
     if (queue.length === 0) {
