@@ -2958,3 +2958,130 @@ textarea:focus-visible {
 [data-theme="dark"] .paypal-status-notice--info {
   color: #93C5FD;
 }
+
+/* AI Triage Explain Card & AI Utilities */
+.ai-explain-card {
+  background: var(--surface);
+  border: 1.5px solid rgba(123, 104, 238, 0.28);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.ai-explain-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.ai-explain-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-explain-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(123, 104, 238, 0.14);
+  color: #7B68EE;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-explain-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ai-explain-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(123, 104, 238, 0.12);
+  color: #6B5CE7;
+}
+
+[data-theme="dark"] .ai-explain-badge {
+  color: #C4B5FD;
+  background: rgba(123, 104, 238, 0.22);
+}
+
+.ai-explain-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-explain-summary {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+}
+
+.ai-explain-why {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  margin: 0 0 10px;
+}
+
+.ai-explain-specialty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ai-explain-section {
+  background: var(--surface-dim);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  margin-top: 8px;
+}
+
+.ai-explain-flags {
+  background: rgba(232, 93, 93, 0.08);
+  border: 1px solid rgba(232, 93, 93, 0.2);
+}
+
+.ai-explain-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.ai-explain-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.ai-explain-list li + li {
+  margin-top: 3px;
+}
+
+.ai-explain-disclaimer {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}

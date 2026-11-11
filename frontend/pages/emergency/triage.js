@@ -7,6 +7,7 @@ import { uiIcon } from '../../utils/icons.js';
 let answers = [];
 let currentQ = 0;
 let pendingTimers = [];
+let aiExplainToken = 0;
 
 function clearPendingTimers() {
   pendingTimers.forEach(id => clearTimeout(id));
@@ -28,6 +29,7 @@ function scheduleTriageTimeout(fn, delay) {
 export function renderTriage() {
   const app = document.getElementById('app');
   clearPendingTimers();
+  aiExplainToken++;
   answers = [];
   currentQ = 0;
   const totalQuestions = triageEngine.questions.length;
@@ -149,6 +151,7 @@ function initTriageActions() {
 
   window.goToPreviousTriageQuestion = () => {
     clearPendingTimers();
+    aiExplainToken++;
     document.querySelectorAll('.triage-typing-row').forEach(el => el.remove());
 
     const chatArea = document.getElementById('chat-area');
@@ -157,6 +160,7 @@ function initTriageActions() {
 
     if (currentQ >= total) {
       chatArea?.querySelector('.triage-result')?.remove();
+      chatArea?.querySelector('#ai-triage-explain-card')?.remove();
       chatArea?.querySelector('[data-turn="summary"]')?.remove();
       if (inputArea) inputArea.style.display = '';
       currentQ = total - 1;
@@ -180,6 +184,7 @@ function initTriageActions() {
 
   window.restartTriage = () => {
     clearPendingTimers();
+    aiExplainToken++;
     answers = [];
     currentQ = 0;
     renderTriage();
@@ -340,6 +345,11 @@ function showTriageResult() {
     const optionsEl = document.getElementById('options-container');
     chatArea.insertBefore(resultDiv, optionsEl);
 
+    const requestToken = ++aiExplainToken;
+    const aiCard = createAiExplainLoadingCard(requestToken);
+    chatArea.insertBefore(aiCard, optionsEl);
+    loadAiTriageExplanation(requestToken, answers, result, chatArea);
+
     if (optContainer) optContainer.innerHTML = '';
     if (inputArea) inputArea.style.display = 'none';
 
@@ -349,4 +359,122 @@ function showTriageResult() {
       showToast('🚨 Critical condition detected. Emergency services alert sent!', 'error', 5000);
     }
   }, 550);
+}
+
+function createAiExplainLoadingCard(token) {
+  const card = document.createElement('div');
+  card.id = 'ai-triage-explain-card';
+  card.className = 'ai-explain-card mt-3';
+  card.setAttribute('data-token', String(token));
+  card.setAttribute('aria-live', 'polite');
+  card.innerHTML = `
+    <div class="ai-explain-header">
+      <div class="ai-explain-title-row">
+        <span class="ai-explain-icon">${uiIcon('bot', { size: 16 })}</span>
+        <span class="ai-explain-title">Personalized Care Guidance</span>
+      </div>
+      <span class="ai-explain-badge">AI-generated, not medical advice</span>
+    </div>
+    <div class="ai-explain-skeleton">
+      <div class="skeleton skeleton-line" style="width:90%;"></div>
+      <div class="skeleton skeleton-line" style="width:76%;"></div>
+      <div class="skeleton skeleton-line" style="width:60%;"></div>
+    </div>
+  `;
+  return card;
+}
+
+async function loadAiTriageExplanation(token, userAnswers, result, chatArea) {
+  const pairedAnswers = triageEngine.questions
+    .map((q, idx) => ({
+      question: q.text,
+      answer: userAnswers[idx] || ''
+    }))
+    .filter((entry) => entry.answer);
+
+  if (pairedAnswers.length === 0) {
+    document.getElementById('ai-triage-explain-card')?.remove();
+    return;
+  }
+
+  const numericScore = Number.isFinite(Number(result?.score))
+    ? Number(result.score)
+    : (result.level === 'red' ? 9 : result.level === 'orange' ? 6 : result.level === 'yellow' ? 3 : 1);
+
+  try {
+    const resp = await fetch('/api/ai/triage-explain', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        answers: pairedAnswers,
+        level: result.level,
+        score: numericScore
+      })
+    });
+
+    if (!resp.ok) {
+      throw new Error(`HTTP ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    if (token !== aiExplainToken) return;
+
+    const card = document.getElementById('ai-triage-explain-card');
+    if (!card || card.getAttribute('data-token') !== String(token)) return;
+
+    const tipsHtml = Array.isArray(data.selfCareTips) && data.selfCareTips.length > 0
+      ? `
+        <div class="ai-explain-section">
+          <div class="ai-explain-label">Safe Next Steps</div>
+          <ul class="ai-explain-list">
+            ${data.selfCareTips.map((tip) => `<li>${escapeHtml(tip)}</li>`).join('')}
+          </ul>
+        </div>
+      `
+      : '';
+
+    const flagsHtml = Array.isArray(data.redFlags) && data.redFlags.length > 0
+      ? `
+        <div class="ai-explain-section ai-explain-flags">
+          <div class="ai-explain-label">Seek Immediate 108 / 112 Care If You Notice</div>
+          <ul class="ai-explain-list">
+            ${data.redFlags.map((flag) => `<li>${escapeHtml(flag)}</li>`).join('')}
+          </ul>
+        </div>
+      `
+      : '';
+
+    const specialty = data.suggestedSpecialty ? escapeHtml(data.suggestedSpecialty) : 'General Physician';
+
+    card.innerHTML = `
+      <div class="ai-explain-header">
+        <div class="ai-explain-title-row">
+          <span class="ai-explain-icon">${uiIcon('bot', { size: 16 })}</span>
+          <span class="ai-explain-title">Personalized Care Guidance</span>
+        </div>
+        <span class="ai-explain-badge">AI-generated, not medical advice</span>
+      </div>
+      <p class="ai-explain-summary">${escapeHtml(data.summary || '')}</p>
+      ${data.whyThisLevel ? `<p class="ai-explain-why"><strong>Why this urgency:</strong> ${escapeHtml(data.whyThisLevel)}</p>` : ''}
+      <div class="ai-explain-specialty-row">
+        <span class="badge badge-info">Suggested Specialty: ${specialty}</span>
+        ${result.level !== 'red' ? `
+          <button type="button" class="btn btn-ghost btn-xs" data-specialty="${specialty}" onclick="navigate('appointments', { specialty: this.dataset.specialty, fromTriage: '1' })">
+            Find Specialists →
+          </button>
+        ` : ''}
+      </div>
+      ${tipsHtml}
+      ${flagsHtml}
+      <div class="ai-explain-disclaimer">${escapeHtml(data.disclaimer || 'AI-generated explanation for informational support only — not medical advice.')}</div>
+    `;
+
+    if (chatArea) {
+      setTimeout(() => { chatArea.scrollTop = chatArea.scrollHeight; }, 90);
+    }
+  } catch {
+    if (token === aiExplainToken) {
+      document.getElementById('ai-triage-explain-card')?.remove();
+    }
+  }
 }
